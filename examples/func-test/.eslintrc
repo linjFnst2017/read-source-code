@@ -22,7 +22,10 @@
     "no-bitwise": [0],
     "no-cond-assign": [0],
     "import/no-unresolved": [0],
-    "require-yield": [1]
+    "require-yield": [1],
+    // 统一换行符，"\n" unix(for LF) and "\r\n" for windows(CRLF)，默认unix
+    // off或0: 禁用规则
+    "linebreak-style": "off"
   },
   "parserOptions": {
     "ecmaFeatures": {
