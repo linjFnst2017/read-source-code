@@ -98,26 +98,44 @@ export default function dynamic(config) {
         // todo
         // Promise.all
         Promise.all([...models, component]).then((ret) => {
+          // 如果 dva 项目中的 model 对象个数为 0
           if (!models || !models.length) {
             return resolve(ret[0]);
           } else {
             const len = models.length;
+            // todo
+            // m.default 到底是个啥 ？？？
             ret.slice(0, len).forEach((m) => {
               m = m.default || m;
+              // todo
+              // 为啥又要扩展成数组 ？？？
+              // note
+              // Array.isArray(m)
               if (!Array.isArray(m)) {
                 m = [m];
               }
+              // todo
+              // 看起来像是 每一个 m 中有很多个model ？？？
               m.map(_ => registerModel(app, _));
             });
+            // todo
+            // 看一下ret是个啥？？？
             resolve(ret[len]);
           }
         });
       });
     },
+    // todo
+    // 感觉这里应该是 config 在前, resolve 在后吧 ?  不然 config.resolve 为空会被覆盖的吧 ？？？
     ...config,
   });
 }
 
+// todo
+// function 也是一个 object， 这里又扩展了一个方法
+// 这个方法为什么会改变上面定义的 LoadingComponent ？？？
+// 理论上来说，这里的 dynamic 对象的 LoadingComponent 应该是 undefined ，而不是上面定义的无状态组件吧？？？
+// 但是事实上应该是的。
 dynamic.setDefaultLoadingComponent = (LoadingComponent) => {
   defaultLoadingComponent = LoadingComponent;
 };
