@@ -11,6 +11,7 @@ export default function prefixedDispatch(dispatch, model) {
       type.indexOf(`${model.namespace}${NAMESPACE_SEP}`) !== 0,
       `dispatch: ${type} should not be prefixed with namespace ${model.namespace}`,
     );
+    // 尝试将 action 中的 type 转化成 带有 namespace 前缀的type
     return dispatch({ ...action, type: prefixType(type, model) });
   };
 }

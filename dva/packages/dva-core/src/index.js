@@ -1,8 +1,11 @@
 import { combineReducers } from 'redux';
 import createSagaMiddleware from 'redux-saga/lib/internal/middleware';
 import invariant from 'invariant';
+// 检查 dva model 是否符合规范,如果不符合 通过 invariant 提醒用户
 import checkModel from './checkModel';
+// 将输入的对象的所有键统一加上 namespace 前缀
 import prefixNamespace from './prefixNamespace';
+// 主要是处理钩子函数
 import Plugin, { filterHooks } from './Plugin';
 import createStore from './createStore';
 import getSaga from './getSaga';
