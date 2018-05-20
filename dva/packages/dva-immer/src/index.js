@@ -1,3 +1,6 @@
+// Create the next immutable state tree by simply modifying the current tree
+// 通过简单修改当前的 state 树来创建一个不可变的 state 树
+// 替代 immutable
 import produce from 'immer';
 
 export default function() {

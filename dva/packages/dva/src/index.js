@@ -1,11 +1,20 @@
 import React from 'react';
 import invariant from 'invariant';
+// history 是一个JavaScript库,可以让您轻松地管理会话历史任何JavaScript运行。
+// history 进行了抽象的差异在不同的环境和提供了一个最小的API,允许您管理历史堆栈,导航,确认导航和持续状态之间的会话。
 import createHashHistory from 'history/createHashHistory';
+// react-router-redux 是将react-router 和 redux 集成到一起的库，让你可以用redux的方式去操作react-router。
+// 例如，react-router 中跳转需要调用 router.push(path)，集成了react-router-redux
+// 你就可以通过dispatch的方式使用router，例如跳转可以这样做 store.dispatch(push(url))。
+// 本质上，是把react-router自己维护的状态，例如location、history、path等等，也交给redux管理。一般情况下，是没有必要使用这个库的。
 import {
   routerMiddleware,
   routerReducer as routing,
 } from 'react-router-redux';
+// require document 以及 window 这些全局变量
 import document from 'global/document';
+// react-redux提供了2个API，Provider和connect。
+// Provider 源码解析: https://segmentfault.com/a/1190000010158572
 import { Provider } from 'react-redux';
 import * as core from 'dva-core';
 import { isFunction } from 'dva-core/lib/utils';
@@ -105,8 +114,11 @@ function render(container, store, app, router) {
 }
 
 function patchHistory(history) {
+  // todo
+  // history.listen 是什么
   const oldListen = history.listen;
   history.listen = (callback) => {
+    // history.location就是window.location的一个子集
     callback(history.location);
     return oldListen.call(history, callback);
   };

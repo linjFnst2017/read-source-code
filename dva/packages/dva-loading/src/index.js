@@ -4,7 +4,7 @@ const NAMESPACE = 'loading';
 
 function createLoading(opts = {}) {
   const namespace = opts.namespace || NAMESPACE;
-  
+  // 这个解构,如果 opts 中不存在这个对象,就赋予空数组作为默认值
   const { only = [], except = [] } = opts;
   if (only.length > 0 && except.length > 0) {
     throw Error('It is ambiguous to configurate `only` and `except` items at the same time.');
