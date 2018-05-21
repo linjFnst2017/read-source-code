@@ -3,8 +3,11 @@ import warning from './utils/warning'
 import isPlainObject from './utils/isPlainObject'
 
 function getUndefinedStateErrorMessage(key, action) {
+  // 首先 action 没有问题
   const actionType = action && action.type
   const actionDescription =
+    // todo
+    // String(obj)
     (actionType && `action "${String(actionType)}"`) || 'an action'
 
   return (
