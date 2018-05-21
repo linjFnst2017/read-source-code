@@ -10,9 +10,12 @@ import __DO_NOT_USE__ActionTypes from './utils/actionTypes'
  * This is a dummy function to check if the function name has been altered by minification.
  * If the function has been minified and NODE_ENV !== 'production', warn the user.
  */
+// todo
+// 用户检查方法名是否在压缩代码之后被改变？
 function isCrushed() { }
 
 if (
+  // package.json 中输入的参数
   process.env.NODE_ENV !== 'production' &&
   typeof isCrushed.name === 'string' &&
   isCrushed.name !== 'isCrushed'

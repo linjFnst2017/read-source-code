@@ -6,6 +6,9 @@ export default function isPlainObject(obj) {
   if (typeof obj !== 'object' || obj === null) return false
 
   let proto = obj
+  // todo
+  // getPrototypeOf: 返回对象的原型。
+  // Object 是最顶层的原型
   while (Object.getPrototypeOf(proto) !== null) {
     proto = Object.getPrototypeOf(proto)
   }

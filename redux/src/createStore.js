@@ -1,3 +1,5 @@
+// symbol observable ponyfill 夹棉
+// https://www.npmjs.com/package/symbol-observable
 import $$observable from 'symbol-observable'
 
 import ActionTypes from './utils/actionTypes'
@@ -29,19 +31,22 @@ import isPlainObject from './utils/isPlainObject'
  * and subscribe to changes.
  */
 export default function createStore(reducer, preloadedState, enhancer) {
+  // 这个判断用于preloadedState没有输入的情况，createStore 只有两个参数 reducer 和 enhancer
   if (typeof preloadedState === 'function' && typeof enhancer === 'undefined') {
     enhancer = preloadedState
     preloadedState = undefined
   }
 
   if (typeof enhancer !== 'undefined') {
+    // enhancer （增强剂） 必须为一个函数
     if (typeof enhancer !== 'function') {
       throw new Error('Expected the enhancer to be a function.')
     }
-
+    // todo
     return enhancer(createStore)(reducer, preloadedState)
   }
 
+  // reducer 必须是一个函数
   if (typeof reducer !== 'function') {
     throw new Error('Expected the reducer to be a function.')
   }
@@ -50,8 +55,13 @@ export default function createStore(reducer, preloadedState, enhancer) {
   let currentState = preloadedState
   let currentListeners = []
   let nextListeners = currentListeners
+  // todo
+  // 这个状态很重要? 是指不能在 dispatch 的情况下进行操作？
   let isDispatching = false
 
+  // todo
+  // 确保可以通知接下来的Listeners
+  // 确保 nextListeners 和 currentListeners 不是同一个引用，修改不会互相影响
   function ensureCanMutateNextListeners() {
     if (nextListeners === currentListeners) {
       nextListeners = currentListeners.slice()
@@ -67,8 +77,8 @@ export default function createStore(reducer, preloadedState, enhancer) {
     if (isDispatching) {
       throw new Error(
         'You may not call store.getState() while the reducer is executing. ' +
-          'The reducer has already received the state as an argument. ' +
-          'Pass it down from the top reducer instead of reading it from the store.'
+        'The reducer has already received the state as an argument. ' +
+        'Pass it down from the top reducer instead of reading it from the store.'
       )
     }
 
@@ -98,6 +108,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * @param {Function} listener A callback to be invoked on every dispatch.
    * @returns {Function} A function to remove this change listener.
    */
+  // 订阅 listener
   function subscribe(listener) {
     if (typeof listener !== 'function') {
       throw new Error('Expected the listener to be a function.')
@@ -105,18 +116,21 @@ export default function createStore(reducer, preloadedState, enhancer) {
 
     if (isDispatching) {
       throw new Error(
-        'You may not call store.subscribe() while the reducer is executing. ' +
-          'If you would like to be notified after the store has been updated, subscribe from a ' +
-          'component and invoke store.getState() in the callback to access the latest state. ' +
-          'See https://redux.js.org/api-reference/store#subscribe(listener) for more details.'
+        'You may not call store.subscribe() while the reducer is executing（执行）. ' +
+        'If you would like to be notified after the store has been updated, subscribe from a ' +
+        'component and invoke store.getState() in the callback to access the latest state. ' +
+        'See https://redux.js.org/api-reference/store#subscribe(listener) for more details.'
       )
     }
 
     let isSubscribed = true
 
+    // 确保 nextListeners 和 currentListeners 不是同一个引用，修改不会互相影响
     ensureCanMutateNextListeners()
+    // 新加入的 listener
     nextListeners.push(listener)
 
+    // 返回一个取消该listener的订阅函数
     return function unsubscribe() {
       if (!isSubscribed) {
         return
@@ -125,7 +139,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
       if (isDispatching) {
         throw new Error(
           'You may not unsubscribe from a store listener while the reducer is executing. ' +
-            'See https://redux.js.org/api-reference/store#subscribe(listener) for more details.'
+          'See https://redux.js.org/api-reference/store#subscribe(listener) for more details.'
         )
       }
 
@@ -162,21 +176,25 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * Note that, if you use a custom middleware, it may wrap `dispatch()` to
    * return something else (for example, a Promise you can await).
    */
+  // 改变state的值，只有通过 dispatch（调度）一个action
   function dispatch(action) {
+    // 确保 action 是一个简单对象
     if (!isPlainObject(action)) {
       throw new Error(
         'Actions must be plain objects. ' +
-          'Use custom middleware for async actions.'
+        'Use custom middleware for async actions.'
       )
     }
 
+    // action 必须要有 type 属性
     if (typeof action.type === 'undefined') {
       throw new Error(
         'Actions may not have an undefined "type" property. ' +
-          'Have you misspelled a constant?'
+        'Have you misspelled a constant?'
       )
     }
 
+    // todo
     if (isDispatching) {
       throw new Error('Reducers may not dispatch actions.')
     }
@@ -188,12 +206,16 @@ export default function createStore(reducer, preloadedState, enhancer) {
       isDispatching = false
     }
 
+    // 更新 listeners： currentListeners = nextListeners
     const listeners = (currentListeners = nextListeners)
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]
+      // 通知每一个订阅者
       listener()
     }
 
+    // todo
+    // 我怎么记得 dispatch 的结果应该是一个 新的state， 而不是一个 action ？
     return action
   }
 
@@ -201,18 +223,24 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * Replaces the reducer currently used by the store to calculate the state.
    *
    * You might need this if your app implements code splitting and you want to
-   * load some of the reducers dynamically. You might also need this if you
-   * implement a hot reloading mechanism for Redux.
+   * load some of the reducers dynamically. 
+   * You might also need this if you implement a hot reloading 
+   * mechanism for Redux.
+   * 如果您的应用程序实现代码拆分，并且您想要动态加载某些 reducers ，则可能需要该代码。
+   * 如果您为Redux实施热重新加载机制，则可能还需要此操作。
    *
    * @param {Function} nextReducer The reducer for the store to use instead.
    * @returns {void}
    */
   function replaceReducer(nextReducer) {
+    // reducer 需要是一个函数
     if (typeof nextReducer !== 'function') {
       throw new Error('Expected the nextReducer to be a function.')
     }
 
     currentReducer = nextReducer
+    // todo
+    // ActionTypes 中的 action 貌似是用于 redux 的事件更新？
     dispatch({ type: ActionTypes.REPLACE })
   }
 
