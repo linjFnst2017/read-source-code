@@ -8,7 +8,7 @@
  * from right to left. For example, compose(f, g, h) is identical to doing
  * (...args) => f(g(h(...args))).
  */
-
+// 依次多重操作的函数
 export default function compose(...funcs) {
   if (funcs.length === 0) {
     return arg => arg
@@ -17,6 +17,6 @@ export default function compose(...funcs) {
   if (funcs.length === 1) {
     return funcs[0]
   }
-
+  // 类似于JS中的柯里化
   return funcs.reduce((a, b) => (...args) => a(b(...args)))
 }
