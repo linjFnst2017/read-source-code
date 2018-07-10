@@ -1,3 +1,5 @@
+// minimatch: 用来模式匹配字符串的库
+// https://segmentfault.com/a/1190000012795735
 const match = require('minimatch')
 const evaluate = require('./eval')
 

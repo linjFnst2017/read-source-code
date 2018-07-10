@@ -4,15 +4,25 @@ const download = require('download-git-repo')
 const program = require('commander')
 const exists = require('fs').existsSync
 const path = require('path')
+// ora: 终端加载中小动画，以及提示的文字
 const ora = require('ora')
+// home: /Users/zhijianzhang
 const home = require('user-home')
+// tildify: 绝对路径转化为包含波浪线的路径
 const tildify = require('tildify')
+// chalk: 终端有颜色的输出内容
 const chalk = require('chalk')
+// todo: 常见的终端问题交互
 const inquirer = require('inquirer')
+// rimraf: 使用命令删除文件和文件夹
 const rm = require('rimraf').sync
+// vue-cli 脚手架终端输出的一些配置
 const logger = require('../lib/logger')
+// todo: 太庞大了
 const generate = require('../lib/generate')
+// 检查vue-cli脚手架当前是否有更新
 const checkVersion = require('../lib/check-version')
+// 提醒用户声明了版本过低的vue 模板，或者 声明模板的名称已经被弃用
 const warnings = require('../lib/warnings')
 const localPath = require('../lib/local-path')
 
@@ -47,7 +57,7 @@ program.on('--help', () => {
  * Help.
  */
 
-function help () {
+function help() {
   program.parse(process.argv)
   if (program.args.length < 1) return program.help()
 }
@@ -100,7 +110,7 @@ if (inPlace || exists(to)) {
  * Check, download and generate the project.
  */
 
-function run () {
+function run() {
   // check if template is local
   if (isLocalPath(template)) {
     const templatePath = getTemplatePath(template)
@@ -142,7 +152,7 @@ function run () {
  * @param {String} template
  */
 
-function downloadAndGenerate (template) {
+function downloadAndGenerate(template) {
   const spinner = ora('downloading template')
   spinner.start()
   // Remove if local template exists

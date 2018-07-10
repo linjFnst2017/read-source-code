@@ -1,5 +1,7 @@
 const async = require('async')
+// todo: inquirer 常见的终端交互式命令
 const inquirer = require('inquirer')
+// todo: 看不懂
 const evaluate = require('./eval')
 
 // Support types from prompt-for which was used before
@@ -16,7 +18,8 @@ const promptMapping = {
  * @param {Function} done
  */
 
-module.exports = function ask (prompts, data, done) {
+module.exports = function ask(prompts, data, done) {
+  // eachSeries: 用来异步执行一系列的操作,保证每次遍历都执行完毕后再执行下一次的操作。
   async.eachSeries(Object.keys(prompts), (key, next) => {
     prompt(data, key, prompts[key], next)
   }, done)
@@ -31,7 +34,7 @@ module.exports = function ask (prompts, data, done) {
  * @param {Function} done
  */
 
-function prompt (data, key, prompt, done) {
+function prompt(data, key, prompt, done) {
   // skip prompts whose when condition is not met
   if (prompt.when && !evaluate(prompt.when, data)) {
     return done()

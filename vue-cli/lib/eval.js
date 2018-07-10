@@ -5,7 +5,7 @@ const chalk = require('chalk')
  * prompt answers data.
  */
 
-module.exports = function evaluate (exp, data) {
+module.exports = function evaluate(exp, data) {
   /* eslint-disable no-new-func */
   const fn = new Function('data', 'with (data) { return ' + exp + '}')
   try {

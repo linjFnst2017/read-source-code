@@ -1,7 +1,10 @@
 const path = require('path')
+// todo: meta.js meta.json 是什么文件？
 const metadata = require('read-metadata')
 const exists = require('fs').existsSync
+// 获取本地的git name 和 email
 const getGitUser = require('./git-user')
+// todo: 校验包名
 const validateName = require('validate-npm-package-name')
 
 /**
@@ -11,9 +14,10 @@ const validateName = require('validate-npm-package-name')
  * @return {Object}
  */
 
-module.exports = function options (name, dir) {
+module.exports = function options(name, dir) {
+  // todo:
   const opts = getMetadata(dir)
-
+  // todo:
   setDefault(opts, 'name', name)
   setValidateName(opts)
 
@@ -32,7 +36,7 @@ module.exports = function options (name, dir) {
  * @return {Object}
  */
 
-function getMetadata (dir) {
+function getMetadata(dir) {
   const json = path.join(dir, 'meta.json')
   const js = path.join(dir, 'meta.js')
   let opts = {}
@@ -58,8 +62,10 @@ function getMetadata (dir) {
  * @param {String} val
  */
 
-function setDefault (opts, key, val) {
+function setDefault(opts, key, val) {
   if (opts.schema) {
+    // prompts: 提示
+    // schema: 模式
     opts.prompts = opts.schema
     delete opts.schema
   }
@@ -74,7 +80,8 @@ function setDefault (opts, key, val) {
   }
 }
 
-function setValidateName (opts) {
+// todo: 校验哪一个包名？
+function setValidateName(opts) {
   const name = opts.prompts.name
   const customValidate = name.validate
   name.validate = name => {

@@ -1,13 +1,22 @@
 const chalk = require('chalk')
+// todo: 一个极简的静态页面生成器
 const Metalsmith = require('metalsmith')
+// 模板引擎,handlebars表达式: {{ cnt }}, 模板放在<script>标签里
 const Handlebars = require('handlebars')
+// todo:
 const async = require('async')
+// todo: 模板引擎, 不知道跟 handlebars表达式
 const render = require('consolidate').handlebars.render
 const path = require('path')
+// todo:
 const multimatch = require('multimatch')
+// todo:
 const getOptions = require('./options')
+// todo: 大概就是设定什么时候询问用户确认和用户输入
 const ask = require('./ask')
+// todo: 不知道 filter 用来过滤什么
 const filter = require('./filter')
+// 实现终端各种不同类型日志输出
 const logger = require('./logger')
 
 // register handlebars helper
@@ -32,7 +41,7 @@ Handlebars.registerHelper('unless_eq', function (a, b, opts) {
  * @param {Function} done
  */
 
-module.exports = function generate (name, src, dest, done) {
+module.exports = function generate(name, src, dest, done) {
   const opts = getOptions(name, src)
   const metalsmith = Metalsmith(path.join(src, 'template'))
   const data = Object.assign(metalsmith.metadata(), {
@@ -83,7 +92,7 @@ module.exports = function generate (name, src, dest, done) {
  * @return {Function}
  */
 
-function askQuestions (prompts) {
+function askQuestions(prompts) {
   return (files, metalsmith, done) => {
     ask(prompts, metalsmith.metadata(), done)
   }
@@ -96,7 +105,7 @@ function askQuestions (prompts) {
  * @return {Function}
  */
 
-function filterFiles (filters) {
+function filterFiles(filters) {
   return (files, metalsmith, done) => {
     filter(files, filters, metalsmith.metadata(), done)
   }
@@ -110,7 +119,7 @@ function filterFiles (filters) {
  * @param {Function} done
  */
 
-function renderTemplateFiles (skipInterpolation) {
+function renderTemplateFiles(skipInterpolation) {
   skipInterpolation = typeof skipInterpolation === 'string'
     ? [skipInterpolation]
     : skipInterpolation
@@ -146,7 +155,7 @@ function renderTemplateFiles (skipInterpolation) {
  * @param {Object} data
  */
 
-function logMessage (message, data) {
+function logMessage(message, data) {
   if (!message) return
   render(message, data, (err, res) => {
     if (err) {
