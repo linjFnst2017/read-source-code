@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+// 终端不同类型的日志输出
 const logger = require('../lib/logger')
 const request = require('request')
 const chalk = require('chalk')
@@ -9,6 +10,9 @@ const chalk = require('chalk')
  */
 
 console.log()
+// 两种情况下 'exit' 事件会被触发：
+// 1. 显式调用 process.exit() 方法，使得 Node.js 进程即将结束；
+// 2. Node.js 事件循环数组中不再有额外的工作，使得 Node.js 进程即将结束。
 process.on('exit', () => {
   console.log()
 })
@@ -17,14 +21,17 @@ process.on('exit', () => {
  * List repos.
  */
 
+// request({ requestParams} ,() => {}) 直接把回调函数写在参数里面，平时使用 return Promise 使用惯了
 request({
   url: 'https://api.github.com/users/vuejs-templates/repos',
   headers: {
     'User-Agent': 'vue-cli'
   }
 }, (err, res, body) => {
+  // fatal 致命错误输出
   if (err) logger.fatal(err)
   const requestBody = JSON.parse(body)
+  // 
   if (Array.isArray(requestBody)) {
     console.log('  Available official templates:')
     console.log()

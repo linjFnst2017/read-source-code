@@ -57,16 +57,16 @@ function build() {
   return vfs
     .src(`./src/**/*.js`)
     .pipe(
-      through.obj((f, enc, cb) => {
-        f.contents = new Buffer( // eslint-disable-line
-          transform({
-            content: f.contents,
-            path: f.path,
-          }),
-        );
-        cb(null, f);
-      }),
-    )
+    through.obj((f, enc, cb) => {
+      f.contents = new Buffer( // eslint-disable-line
+        transform({
+          content: f.contents,
+          path: f.path,
+        }),
+      );
+      cb(null, f);
+    }),
+  )
     .pipe(vfs.dest(`./lib/`));
 }
 
