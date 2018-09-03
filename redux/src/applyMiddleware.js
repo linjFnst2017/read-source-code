@@ -1,28 +1,16 @@
+// 依次多重操作的函数
 import compose from './compose'
 
-/**
- * Creates a store enhancer that applies middleware to the dispatch method
- * of the Redux store. This is handy for a variety of tasks, such as expressing
- * asynchronous actions in a concise manner, or logging every action payload.
- *
- * See `redux-thunk` package as an example of the Redux middleware.
- *
- * Because middleware is potentially asynchronous, this should be the first
- * store enhancer in the composition chain.
- *
- * Note that each middleware will be given the `dispatch` and `getState` functions
- * as named arguments.
- *
- * @param {...Function} middlewares The middleware chain to be applied.
- * @returns {Function} A store enhancer applying the middleware.
- */
+// applyMiddleware(thunk, logger ...) 
+// 比如这样传参，最终得到 (arguments) => thunk(logger(arguments)) 这样一个函数
+
 export default function applyMiddleware(...middlewares) {
   return createStore => (...args) => {
     const store = createStore(...args)
     let dispatch = () => {
       throw new Error(
         `Dispatching while constructing your middleware is not allowed. ` +
-          `Other middleware would not be applied to this dispatch.`
+        `Other middleware would not be applied to this dispatch.`
       )
     }
 
@@ -30,8 +18,15 @@ export default function applyMiddleware(...middlewares) {
       getState: store.getState,
       dispatch: (...args) => dispatch(...args)
     }
+    // middleware: thunk ==> thunk(middlewareAPI) ==> 返回一个 next 函数为参数的函数
+    // 所以这里 chain 是一个包含若干个 以 next 函数为参数的函数的数组
     const chain = middlewares.map(middleware => middleware(middlewareAPI))
+    // 这里的 store.dispatch 就是 next 参数的实参， 而compose函数目的在于将每一个中间件返回的函数柯里化
+    // 柯里化的实际意义是： 从右到左依次对参数进行调用。
+    // 从 thunk 源码中可以看到， compose(...chain)(store.dispatch) 返回的结果是 一个 以 action 为参数的函数
     dispatch = compose(...chain)(store.dispatch)
+
+    // 最终的 dispatch 已经是一个以action为参数 
 
     return {
       ...store,

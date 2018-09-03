@@ -205,7 +205,7 @@ export interface Store<S = any, A extends Action = AnyAction> {
   replaceReducer(nextReducer: Reducer<S, A>): void;
 }
 
-export type DeepPartial<T> = { [K in keyof T]?: DeepPartial<T[K]> };
+export type DeepPartial<T> = {[K in keyof T]?: DeepPartial<T[K]> };
 
 /**
  * A store creator is a function that creates a Redux store. Like with
@@ -324,12 +324,12 @@ export interface Middleware<DispatchExt = {}, S = any, D extends Dispatch = Disp
  * @template S The type of the state supported by a middleware.
  */
 export function applyMiddleware(): StoreEnhancer;
-export function applyMiddleware<Ext1, S>(middleware1: Middleware<Ext1, S, any>): StoreEnhancer<{dispatch: Ext1}>;
-export function applyMiddleware<Ext1, Ext2, S>(middleware1: Middleware<Ext1, S, any>, middleware2: Middleware<Ext2, S, any>): StoreEnhancer<{dispatch: Ext1 & Ext2}>;
-export function applyMiddleware<Ext1, Ext2, Ext3, S>(middleware1: Middleware<Ext1, S, any>, middleware2: Middleware<Ext2, S, any>, middleware3: Middleware<Ext3, S, any>): StoreEnhancer<{dispatch: Ext1 & Ext2 & Ext3}>;
-export function applyMiddleware<Ext1, Ext2, Ext3, Ext4, S>(middleware1: Middleware<Ext1, S, any>, middleware2: Middleware<Ext2, S, any>, middleware3: Middleware<Ext3, S, any>, middleware4: Middleware<Ext4, S, any>): StoreEnhancer<{dispatch: Ext1 & Ext2 & Ext3 & Ext4}>;
-export function applyMiddleware<Ext1, Ext2, Ext3, Ext4, Ext5, S>(middleware1: Middleware<Ext1, S, any>, middleware2: Middleware<Ext2, S, any>, middleware3: Middleware<Ext3, S, any>, middleware4: Middleware<Ext4, S, any>, middleware5: Middleware<Ext5, S, any>): StoreEnhancer<{dispatch: Ext1 & Ext2 & Ext3 & Ext4 & Ext5}>;
-export function applyMiddleware<Ext, S = any>(...middlewares: Middleware<any, S, any>[]): StoreEnhancer<{dispatch: Ext}>;
+export function applyMiddleware<Ext1, S>(middleware1: Middleware<Ext1, S, any>): StoreEnhancer<{ dispatch: Ext1 }>;
+export function applyMiddleware<Ext1, Ext2, S>(middleware1: Middleware<Ext1, S, any>, middleware2: Middleware<Ext2, S, any>): StoreEnhancer<{ dispatch: Ext1 & Ext2 }>;
+export function applyMiddleware<Ext1, Ext2, Ext3, S>(middleware1: Middleware<Ext1, S, any>, middleware2: Middleware<Ext2, S, any>, middleware3: Middleware<Ext3, S, any>): StoreEnhancer<{ dispatch: Ext1 & Ext2 & Ext3 }>;
+export function applyMiddleware<Ext1, Ext2, Ext3, Ext4, S>(middleware1: Middleware<Ext1, S, any>, middleware2: Middleware<Ext2, S, any>, middleware3: Middleware<Ext3, S, any>, middleware4: Middleware<Ext4, S, any>): StoreEnhancer<{ dispatch: Ext1 & Ext2 & Ext3 & Ext4 }>;
+export function applyMiddleware<Ext1, Ext2, Ext3, Ext4, Ext5, S>(middleware1: Middleware<Ext1, S, any>, middleware2: Middleware<Ext2, S, any>, middleware3: Middleware<Ext3, S, any>, middleware4: Middleware<Ext4, S, any>, middleware5: Middleware<Ext5, S, any>): StoreEnhancer<{ dispatch: Ext1 & Ext2 & Ext3 & Ext4 & Ext5 }>;
+export function applyMiddleware<Ext, S = any>(...middlewares: Middleware<any, S, any>[]): StoreEnhancer<{ dispatch: Ext }>;
 
 
 /* action creators */

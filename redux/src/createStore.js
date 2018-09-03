@@ -1,35 +1,10 @@
 // symbol observable ponyfill 夹棉
 // https://www.npmjs.com/package/symbol-observable
 import $$observable from 'symbol-observable'
-
 import ActionTypes from './utils/actionTypes'
 import isPlainObject from './utils/isPlainObject'
 
-/**
- * Creates a Redux store that holds the state tree.
- * The only way to change the data in the store is to call `dispatch()` on it.
- *
- * There should only be a single store in your app. To specify how different
- * parts of the state tree respond to actions, you may combine several reducers
- * into a single reducer function by using `combineReducers`.
- *
- * @param {Function} reducer A function that returns the next state tree, given
- * the current state tree and the action to handle.
- *
- * @param {any} [preloadedState] The initial state. You may optionally specify it
- * to hydrate the state from the server in universal apps, or to restore a
- * previously serialized user session.
- * If you use `combineReducers` to produce the root reducer function, this must be
- * an object with the same shape as `combineReducers` keys.
- *
- * @param {Function} [enhancer] The store enhancer. You may optionally specify it
- * to enhance the store with third-party capabilities such as middleware,
- * time travel, persistence, etc. The only store enhancer that ships with Redux
- * is `applyMiddleware()`.
- *
- * @returns {Store} A Redux store that lets you read the state, dispatch actions
- * and subscribe to changes.
- */
+// enhancer: applyMiddleware(中间件们...) 最终返回的结果是一个 createStore 为参数的函数
 export default function createStore(reducer, preloadedState, enhancer) {
   // 这个判断用于preloadedState没有输入的情况，createStore 只有两个参数 reducer 和 enhancer
   if (typeof preloadedState === 'function' && typeof enhancer === 'undefined') {
@@ -38,11 +13,11 @@ export default function createStore(reducer, preloadedState, enhancer) {
   }
 
   if (typeof enhancer !== 'undefined') {
-    // enhancer （增强剂） 必须为一个函数
+    // enhancer （增强剂: 中间件） 必须为一个函数
     if (typeof enhancer !== 'function') {
       throw new Error('Expected the enhancer to be a function.')
     }
-    // todo
+    // 
     return enhancer(createStore)(reducer, preloadedState)
   }
 
