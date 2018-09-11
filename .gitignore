@@ -3,3 +3,15 @@ redux-saga-examples
 redux-saga-in-chinese
 
 test
+dist
+build
+docs
+docs-gitbook
+examples
+types
+
+.babelrc
+.eslintrc
+LICENSE
+yarn.lock
+package.json

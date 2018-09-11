@@ -5,7 +5,7 @@ export function wrapMapToPropsConstant(getConstant) {
     const constant = getConstant(dispatch, options)
 
     function constantSelector() { return constant }
-    constantSelector.dependsOnOwnProps = false 
+    constantSelector.dependsOnOwnProps = false
     return constantSelector
   }
 }
@@ -37,6 +37,7 @@ export function getDependsOnOwnProps(mapToProps) {
 //    
 export function wrapMapToPropsFunc(mapToProps, methodName) {
   return function initProxySelector(dispatch, { displayName }) {
+    // 可以直接使用 proxy(stateOrDispatch, ownProps) 来调用函数
     const proxy = function mapToPropsProxy(stateOrDispatch, ownProps) {
       return proxy.dependsOnOwnProps
         ? proxy.mapToProps(stateOrDispatch, ownProps)
@@ -47,6 +48,7 @@ export function wrapMapToPropsFunc(mapToProps, methodName) {
     proxy.dependsOnOwnProps = true
 
     proxy.mapToProps = function detectFactoryAndVerify(stateOrDispatch, ownProps) {
+      // mapToProps 传入的参数对象
       proxy.mapToProps = mapToProps
       proxy.dependsOnOwnProps = getDependsOnOwnProps(mapToProps)
       let props = proxy(stateOrDispatch, ownProps)
@@ -57,7 +59,7 @@ export function wrapMapToPropsFunc(mapToProps, methodName) {
         props = proxy(stateOrDispatch, ownProps)
       }
 
-      if (process.env.NODE_ENV !== 'production') 
+      if (process.env.NODE_ENV !== 'production')
         verifyPlainObject(props, displayName, methodName)
 
       return props
