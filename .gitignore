@@ -1,7 +1,3 @@
-react-boilerplate
-redux-saga-examples
-redux-saga-in-chinese
-
 test
 dist
 build
@@ -15,3 +11,6 @@ types
 LICENSE
 yarn.lock
 package.json
+
+.github
+
