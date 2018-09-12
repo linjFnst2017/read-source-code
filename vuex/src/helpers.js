@@ -7,7 +7,7 @@
 export const mapState = normalizeNamespace((namespace, states) => {
   const res = {}
   normalizeMap(states).forEach(({ key, val }) => {
-    res[key] = function mappedState () {
+    res[key] = function mappedState() {
       let state = this.$store.state
       let getters = this.$store.getters
       if (namespace) {
@@ -37,7 +37,7 @@ export const mapState = normalizeNamespace((namespace, states) => {
 export const mapMutations = normalizeNamespace((namespace, mutations) => {
   const res = {}
   normalizeMap(mutations).forEach(({ key, val }) => {
-    res[key] = function mappedMutation (...args) {
+    res[key] = function mappedMutation(...args) {
       // Get the commit method from store
       let commit = this.$store.commit
       if (namespace) {
@@ -66,7 +66,7 @@ export const mapGetters = normalizeNamespace((namespace, getters) => {
   normalizeMap(getters).forEach(({ key, val }) => {
     // thie namespace has been mutate by normalizeNamespace
     val = namespace + val
-    res[key] = function mappedGetter () {
+    res[key] = function mappedGetter() {
       if (namespace && !getModuleByNamespace(this.$store, 'mapGetters', namespace)) {
         return
       }
@@ -91,7 +91,7 @@ export const mapGetters = normalizeNamespace((namespace, getters) => {
 export const mapActions = normalizeNamespace((namespace, actions) => {
   const res = {}
   normalizeMap(actions).forEach(({ key, val }) => {
-    res[key] = function mappedAction (...args) {
+    res[key] = function mappedAction(...args) {
       // get dispatch function from store
       let dispatch = this.$store.dispatch
       if (namespace) {
@@ -128,7 +128,7 @@ export const createNamespacedHelpers = (namespace) => ({
  * @param {Array|Object} map
  * @return {Object}
  */
-function normalizeMap (map) {
+function normalizeMap(map) {
   return Array.isArray(map)
     ? map.map(key => ({ key, val: key }))
     : Object.keys(map).map(key => ({ key, val: map[key] }))
@@ -139,7 +139,7 @@ function normalizeMap (map) {
  * @param {Function} fn
  * @return {Function}
  */
-function normalizeNamespace (fn) {
+function normalizeNamespace(fn) {
   return (namespace, map) => {
     if (typeof namespace !== 'string') {
       map = namespace
@@ -158,7 +158,7 @@ function normalizeNamespace (fn) {
  * @param {String} namespace
  * @return {Object}
  */
-function getModuleByNamespace (store, helper, namespace) {
+function getModuleByNamespace(store, helper, namespace) {
   const module = store._modulesNamespaceMap[namespace]
   if (process.env.NODE_ENV !== 'production' && !module) {
     console.error(`[vuex] module namespace not found in ${helper}(): ${namespace}`)
