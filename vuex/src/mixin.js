@@ -1,4 +1,5 @@
 export default function (Vue) {
+  // 获取 Vue 的版本
   const version = Number(Vue.version.split('.')[0])
 
   if (version >= 2) {
@@ -11,6 +12,7 @@ export default function (Vue) {
       options.init = options.init
         ? [vuexInit].concat(options.init)
         : vuexInit
+      // 执行 vue@1.x 的初始化函数
       _init.call(this, options)
     }
   }
@@ -19,7 +21,7 @@ export default function (Vue) {
    * Vuex init hook, injected into each instances init hooks list.
    */
 
-  function vuexInit () {
+  function vuexInit() {
     const options = this.$options
     // store injection
     if (options.store) {

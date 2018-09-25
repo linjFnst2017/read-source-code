@@ -472,6 +472,7 @@ function unifyObjectStyle(type, payload, options) {
 
 export function install(_Vue) {
   if (Vue && _Vue === Vue) {
+    // todo 线上如果出现这个错误，就不要 console.error 了
     if (process.env.NODE_ENV !== 'production') {
       console.error(
         '[vuex] already installed. Vue.use(Vuex) should be called only once.'
