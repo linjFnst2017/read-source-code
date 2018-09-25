@@ -9,8 +9,11 @@ coverage
 npm-debug.log*
 lerna-debug.log
 package-lock.json
+package.json
 .changelog
 .next/
 examples/**/.umi
 examples/**/.umi-production
+
+.github
 
