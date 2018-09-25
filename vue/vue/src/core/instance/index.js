@@ -5,7 +5,8 @@ import { eventsMixin } from './events'
 import { lifecycleMixin } from './lifecycle'
 import { warn } from '../util/index'
 
-function Vue (options) {
+// 将构造函数经过加工之后再对外抛出。
+function Vue(options) {
   if (process.env.NODE_ENV !== 'production' &&
     !(this instanceof Vue)
   ) {
@@ -14,6 +15,7 @@ function Vue (options) {
   this._init(options)
 }
 
+// 初始化 Vue 的一些全局变量之类的等等。
 initMixin(Vue)
 stateMixin(Vue)
 eventsMixin(Vue)

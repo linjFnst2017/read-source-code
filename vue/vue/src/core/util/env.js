@@ -23,13 +23,13 @@ if (inBrowser) {
   try {
     const opts = {}
     Object.defineProperty(opts, 'passive', ({
-      get () {
+      get() {
         /* istanbul ignore next */
         supportsPassive = true
       }
     }: Object)) // https://github.com/facebook/flow/issues/285
     window.addEventListener('test-passive', null, opts)
-  } catch (e) {}
+  } catch (e) { }
 }
 
 // this needs to be lazy-evaled because vue may be required before
@@ -53,7 +53,7 @@ export const isServerRendering = () => {
 export const devtools = inBrowser && window.__VUE_DEVTOOLS_GLOBAL_HOOK__
 
 /* istanbul ignore next */
-export function isNative (Ctor: any): boolean {
+export function isNative(Ctor: any): boolean {
   return typeof Ctor === 'function' && /native code/.test(Ctor.toString())
 }
 
@@ -70,16 +70,16 @@ if (typeof Set !== 'undefined' && isNative(Set)) {
   // a non-standard Set polyfill that only works with primitive keys.
   _Set = class Set implements SimpleSet {
     set: Object;
-    constructor () {
+    constructor() {
       this.set = Object.create(null)
     }
-    has (key: string | number) {
+    has(key: string | number) {
       return this.set[key] === true
     }
-    add (key: string | number) {
+    add(key: string | number) {
       this.set[key] = true
     }
-    clear () {
+    clear() {
       this.set = Object.create(null)
     }
   }

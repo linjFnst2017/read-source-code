@@ -18,7 +18,9 @@ import {
   capitalize,
   isBuiltInTag,
   isPlainObject
-} from 'shared/util'
+  // } from 'shared/util'
+} from '../../shared/util'
+
 
 /**
  * Option overwriting strategies are functions that handle
@@ -45,7 +47,7 @@ if (process.env.NODE_ENV !== 'production') {
 /**
  * Helper that recursively merges two data objects together.
  */
-function mergeData (to: Object, from: ?Object): Object {
+function mergeData(to: Object, from: ?Object): Object {
   if (!from) return to
   let key, toVal, fromVal
   const keys = Object.keys(from)
@@ -65,7 +67,7 @@ function mergeData (to: Object, from: ?Object): Object {
 /**
  * Data
  */
-export function mergeDataOrFn (
+export function mergeDataOrFn(
   parentVal: any,
   childVal: any,
   vm?: Component
@@ -83,14 +85,14 @@ export function mergeDataOrFn (
     // merged result of both functions... no need to
     // check if parentVal is a function here because
     // it has to be a function to pass previous merges.
-    return function mergedDataFn () {
+    return function mergedDataFn() {
       return mergeData(
         typeof childVal === 'function' ? childVal.call(this, this) : childVal,
         typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
       )
     }
   } else {
-    return function mergedInstanceDataFn () {
+    return function mergedInstanceDataFn() {
       // instance merge
       const instanceData = typeof childVal === 'function'
         ? childVal.call(vm, vm)
@@ -132,7 +134,7 @@ strats.data = function (
 /**
  * Hooks and props are merged as arrays.
  */
-function mergeHook (
+function mergeHook(
   parentVal: ?Array<Function>,
   childVal: ?Function | ?Array<Function>
 ): ?Array<Function> {
@@ -156,7 +158,7 @@ LIFECYCLE_HOOKS.forEach(hook => {
  * a three-way merge between constructor options, instance
  * options and parent options.
  */
-function mergeAssets (
+function mergeAssets(
   parentVal: ?Object,
   childVal: ?Object,
   vm?: Component,
@@ -215,23 +217,23 @@ strats.watch = function (
  * Other object hashes.
  */
 strats.props =
-strats.methods =
-strats.inject =
-strats.computed = function (
-  parentVal: ?Object,
-  childVal: ?Object,
-  vm?: Component,
-  key: string
-): ?Object {
-  if (childVal && process.env.NODE_ENV !== 'production') {
-    assertObjectType(key, childVal, vm)
+  strats.methods =
+  strats.inject =
+  strats.computed = function (
+    parentVal: ?Object,
+    childVal: ?Object,
+    vm?: Component,
+    key: string
+  ): ?Object {
+    if (childVal && process.env.NODE_ENV !== 'production') {
+      assertObjectType(key, childVal, vm)
+    }
+    if (!parentVal) return childVal
+    const ret = Object.create(null)
+    extend(ret, parentVal)
+    if (childVal) extend(ret, childVal)
+    return ret
   }
-  if (!parentVal) return childVal
-  const ret = Object.create(null)
-  extend(ret, parentVal)
-  if (childVal) extend(ret, childVal)
-  return ret
-}
 strats.provide = mergeDataOrFn
 
 /**
@@ -246,13 +248,15 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
 /**
  * Validate component names
  */
-function checkComponents (options: Object) {
+function checkComponents(options: Object) {
   for (const key in options.components) {
     validateComponentName(key)
   }
 }
 
-export function validateComponentName (name: string) {
+export function validateComponentName(name: string) {
+  // \W 元字符用于查找非单词字符。
+  // 单词字符包括：a-z、A-Z、0-9，以及下划线。
   if (!/^[a-zA-Z][\w-]*$/.test(name)) {
     warn(
       'Invalid component name: "' + name + '". Component names ' +
@@ -260,6 +264,7 @@ export function validateComponentName (name: string) {
       'and must start with a letter.'
     )
   }
+  // todo
   if (isBuiltInTag(name) || config.isReservedTag(name)) {
     warn(
       'Do not use built-in or reserved HTML elements as component ' +
@@ -272,16 +277,23 @@ export function validateComponentName (name: string) {
  * Ensure all props option syntax are normalized into the
  * Object-based format.
  */
-function normalizeProps (options: Object, vm: ?Component) {
+// 确保所有的 props 参数语法都是 以 Object 为基础的格式
+function normalizeProps(options: Object, vm: ?Component) {
   const props = options.props
   if (!props) return
   const res = {}
   let i, val, name
+  // vm 中的 props ，如果是 数组的话，是最简单的形式，没有格式限制、默认值等
+  // 如果是 简单对象的话，会有默认值，格式限制等。
   if (Array.isArray(props)) {
     i = props.length
+    // 学习： 
+    // 使用 i-- 来终止 while 的自循环
     while (i--) {
       val = props[i]
       if (typeof val === 'string') {
+        // todo
+        // camelize 函数什么作用没看懂， 大概是对 string 进行校验，空格裁剪等。
         name = camelize(val)
         res[name] = { type: null }
       } else if (process.env.NODE_ENV !== 'production') {
@@ -292,6 +304,8 @@ function normalizeProps (options: Object, vm: ?Component) {
     for (const key in props) {
       val = props[key]
       name = camelize(key)
+      // todo
+      // 赋值给 res 对象干什么 ？
       res[name] = isPlainObject(val)
         ? val
         : { type: val }
@@ -303,13 +317,16 @@ function normalizeProps (options: Object, vm: ?Component) {
       vm
     )
   }
+  // todo
+  // 前面所有的操作，如果一开始传入的 props 是数组（简单 props），将props转成 对象的形式
+  // 再重新传回给 props， 避免 简单 props 传值的时候 写太多代码？
   options.props = res
 }
 
 /**
  * Normalize all injections into Object-based format
  */
-function normalizeInject (options: Object, vm: ?Component) {
+function normalizeInject(options: Object, vm: ?Component) {
   const inject = options.inject
   if (!inject) return
   const normalized = options.inject = {}
@@ -336,7 +353,7 @@ function normalizeInject (options: Object, vm: ?Component) {
 /**
  * Normalize raw function directives into object format.
  */
-function normalizeDirectives (options: Object) {
+function normalizeDirectives(options: Object) {
   const dirs = options.directives
   if (dirs) {
     for (const key in dirs) {
@@ -348,7 +365,7 @@ function normalizeDirectives (options: Object) {
   }
 }
 
-function assertObjectType (name: string, value: any, vm: ?Component) {
+function assertObjectType(name: string, value: any, vm: ?Component) {
   if (!isPlainObject(value)) {
     warn(
       `Invalid value for option "${name}": expected an Object, ` +
@@ -362,7 +379,7 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
  */
-export function mergeOptions (
+export function mergeOptions(
   parent: Object,
   child: Object,
   vm?: Component
@@ -371,6 +388,8 @@ export function mergeOptions (
     checkComponents(child)
   }
 
+  // 通过都会先声明一个 function child() {...} 之后，再给child挂载 一个 options
+  // child.options = ...
   if (typeof child === 'function') {
     child = child.options
   }
@@ -397,7 +416,7 @@ export function mergeOptions (
       mergeField(key)
     }
   }
-  function mergeField (key) {
+  function mergeField(key) {
     const strat = strats[key] || defaultStrat
     options[key] = strat(parent[key], child[key], vm, key)
   }
@@ -409,7 +428,7 @@ export function mergeOptions (
  * This function is used because child instances need access
  * to assets defined in its ancestor chain.
  */
-export function resolveAsset (
+export function resolveAsset(
   options: Object,
   type: string,
   id: string,
