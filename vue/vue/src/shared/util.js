@@ -210,10 +210,14 @@ export const bind = Function.prototype.bind
 
 /**
  * Convert an Array-like object to a real Array.
+ * 将类数组的对象转化为真正的数组
  */
 export function toArray(list: any, start?: number): Array<any> {
   start = start || 0
   let i = list.length - start
+  // TODO:
+  // 创建一个数组，为什么这里要指定长度呢？ 指定宽度没有意义，js 最大宽度也不会被限制
+  // 不过这样创建的 array， length 不会是0 ，虽然数组元素的值都是 undefined, 所以这里需要这样的特性么？
   const ret: Array<any> = new Array(i)
   while (i--) {
     ret[i] = list[i + start]
