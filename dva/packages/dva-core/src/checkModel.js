@@ -21,7 +21,7 @@ export default function checkModel(model, existModels) {
     `[app.model] namespace should be string, but got ${typeof namespace}`,
   );
   // 并且唯一
-  // todo
+  // TODO:
   // existModels 是个什么方法， 感觉肯定不会出现有多个namespace的情况，string 应该会覆盖吧？
   invariant(
     !existModels.some(model => model.namespace === namespace),
@@ -44,7 +44,7 @@ export default function checkModel(model, existModels) {
   }
 
   // effects 可以为空，PlainObject
-  // todo
+  // TODO:
   // redux-saga 的 effects， 用于异步操作
   if (effects) {
     invariant(
@@ -53,7 +53,7 @@ export default function checkModel(model, existModels) {
     );
   }
 
-  // todo
+  // TODO:
   // subscriptions 印象里 有点类似与生命周期函数
   if (subscriptions) {
     // subscriptions 可以为空，PlainObject

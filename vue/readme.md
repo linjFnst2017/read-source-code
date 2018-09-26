@@ -9,7 +9,7 @@ var app = new Vue({
 })
 
 // mount
-app.$mount('.todoapp')
+app.$mount('.TODO:app')
 ```
 
 那么接下来的源码阅读就从 new Vue({...}) 开始。
@@ -32,3 +32,20 @@ lifecycleMixin(Vue)
 renderMixin(Vue)
 ```
 
+
+### vue 实例属性
+
+- vm.$data  vue 实例观察的数据对象
+- vm.$props vue 实例（当前组件）接收到的props对象
+- vm.$el vue 实例当前使用的根DOM元素
+- vm.$options vue 实例的初始化选项，在单vue文件中就是 export default {...} 中的内容，需要在选项中包含自定义属性时会有用处：
+  ```
+  new Vue({
+    customOption: 'foo',
+    created: function () {
+      console.log(this.$options.customOption) // => 'foo'
+    }
+  })
+  ```
+- vm.$parent vue 实例的父实例 ？
+- ...

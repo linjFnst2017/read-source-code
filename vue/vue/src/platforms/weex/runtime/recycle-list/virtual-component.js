@@ -16,7 +16,7 @@ import { registerComponentHook, updateComponentData } from '../../util/index'
 let uid = 0
 
 // override Vue.prototype._init
-function initVirtualComponent (options: Object = {}) {
+function initVirtualComponent(options: Object = {}) {
   const vm: Component = this
   const componentId = options.componentId
 
@@ -83,7 +83,7 @@ function initVirtualComponent (options: Object = {}) {
 }
 
 // override Vue.prototype._update
-function updateVirtualComponent (vnode?: VNode) {
+function updateVirtualComponent(vnode?: VNode) {
   const vm: Component = this
   const componentId = vm.$options.componentId
   if (vm._isMounted) {
@@ -91,7 +91,7 @@ function updateVirtualComponent (vnode?: VNode) {
   }
   vm._vnode = vnode
   if (vm._isMounted && componentId) {
-    // TODO: data should be filtered and without bindings
+    // TODO:: data should be filtered and without bindings
     const data = Object.assign({}, vm._data)
     updateComponentData(componentId, data, () => {
       callHook(vm, 'updated')
@@ -100,7 +100,7 @@ function updateVirtualComponent (vnode?: VNode) {
 }
 
 // listening on native callback
-export function resolveVirtualComponent (vnode: MountedComponentVNode): VNode {
+export function resolveVirtualComponent(vnode: MountedComponentVNode): VNode {
   const BaseCtor = vnode.componentOptions.Ctor
   const VirtualComponent = BaseCtor.extend({})
   const cid = VirtualComponent.cid
@@ -108,10 +108,10 @@ export function resolveVirtualComponent (vnode: MountedComponentVNode): VNode {
   VirtualComponent.prototype._update = updateVirtualComponent
 
   vnode.componentOptions.Ctor = BaseCtor.extend({
-    beforeCreate () {
+    beforeCreate() {
       // const vm: Component = this
 
-      // TODO: listen on all events and dispatch them to the
+      // TODO:: listen on all events and dispatch them to the
       // corresponding virtual components according to the componentId.
       // vm._virtualComponents = {}
       const createVirtualComponent = (componentId, propsData) => {
@@ -128,7 +128,7 @@ export function resolveVirtualComponent (vnode: MountedComponentVNode): VNode {
 
       registerComponentHook(cid, 'lifecycle', 'create', createVirtualComponent)
     },
-    beforeDestroy () {
+    beforeDestroy() {
       delete this._virtualComponents
     }
   })

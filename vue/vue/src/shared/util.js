@@ -145,10 +145,10 @@ export function hasOwn(obj: Object | Array<*>, key: string): boolean {
 export function cached<F: Function>(fn: F): F {
   const cache = Object.create(null)
   return (function cachedFn(str: string) {
-    // todo
+    // TODO:
     // 这里不是百分之百 hit === undefined 么？
     const hit = cache[str]
-    // todo
+    // TODO:
     // 不懂这个赋值语法？
     return hit || (cache[str] = fn(str))
   }: any)

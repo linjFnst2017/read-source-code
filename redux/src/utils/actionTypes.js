@@ -15,7 +15,7 @@ const randomString = () =>
     .split('')
     .join('.')
 
-// todo
+// TODO:
 // 为什么这三个action 需要加上随机的字符串？ 防止重复么？
 const ActionTypes = {
   INIT: `@@redux/INIT${randomString()}`,

@@ -30,11 +30,11 @@ export default function createStore(reducer, preloadedState, enhancer) {
   let currentState = preloadedState
   let currentListeners = []
   let nextListeners = currentListeners
-  // todo
+  // TODO:
   // 这个状态很重要? 是指不能在 dispatch 的情况下进行操作？
   let isDispatching = false
 
-  // todo
+  // TODO:
   // 确保可以通知接下来的Listeners
   // 确保 nextListeners 和 currentListeners 不是同一个引用，修改不会互相影响
   function ensureCanMutateNextListeners() {
@@ -169,7 +169,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
       )
     }
 
-    // todo
+    // TODO:
     if (isDispatching) {
       throw new Error('Reducers may not dispatch actions.')
     }
@@ -189,7 +189,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
       listener()
     }
 
-    // todo
+    // TODO:
     // 我怎么记得 dispatch 的结果应该是一个 新的state， 而不是一个 action ？
     return action
   }
@@ -214,7 +214,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
     }
 
     currentReducer = nextReducer
-    // todo
+    // TODO:
     // ActionTypes 中的 action 貌似是用于 redux 的事件更新？
     dispatch({ type: ActionTypes.REPLACE })
   }

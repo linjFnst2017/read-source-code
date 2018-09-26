@@ -15,7 +15,7 @@ import VNode, { createEmptyVNode } from '../vdom/vnode'
 
 import { isUpdatingChildComponent } from './lifecycle'
 
-export function initRender (vm: Component) {
+export function initRender(vm: Component) {
   vm._vnode = null // the root of the child tree
   vm._staticTrees = null // v-once cached trees
   const options = vm.$options
@@ -50,8 +50,9 @@ export function initRender (vm: Component) {
   }
 }
 
-export function renderMixin (Vue: Class<Component>) {
+export function renderMixin(Vue: Class<Component>) {
   // install runtime convenience helpers
+  // helpers 是直接操作 Vue 的原型链的
   installRenderHelpers(Vue.prototype)
 
   Vue.prototype.$nextTick = function (fn: Function) {
@@ -60,12 +61,17 @@ export function renderMixin (Vue: Class<Component>) {
 
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
+    // TODO:
+    // 单个vue文件的中， options里是不需要写 render 和 _parentVnode 属性（函数）的，是什么时候被赋值了？
     const { render, _parentVnode } = vm.$options
 
     // reset _rendered flag on slots for duplicate slot check
     if (process.env.NODE_ENV !== 'production') {
       for (const key in vm.$slots) {
         // $flow-disable-line
+        // TODO:
+        // vm.$slots 值为vue实例中定义的 具名插槽数组，具体每一个元素的值，可能是一个 dom 节点 ？ 但是_rendered 属性是什么时候被定义的？代表什么值？
+        // _rendered = false 表示
         vm.$slots[key]._rendered = false
       }
     }
@@ -76,6 +82,8 @@ export function renderMixin (Vue: Class<Component>) {
 
     // set parent vnode. this allows render functions to have access
     // to the data on the placeholder node.
+
+    // TODO:
     vm.$vnode = _parentVnode
     // render self
     let vnode

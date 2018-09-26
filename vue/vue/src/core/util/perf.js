@@ -1,13 +1,13 @@
 // 判断是否在浏览器中。
 import { inBrowser } from './env'
 
-// todo
+// TODO:
 // 不知道代表什么意思
 export let mark
 export let measure
 
 if (process.env.NODE_ENV !== 'production') {
-  // todo
+  // TODO:
   // window.performance 不知道做了什么工作
   const perf = inBrowser && window.performance
   /* istanbul ignore if */

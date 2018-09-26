@@ -39,7 +39,7 @@ loading: {
   global: false,
   models: {
     users: false,
-    todos: false,
+    TODO:s: false,
     ...
   },
 }

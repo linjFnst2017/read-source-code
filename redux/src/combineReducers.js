@@ -6,7 +6,7 @@ function getUndefinedStateErrorMessage(key, action) {
   // 首先 action 没有问题
   const actionType = action && action.type
   const actionDescription =
-    // todo
+    // TODO:
     // String(obj)
     (actionType && `action "${String(actionType)}"`) || 'an action'
 

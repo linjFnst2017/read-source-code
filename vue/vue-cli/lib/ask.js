@@ -1,7 +1,7 @@
 const async = require('async')
-// todo: inquirer 常见的终端交互式命令
+// TODO:: inquirer 常见的终端交互式命令
 const inquirer = require('inquirer')
-// todo: 看不懂
+// TODO:: 看不懂
 const evaluate = require('./eval')
 
 // Support types from prompt-for which was used before

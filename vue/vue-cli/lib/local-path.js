@@ -2,7 +2,7 @@ const path = require('path')
 
 module.exports = {
   isLocalPath(templatePath) {
-    // todo: 正则，好难受
+    // TODO:: 正则，好难受
     return /^[./]|(^[a-zA-Z]:)/.test(templatePath)
   },
 
@@ -10,7 +10,7 @@ module.exports = {
     return path.isAbsolute(templatePath)
       ? templatePath
       // process.cwd() 当前命令的路径
-      // todo: normalize ?
+      // TODO:: normalize ?
       : path.normalize(path.join(process.cwd(), templatePath))
   }
 }

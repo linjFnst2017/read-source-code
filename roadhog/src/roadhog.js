@@ -2,7 +2,7 @@ import chalk from 'chalk';
 // 衍生一个新的 Node.js 进程
 import { fork } from 'child_process';
 
-// todo: 退出命令行 ？？？
+// TODO:: 退出命令行 ？？？
 require('graceful-process')({ logLevel: 'warn' });
 
 const script = process.argv[2];
@@ -48,7 +48,7 @@ switch (aliasedScript) {
   case 'build':
   case 'dev':
   case 'test':
-    // todo: atool-monitor ???
+    // TODO:: atool-monitor ???
     require('atool-monitor').emit();
     const proc = fork(
       require.resolve(`../lib/scripts/${aliasedScript}`),
@@ -62,7 +62,7 @@ switch (aliasedScript) {
       // 退出 process 进程
       process.exit(code);
     });
-    // todo: 这里关闭进程的逻辑不是很懂。 ？？？
+    // TODO:: 这里关闭进程的逻辑不是很懂。 ？？？
     process.once('exit', () => {
       proc.kill();
     });

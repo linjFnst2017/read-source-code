@@ -90,7 +90,7 @@ export function pureFinalPropsSelectorFactory(
   }
 }
 
-// TODO: Add more comments
+// TODO:: Add more comments
 
 // If pure is true, the selector returned by selectorFactory will memoize its results,
 // allowing connectAdvanced's shouldComponentUpdate to return false if final

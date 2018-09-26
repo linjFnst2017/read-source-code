@@ -11,7 +11,7 @@ delete props.mode
 export default {
   props,
 
-  created () {
+  created() {
     const dom = this.$requireWeexModule('dom')
     this.getPosition = el => new Promise((resolve, reject) => {
       dom.getComponentRect(el.ref, res => {
@@ -29,7 +29,7 @@ export default {
     })
   },
 
-  render (h) {
+  render(h) {
     const tag = this.tag || this.$vnode.data.tag || 'span'
     const map = Object.create(null)
     const prevChildren = this.prevChildren = this.children
@@ -43,7 +43,7 @@ export default {
         if (c.key != null && String(c.key).indexOf('__vlist') !== 0) {
           children.push(c)
           map[c.key] = c
-          ;(c.data || (c.data = {})).transition = transitionData
+            ; (c.data || (c.data = {})).transition = transitionData
         } else if (process.env.NODE_ENV !== 'production') {
           const opts = c.componentOptions
           const name = opts
@@ -60,7 +60,7 @@ export default {
       prevChildren.forEach(c => {
         c.data.transition = transitionData
 
-        // TODO: record before patch positions
+        // TODO:: record before patch positions
 
         if (map[c.key]) {
           kept.push(c)
@@ -75,7 +75,7 @@ export default {
     return h(tag, null, children)
   },
 
-  beforeUpdate () {
+  beforeUpdate() {
     // force removing pass
     this.__patch__(
       this._vnode,
@@ -86,7 +86,7 @@ export default {
     this._vnode = this.kept
   },
 
-  updated () {
+  updated() {
     const children = this.prevChildren
     const moveClass = this.moveClass || ((this.name || 'v') + '-move')
     const moveData = children.length && this.getMoveData(children[0].context, moveClass)
@@ -94,7 +94,7 @@ export default {
       return
     }
 
-    // TODO: finish implementing move animations once
+    // TODO:: finish implementing move animations once
     // we have access to sync getComponentRect()
 
     // children.forEach(callPendingCbs)
@@ -129,7 +129,7 @@ export default {
   },
 
   methods: {
-    getMoveData (context, moveClass) {
+    getMoveData(context, moveClass) {
       const stylesheet = context.$options.style || {}
       return stylesheet['@TRANSITION'] && stylesheet['@TRANSITION'][moveClass]
     }

@@ -42,7 +42,7 @@ export default class Plugin {
       isPlainObject(plugin),
       'plugin.use: plugin should be plain object',
     );
-    // todo
+    // TODO:
     // 这里不是简单的声明一个常量hooks, 下面对于 hooks 的扩展和改变都会影响 plugin 对象中的 hooks 属性的.
     // 所以这里其实是 用了对象扩展
     const hooks = this.hooks;
@@ -50,14 +50,14 @@ export default class Plugin {
       // 使用call,参数列表得像普通函数调用一样，一定要一个一个的列在后面
       // 使用apply，参数列表要使用数组，所以也可以传arguments对象进去.
       // plugin.hasOwnProperty(key)
-      // todo
+      // TODO:
       // for in 循环出对象的键 是否都是 hasOwnProperty ?
       if (Object.prototype.hasOwnProperty.call(plugin, key)) {
         invariant(hooks[key], `plugin.use: unknown plugin property: ${key}`);
-        // todo
+        // TODO:
         // _handleActions 和 extraEnhancers 为啥要特殊对待?
         if (key === '_handleActions') {
-          // todo
+          // TODO:
           // 这里的this 指向是 Plugin class 么?
           // hooks[_handleActions] 不需要了?
           this._handleActions = plugin[key];
@@ -65,7 +65,7 @@ export default class Plugin {
           // 覆盖 hooks.extraEnhancers = [] 的 空数组值
           hooks[key] = plugin[key];
         } else {
-          // todo
+          // TODO:
           // 这里除了extraEnhancers 和 _handleActions 为什么就直接push了?
           // hooks[key] 的值 都是数组,所以直接 push  plugin 中对应的值
           hooks[key].push(plugin[key]);
@@ -77,7 +77,7 @@ export default class Plugin {
   apply(key, defaultHandler) {
     const hooks = this.hooks;
     const validApplyHooks = ['onError', 'onHmr'];
-    // todo
+    // TODO:
     // 只有 'onError', 'onHmr' 两个钩子函数能够被 apply ?
     invariant(
       validApplyHooks.indexOf(key) > -1,
@@ -100,7 +100,7 @@ export default class Plugin {
 
   get(key) {
     const hooks = this.hooks;
-    // todo
+    // TODO:
     // key in hooks 判断 hooks 中是否存在 key 这个键 ?
     // 感觉这个方法很奇怪
     invariant(key in hooks, `plugin.get: hook ${key} cannot be got`);
@@ -123,14 +123,14 @@ function getExtraReducers(hook) {
   return ret;
 }
 
-// todo
+// TODO:
 // 感觉像是: 开启reducer ?
 function getOnReducer(hook) {
-  return function(reducer) {
+  return function (reducer) {
     // 数组遍历 for of
     // for...of循环不会循环对象的key，只会循环出数组的value
     // 因此for...of不能循环遍历普通对象,对普通对象的属性遍历推荐使用for...in
-    // todo
+    // TODO:
     // 这个函数是为了将所有的钩子函数都作用到 reducer 上么?
     for (const reducerEnhancer of hook) {
       reducer = reducerEnhancer(reducer);

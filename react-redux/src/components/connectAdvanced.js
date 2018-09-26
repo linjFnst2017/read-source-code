@@ -7,7 +7,7 @@ import { storeShape, subscriptionShape } from '../utils/PropTypes'
 
 let hotReloadingVersion = 0
 const dummyState = {}
-function noop() {}
+function noop() { }
 function makeSelectorStateful(sourceSelector, store) {
   // wrap the selector in an object that tracks its results between runs.
   const selector = {
@@ -112,7 +112,7 @@ export default function connectAdvanced(
       WrappedComponent
     }
 
-    // TODO Actually fix our use of componentWillReceiveProps
+    // TODO: Actually fix our use of componentWillReceiveProps
     /* eslint-disable react/no-deprecated */
 
     class Connect extends Component {

@@ -9,7 +9,11 @@ import {
 } from '../util/index'
 import { updateListeners } from '../vdom/helpers/index'
 
-export function initEvents (vm: Component) {
+export function initEvents(vm: Component) {
+  // TODO:
+  // 这里去看一下 原型链上的属性 和 用字面量创建的属性有什么区别？
+  // 这里应该是只有调用了
+  // 初始化事件对象
   vm._events = Object.create(null)
   vm._hasHookEvent = false
   // init parent attached events
@@ -21,7 +25,7 @@ export function initEvents (vm: Component) {
 
 let target: any
 
-function add (event, fn, once) {
+function add(event, fn, once) {
   if (once) {
     target.$once(event, fn)
   } else {
@@ -29,11 +33,11 @@ function add (event, fn, once) {
   }
 }
 
-function remove (event, fn) {
+function remove(event, fn) {
   target.$off(event, fn)
 }
 
-export function updateComponentListeners (
+export function updateComponentListeners(
   vm: Component,
   listeners: Object,
   oldListeners: ?Object
@@ -43,10 +47,13 @@ export function updateComponentListeners (
   target = undefined
 }
 
-export function eventsMixin (Vue: Class<Component>) {
+export function eventsMixin(Vue: Class<Component>) {
   const hookRE = /^hook:/
+
+  // 监听当前实例上的自定义事件。事件可以由vm.$emit触发。回调函数会接收所有传入事件触发函数的额外参数。
   Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
     const vm: Component = this
+    // 如果event 传递了一个数组（数组的元素都是 string），就自动将所有的事件都调用 $on 注册事件监听器
     if (Array.isArray(event)) {
       for (let i = 0, l = event.length; i < l; i++) {
         this.$on(event[i], fn)
@@ -62,9 +69,10 @@ export function eventsMixin (Vue: Class<Component>) {
     return vm
   }
 
+  // 监听一个自定义事件，但是只触发一次，在第一次触发之后移除监听器。
   Vue.prototype.$once = function (event: string, fn: Function): Component {
     const vm: Component = this
-    function on () {
+    function on() {
       vm.$off(event, on)
       fn.apply(vm, arguments)
     }
@@ -73,9 +81,14 @@ export function eventsMixin (Vue: Class<Component>) {
     return vm
   }
 
+  // 移除自定义事件监听器。
   Vue.prototype.$off = function (event?: string | Array<string>, fn?: Function): Component {
     const vm: Component = this
     // all
+    // $off 函数没有参数， event = undefined ， fn = undefined 就将vm._events 置空
+    // 并且这个 vm._events 对象不含有原型链
+    // TODO:
+    // Object.create(null) 为什么要创建没有原型链的一个对象， {} 不行？
     if (!arguments.length) {
       vm._events = Object.create(null)
       return vm
@@ -111,6 +124,7 @@ export function eventsMixin (Vue: Class<Component>) {
     return vm
   }
 
+  // 触发当前实例上的事件。附加参数都会传给监听器回调。
   Vue.prototype.$emit = function (event: string): Component {
     const vm: Component = this
     if (process.env.NODE_ENV !== 'production') {

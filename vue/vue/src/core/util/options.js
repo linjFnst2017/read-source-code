@@ -264,7 +264,7 @@ export function validateComponentName(name: string) {
       'and must start with a letter.'
     )
   }
-  // todo
+  // TODO:
   if (isBuiltInTag(name) || config.isReservedTag(name)) {
     warn(
       'Do not use built-in or reserved HTML elements as component ' +
@@ -292,7 +292,7 @@ function normalizeProps(options: Object, vm: ?Component) {
     while (i--) {
       val = props[i]
       if (typeof val === 'string') {
-        // todo
+        // TODO:
         // camelize 函数什么作用没看懂， 大概是对 string 进行校验，空格裁剪等。
         name = camelize(val)
         res[name] = { type: null }
@@ -304,7 +304,7 @@ function normalizeProps(options: Object, vm: ?Component) {
     for (const key in props) {
       val = props[key]
       name = camelize(key)
-      // todo
+      // TODO:
       // 赋值给 res 对象干什么 ？
       res[name] = isPlainObject(val)
         ? val
@@ -317,7 +317,7 @@ function normalizeProps(options: Object, vm: ?Component) {
       vm
     )
   }
-  // todo
+  // TODO:
   // 前面所有的操作，如果一开始传入的 props 是数组（简单 props），将props转成 对象的形式
   // 再重新传回给 props， 避免 简单 props 传值的时候 写太多代码？
   options.props = res

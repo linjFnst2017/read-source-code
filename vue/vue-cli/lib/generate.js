@@ -1,20 +1,20 @@
 const chalk = require('chalk')
-// todo: 一个极简的静态页面生成器
+// TODO:: 一个极简的静态页面生成器
 const Metalsmith = require('metalsmith')
 // 模板引擎,handlebars表达式: {{ cnt }}, 模板放在<script>标签里
 const Handlebars = require('handlebars')
-// todo:
+// TODO::
 const async = require('async')
-// todo: 模板引擎, 不知道跟 handlebars表达式
+// TODO:: 模板引擎, 不知道跟 handlebars表达式
 const render = require('consolidate').handlebars.render
 const path = require('path')
-// todo:
+// TODO::
 const multimatch = require('multimatch')
-// todo:
+// TODO::
 const getOptions = require('./options')
-// todo: 大概就是设定什么时候询问用户确认和用户输入
+// TODO:: 大概就是设定什么时候询问用户确认和用户输入
 const ask = require('./ask')
-// todo: 不知道 filter 用来过滤什么
+// TODO:: 不知道 filter 用来过滤什么
 const filter = require('./filter')
 // 实现终端各种不同类型日志输出
 const logger = require('./logger')

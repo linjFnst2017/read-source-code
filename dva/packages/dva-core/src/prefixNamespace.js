@@ -4,7 +4,7 @@ import { NAMESPACE_SEP } from './constants';
 
 // prefix 前缀
 function prefix(obj, namespace, type) {
-  // todo
+  // TODO:
   // 将 obj 中的对象的所有键加上前缀
   // memo 所有 key 添加前缀之后的对象
   // memo 的初始值是 {}
@@ -27,7 +27,7 @@ export default function prefixNamespace(model) {
   } = model;
 
   // 简单理解为将每一个 model 的 reducers 和 effects 加上 namespace 前缀
-  // todo
+  // TODO:
   // 为什么 subscriptions 和 state 不需要加 namespace 前缀 ?
   if (reducers) {
     // checkModels 中说明了reducers 可以为简单对象或者数组

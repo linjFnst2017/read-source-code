@@ -22,7 +22,7 @@ export class Store {
     }
 
     // note: 结构 options
-    // todo: 不过 options 中的 modules 这里怎么没有使用？
+    // TODO:: 不过 options 中的 modules 这里怎么没有使用？
     const {
       plugins = [],
       strict = false
@@ -472,7 +472,7 @@ function unifyObjectStyle(type, payload, options) {
 
 export function install(_Vue) {
   if (Vue && _Vue === Vue) {
-    // todo 线上如果出现这个错误，就不要 console.error 了
+    // TODO: 线上如果出现这个错误，就不要 console.error 了
     if (process.env.NODE_ENV !== 'production') {
       console.error(
         '[vuex] already installed. Vue.use(Vuex) should be called only once.'

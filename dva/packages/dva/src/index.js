@@ -114,7 +114,7 @@ function render(container, store, app, router) {
 }
 
 function patchHistory(history) {
-  // todo
+  // TODO:
   // history.listen 是什么
   const oldListen = history.listen;
   history.listen = (callback) => {
