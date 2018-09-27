@@ -1,0 +1,8 @@
+node_modules
+coverage
+es
+lib
+dist
+.idea
+*.log
+package-lock.json
