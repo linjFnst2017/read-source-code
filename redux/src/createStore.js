@@ -190,7 +190,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
     }
 
     // TODO:
-    // 我怎么记得 dispatch 的结果应该是一个 新的state， 而不是一个 action ？
+    // 这可能是一个比较好的突破口，用作 await 
     return action
   }
 

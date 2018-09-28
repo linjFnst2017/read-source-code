@@ -1,5 +1,5 @@
 function bindActionCreator(actionCreator, dispatch) {
-  return function() {
+  return function () {
     return dispatch(actionCreator.apply(this, arguments))
   }
 }
@@ -33,10 +33,15 @@ export default function bindActionCreators(actionCreators, dispatch) {
   if (typeof actionCreators !== 'object' || actionCreators === null) {
     throw new Error(
       `bindActionCreators expected an object or a function, instead received ${
-        actionCreators === null ? 'null' : typeof actionCreators
+      actionCreators === null ? 'null' : typeof actionCreators
       }. ` +
-        `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`
+      `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`
     )
+    // TODO:
+    // import ActionCreators from 与 import * as ActionCreators from 的区别
+    // 按 es6 的规范 import * as obj from "xxx" 会将 "xxx" 中所有 export 导出的内容组合成一个对象返回。
+    // 如果都使用 es6 的规范，这个是很明确的。不符合ES6 规范的库需要 import * as xxx
+    // https://segmentfault.com/q/1010000008316030/a-1020000008317463
   }
 
   const keys = Object.keys(actionCreators)
