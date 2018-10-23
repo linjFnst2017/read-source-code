@@ -4,10 +4,11 @@
 // The user may be on a very old node version
 
 const chalk = require('chalk')
+// 版本号操作
 const semver = require('semver')
 const requiredVersion = require('../package.json').engines.node
 
-function checkNodeVersion (wanted, id) {
+function checkNodeVersion(wanted, id) {
   if (!semver.satisfies(process.version, wanted)) {
     console.log(chalk.red(
       'You are using Node ' + process.version + ', but this version of ' + id +
@@ -21,16 +22,21 @@ checkNodeVersion(requiredVersion, 'vue-cli')
 
 const fs = require('fs')
 const path = require('path')
+// 将 window 的双反斜杠转化为 单斜杠，统一 Unix 与 window 都输出 单斜杠
 const slash = require('slash')
+// 将 node 命令中的参数，转化为一个匹配的对象。https://www.npmjs.com/package/minimist
 const minimist = require('minimist')
 
+// TODO:
 // enter debug mode when creating test repo
 if (
+  // 返回运行当前脚本的工作目录的路径。
   slash(process.cwd()).indexOf('/packages/test') > 0 && (
     fs.existsSync(path.resolve(process.cwd(), '../@vue')) ||
     fs.existsSync(path.resolve(process.cwd(), '../../@vue'))
   )
 ) {
+  // process 对象是 nodejs 的一个 global （全局变量）
   process.env.VUE_CLI_DEBUG = true
 }
 
@@ -56,8 +62,10 @@ program
   .option('-x, --proxy', 'Use specified proxy when creating project')
   .option('-b, --bare', 'Scaffold project without beginner instructions')
   .action((name, cmd) => {
+    // TODO: 两个参数分别为 command 需要的一个变量 <app-name> 以及 整个 cmd 命令？
     const options = cleanArgs(cmd)
     // --no-git makes commander to default git to true
+    // 返回 node 命令数组，包括 /bin/node, js 脚本文件名，以及输入的参数，结果是一个数组
     if (process.argv.includes('-g') || process.argv.includes('--git')) {
       options.forceGit = true
     }
@@ -189,7 +197,7 @@ if (!process.argv.slice(2).length) {
 
 // commander passes the Command object itself as options,
 // extract only actual options into a fresh object.
-function cleanArgs (cmd) {
+function cleanArgs(cmd) {
   const args = {}
   cmd.options.forEach(o => {
     const key = o.long.replace(/^--/, '')
