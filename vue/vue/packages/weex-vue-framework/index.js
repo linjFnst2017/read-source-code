@@ -13,12 +13,12 @@ var instanceOptions = {};
 /**
  * Create instance context.
  */
-function createInstanceContext (
+function createInstanceContext(
   instanceId,
   runtimeContext,
   data
 ) {
-  if ( data === void 0 ) data = {};
+  if (data === void 0) data = {};
 
   var weex = runtimeContext.weex;
   var instance = instanceOptions[instanceId] = {
@@ -43,13 +43,13 @@ function createInstanceContext (
  * Destroy an instance with id. It will make sure all memory of
  * this instance released and no more leaks.
  */
-function destroyInstance (instanceId) {
+function destroyInstance(instanceId) {
   var instance = instanceOptions[instanceId];
   if (instance && instance.app instanceof instance.Vue) {
     try {
       instance.app.$destroy();
       instance.document.destroy();
-    } catch (e) {}
+    } catch (e) { }
     delete instance.document;
     delete instance.app;
   }
@@ -61,7 +61,7 @@ function destroyInstance (instanceId) {
  * It will use `Vue.set` on all keys of the new data. So it's better
  * define all possible meaningful keys when instance created.
  */
-function refreshInstance (
+function refreshInstance(
   instanceId,
   data
 ) {
@@ -81,7 +81,7 @@ function refreshInstance (
 /**
  * Create a fresh instance of Vue for each Weex instance.
  */
-function createVueModuleInstance (
+function createVueModuleInstance(
   instanceId,
   weex
 ) {
@@ -114,7 +114,7 @@ function createVueModuleInstance (
   // Hack `Vue` behavior to handle instance information and data
   // before root component created.
   Vue.mixin({
-    beforeCreate: function beforeCreate () {
+    beforeCreate: function beforeCreate() {
       var options = this.$options;
       // root component (vm)
       if (options.el) {
@@ -126,14 +126,14 @@ function createVueModuleInstance (
         instance.app = this;
       }
     },
-    mounted: function mounted () {
+    mounted: function mounted() {
       var options = this.$options;
       // root component (vm)
       if (options.el && weex.document && instance.app === this) {
         try {
           // Send "createFinish" signal to native.
           weex.document.taskCenter.send('dom', { action: 'createFinish' }, []);
-        } catch (e) {}
+        } catch (e) { }
       }
     }
   });
@@ -159,7 +159,7 @@ function createVueModuleInstance (
  * framework can make sure no side effect of the callback happened after
  * an instance destroyed.
  */
-function getInstanceTimer (
+function getInstanceTimer(
   instanceId,
   moduleGetter
 ) {
@@ -168,7 +168,7 @@ function getInstanceTimer (
   var timerAPIs = {
     setTimeout: function () {
       var args = [], len = arguments.length;
-      while ( len-- ) args[ len ] = arguments[ len ];
+      while (len--) args[len] = arguments[len];
 
       var handler = function () {
         args[0].apply(args, args.slice(2));
@@ -179,7 +179,7 @@ function getInstanceTimer (
     },
     setInterval: function () {
       var args = [], len = arguments.length;
-      while ( len-- ) args[ len ] = arguments[ len ];
+      while (len--) args[len] = arguments[len];
 
       var handler = function () {
         args[0].apply(args, args.slice(2));

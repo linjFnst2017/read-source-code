@@ -3,13 +3,13 @@ import Vue from 'vue'
 const bus = new Vue()
 
 export default {
-  install (Vue) {
+  install(Vue) {
     Vue.prototype.$bus = (type, ...args) => {
       bus.$emit(type, ...args)
     }
 
     Vue.mixin({
-      beforeCreate () {
+      beforeCreate() {
         const busOptions = this.$options.bus
         if (busOptions) {
           this.$_bus = []
@@ -30,7 +30,7 @@ export default {
         }
       },
 
-      beforeDestroy () {
+      beforeDestroy() {
         if (this.$_bus) {
           for (const listener of this.$_bus) {
             bus.$off(listener.event, listener.handler)
