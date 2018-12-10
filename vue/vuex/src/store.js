@@ -10,28 +10,31 @@ export class Store {
     // Auto install if it is not done yet and `window` has `Vue`.
     // To allow users to avoid auto-installation in some cases,
     // this code should be placed here. See #731
+    // todo: 没明白这个条件是什么意思？ !Vue ？是上面声明的 Vue 么？
     if (!Vue && typeof window !== 'undefined' && window.Vue) {
       install(window.Vue)
     }
 
     // note: 在产品模式下抛出错误其实是没什么意义的，用户通常不会去看报错。
+    // assert 如果第一个参数不存在 (undefined) 或者 false， 就主动抛出 Error 
     if (process.env.NODE_ENV !== 'production') {
       assert(Vue, `must call Vue.use(Vuex) before creating a store instance.`)
       assert(typeof Promise !== 'undefined', `vuex requires a Promise polyfill in this browser.`)
       assert(this instanceof Store, `store must be called with the new operator.`)
     }
 
-    // note: 结构 options
+    // note: 结构 options， modules, getters, mutations 等
     // TODO:: 不过 options 中的 modules 这里怎么没有使用？
     const {
       plugins = [],
-      strict = false
+      strict = false // 默认不是严格模式（只能通过 mutation 来修改 state 的值）
     } = options
 
-    // store 内部的属性，都命名为 _xxx 是为了不跟开发者的声明的变量会冲突
+    // store 内部的属性，都命名为 _xxx 估计是为了不跟开发者的声明的变量会冲突
     // store internal state
     this._committing = false // 是否当前正在 commit mutation
-    this._actions = Object.create(null) // 创建的空对象原型链上层是空的了，https://segmentfault.com/q/1010000009976954
+    // toString,hasOwnProperty 等这些 Object 上的属性，Vue 都重新拷贝了一份，貌似这里是不想要？
+    this._actions = Object.create(null) // todo: 为啥？ 创建的空对象原型链上层是空的了，https://segmentfault.com/q/1010000009976954
     this._actionSubscribers = [] // 对象不需要上层的原型链了，为什么数组这里还需要？
     this._mutations = Object.create(null)
     this._wrappedGetters = Object.create(null)
@@ -43,6 +46,8 @@ export class Store {
     // bind commit and dispatch to self
     const store = this
     const { dispatch, commit } = this
+    // todo: 为什么这里不直接通过 dispatch.call(this, xx,yy) ？
+    // 这种函数赋值，为什么还要还要声明一个函数名？ 或者为什么不直接使用箭头函数
     this.dispatch = function boundDispatch(type, payload) {
       return dispatch.call(store, type, payload)
     }
@@ -471,6 +476,8 @@ function unifyObjectStyle(type, payload, options) {
 }
 
 export function install(_Vue) {
+  // 主要是调用这个 applyMixin 函数，另外 install 函数的作用，还有在开发环境下提示开发者不要多次调用 install 函数
+  // 多次调用 install(Vue) 的作用是一样的，因为多次 import 的 Vue 实际上是同一个指向的，webpack 只会打包一次
   if (Vue && _Vue === Vue) {
     if (process.env.NODE_ENV !== 'production') {
       console.error(
@@ -479,6 +486,9 @@ export function install(_Vue) {
     }
     return
   }
+  // todo: 不过也许这里有 _Vue !== Vue 的考量, 之后再看
   Vue = _Vue
+  // 这一步的操作内容是调用了 Vue.mixin ，为每一个之后创建的 Vue 实例都添加了一个 beforeCreate 钩子函数
+  // 为每一个 Vue 实例都挂载了一个 this.$store 的属性，值为全局的 store
   applyMixin(Vue)
 }

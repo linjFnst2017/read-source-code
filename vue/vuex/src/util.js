@@ -50,6 +50,7 @@ export function deepCopy(obj, cache = []) {
  * forEach for object
  */
 export function forEachValue(obj, fn) {
+  // 相当于每一个 属性都需要调用 fn 一下，两个参数分别为 value 和 key
   Object.keys(obj).forEach(key => fn(obj[key], key))
 }
 
