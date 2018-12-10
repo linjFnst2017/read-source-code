@@ -145,6 +145,8 @@ function normalizeNamespace(fn) {
       map = namespace
       namespace = ''
     } else if (namespace.charAt(namespace.length - 1) !== '/') {
+      // 添加一个斜杠后缀
+      // var namespace = "intent" ==> namespace = "intent/"
       namespace += '/'
     }
     return fn(namespace, map)

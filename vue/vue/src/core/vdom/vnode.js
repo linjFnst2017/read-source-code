@@ -28,7 +28,7 @@ export default class VNode {
   fnOptions: ?ComponentOptions; // for SSR caching
   fnScopeId: ?string; // functional scope id support
 
-  constructor (
+  constructor(
     tag?: string,
     data?: VNodeData,
     children?: ?Array<VNode>,
@@ -65,7 +65,7 @@ export default class VNode {
 
   // DEPRECATED: alias for componentInstance for backwards compat.
   /* istanbul ignore next */
-  get child (): Component | void {
+  get child(): Component | void {
     return this.componentInstance
   }
 }
@@ -77,7 +77,7 @@ export const createEmptyVNode = (text: string = '') => {
   return node
 }
 
-export function createTextVNode (val: string | number) {
+export function createTextVNode(val: string | number) {
   return new VNode(undefined, undefined, undefined, String(val))
 }
 
@@ -85,7 +85,7 @@ export function createTextVNode (val: string | number) {
 // used for static nodes and slot nodes because they may be reused across
 // multiple renders, cloning them avoids errors when DOM manipulations rely
 // on their elm reference.
-export function cloneVNode (vnode: VNode): VNode {
+export function cloneVNode(vnode: VNode): VNode {
   const cloned = new VNode(
     vnode.tag,
     vnode.data,

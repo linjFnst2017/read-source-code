@@ -6280,6 +6280,7 @@ function extractPropsFromVNodeData (
   // we are only extracting raw values here.
   // validation and default values are handled in the child
   // component itself.
+  // 这里我们只提取原始值。验证和默认值在子组件本身中处理。
   var propOptions = Ctor.options.props;
   if (isUndef(propOptions)) {
     return
