@@ -58,6 +58,7 @@ export function isObject(obj) {
   return obj !== null && typeof obj === 'object'
 }
 
+// 判断是否是 promise 的黑科技。。。。
 export function isPromise(val) {
   return val && typeof val.then === 'function'
 }

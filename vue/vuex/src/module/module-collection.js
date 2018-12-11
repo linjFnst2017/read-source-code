@@ -27,14 +27,20 @@ export default class ModuleCollection {
     // })
   }
 
+  // todo: path 具体的值不会是， ['user', 'xiaoming', 'haha'] 对应到 user 模块的 xiaoming 模块的 haha 模块？
+  // 所以感觉基本上 path 为含一个元素的数组比较多，但是也支持深度的 module， 就是用的比较少 ？
   getNamespace(path) {
     let module = this.root
+    // key 值举例应该是 module name , 比如  user robot 等
     return path.reduce((namespace, key) => {
+      // 获取每一个 child 的具体内容， 就是子模块， module
       module = module.getChild(key)
+      // 如果 namespaced = false 就不能在使用 helpers 函数的时候使用 namespace 了
       return namespace + (module.namespaced ? key + '/' : '')
     }, '')
   }
 
+  // collection 的 update 
   update(rawRootModule) {
     update([], this.root, rawRootModule)
   }
@@ -63,11 +69,14 @@ export default class ModuleCollection {
       // path.slice(0, -1) slice函数 用于 string 或者 array， 第二个参数表示到哪里位置，负数则从最后往前数，这样就不用 先获取 length - num 来截取了！
       const parent = this.get(path.slice(0, -1))
       // todo: 为啥这里使用 下标，还用 path.length - 1 的方式声明 key ？ 看起来有点 low
+      // 给 _children 添加一个属性，key 为 path.length - 1 ， 感觉有点奇怪
       parent.addChild(path[path.length - 1], newModule)
     }
 
     // register nested modules
+    // 注册模块的内建模块（子模块就是嵌套的子模块）
     if (rawModule.modules) {
+      // key, rawChildModule 属于 rawModule.modules 子模块的键值（新的 getters, mutations ...）
       forEachValue(rawModule.modules, (rawChildModule, key) => {
         this.register(path.concat(key), rawChildModule, runtime)
       })
@@ -75,8 +84,11 @@ export default class ModuleCollection {
   }
 
   unregister(path) {
+    // todo: parent 怎么是这么取值？ 最后一位是当前的 path ？
     const parent = this.get(path.slice(0, -1))
+    // key 这里的值是 path 的最后一位，也是当前的 moduleName
     const key = path[path.length - 1]
+    // todo: runtime 用来标识什么？
     if (!parent.getChild(key).runtime) return
 
     parent.removeChild(key)
@@ -89,11 +101,13 @@ function update(path, targetModule, newModule) {
   }
 
   // update target module
+  // 主动替换 newModule 的 namespaced, actions, mutations, getters 
   targetModule.update(newModule)
 
   // update nested modules
   if (newModule.modules) {
     for (const key in newModule.modules) {
+      // 避免手动给当前的模块添加 modules 模块， 这样没有通过 addChild 函数， _children 中不会有对应的 key
       if (!targetModule.getChild(key)) {
         if (process.env.NODE_ENV !== 'production') {
           console.warn(
@@ -103,6 +117,7 @@ function update(path, targetModule, newModule) {
         }
         return
       }
+      // todo: 这里的 update 的含义不是很明确
       update(
         path.concat(key),
         targetModule.getChild(key),
