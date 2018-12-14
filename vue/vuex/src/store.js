@@ -1,15 +1,24 @@
+// 这个函数的作用主要是针对不同版本的 vue 声明好 vuex 的初始化函数
+// 针对 vue@2.x 可以直接通过 Vue.mixin 这个 API 添加 Vue 的全局配置（会影响之后所有的 Vue Instance），添加了一个 beforeCreate 的声明周期函数
+// 针对 vue@1.x ，它的初始化函数 _init 挂载在 Vue 的原型链， vue@1.x 初始化估计是执行 this._init() 
+// todo: 这里存在的一个问题是 Vue.mixin 这个 API 对于重名的声明周期函数是怎么兼容的？ 如果其中一个 Vue 实例已经声明过 beforeCreate 声明周期函数了呢？
 import applyMixin from './mixin'
+// vuex 默认加载插件
+// todo: 最好是能够使用 devtoolPlugin 的概念来写一个时间旅行的可视化执行器
 import devtoolPlugin from './plugins/devtool'
+// 根据 new Store() 初始化实例的时候传入的参数 options，初始化每一个 module 的（内置）属性，构件好模块之间的依赖关系， 最后直接赋值给 root module
 import ModuleCollection from './module/module-collection'
 import { forEachValue, isObject, isPromise, assert } from './util'
 
-let Vue // bind on install
+// 在安装时绑定
+let Vue
 
 export class Store {
   constructor(options = {}) {
     // Auto install if it is not done yet and `window` has `Vue`.
     // To allow users to avoid auto-installation in some cases,
     // this code should be placed here. See #731
+    // 允许用户在某些情况下避免自动安装， 这段代码应该放在这里
     // todo: 没明白这个条件是什么意思？ !Vue ？是上面声明的 Vue 么？
     if (!Vue && typeof window !== 'undefined' && window.Vue) {
       install(window.Vue)
@@ -42,16 +51,21 @@ export class Store {
     this._modules = new ModuleCollection(options)
     // 挂载模块的一个 对象
     this._modulesNamespaceMap = Object.create(null)
-    // todo: 订阅者
+    // mutation 订阅者， 监听每次有 mutation 改变就执行
     this._subscribers = []
     // todo: 用来监听 ？
     this._watcherVM = new Vue()
 
     // bind commit and dispatch to self
+
+    // 为什么这里不直接通过 dispatch.call(this, xx,yy) ？ 感觉是为了语义上更通顺
+    // 这种函数赋值，为什么还要还要声明一个函数名？ 或者为什么不直接使用箭头函数
+
     const store = this
     const { dispatch, commit } = this
-    // todo: 为什么这里不直接通过 dispatch.call(this, xx,yy) ？
-    // 这种函数赋值，为什么还要还要声明一个函数名？ 或者为什么不直接使用箭头函数
+
+    // 这里的 this 是 vuex 类的一个实例， 所以上面的所有属性和这里的 dispatch 和 commit 都是挂载在 this 实例上的
+    // const { dispatch, commit } = this 这里的 dispatch 和 commit 则是挂载在 vuex 的原型上的
     this.dispatch = function boundDispatch(type, payload) {
       return dispatch.call(store, type, payload)
     }
@@ -89,7 +103,7 @@ export class Store {
   }
 
   get state() {
-    // todo: $$ ？ _vm ？ store 中携带了 _vm ?
+    // _vm 的内容是 data: $$state 以及 computed , 据作者的说法这里会将 module 的 getter 都会使用 Vue 的 computed 来做缓存
     return this._vm._data.$$state
   }
 
@@ -109,6 +123,7 @@ export class Store {
     } = unifyObjectStyle(_type, _payload, _options)
 
     const mutation = { type, payload }
+
     const entry = this._mutations[type]
     if (!entry) {
       if (process.env.NODE_ENV !== 'production') {
@@ -116,11 +131,14 @@ export class Store {
       }
       return
     }
+    // 将 store 的状态置为 isCommiting
     this._withCommit(() => {
+      // 依次执行名为 type 的 mutation
       entry.forEach(function commitIterator(handler) {
         handler(payload)
       })
     })
+    // 订阅的 mutation 触发回调事件，数组中的内容是一个一个的回调函数，依次触发
     this._subscribers.forEach(sub => sub(mutation, this.state))
 
     if (
@@ -151,7 +169,7 @@ export class Store {
       }
       return
     }
-
+    // 订阅的 action 触发回调事件，数组中的内容是一个一个的回调函数，依次触发
     this._actionSubscribers.forEach(sub => sub(action, this.state))
 
     return entry.length > 1
@@ -159,11 +177,12 @@ export class Store {
       : entry[0](payload)
   }
 
-  // todo: 
+  // 从字面上看就是每一个 mutation 触发时执行注册的回调， 用于 devtool 以及 logger 等插件实现 time travel
   subscribe(fn) {
     return genericSubscribe(fn, this._subscribers)
   }
 
+  // 貌似没用用到 store.subscribeAction(), 从字面上看就是每一个 action 触发时执行注册的回调
   subscribeAction(fn) {
     return genericSubscribe(fn, this._actionSubscribers)
   }
@@ -234,7 +253,7 @@ export class Store {
   }
 }
 
-// 一般的订阅
+// 一般的订阅事件注册
 function genericSubscribe(fn, subs) {
   if (subs.indexOf(fn) < 0) {
     subs.push(fn)
@@ -461,6 +480,8 @@ function registerMutation(store, type, handler, local) {
   // 并且重要的一点是，这里的 entry 和 store._mutations[type] 指向的是同一个数组， 默认值的时候也是
   // todo: 所以这里直接拿 entry 操作，应该是为了更直观？
   const entry = store._mutations[type] || (store._mutations[type] = [])
+  // todo: 某一个 key 声明多个 mutation 会怎么样？ 
+  // 一般情况下 entry 都是一个包含一个元素的数组
   entry.push(function wrappedMutationHandler(payload) {
     handler.call(store, local.state, payload)
   })

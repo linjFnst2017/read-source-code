@@ -6,6 +6,7 @@ export default {
   Store,
   // todo: 如果需要添加 vuex 函数的话，估计可以挂载到 vuex 的原型链上去
   // https://segmentfault.com/a/1190000008521430 多次 import 同一个包，webpack 打包之后的效果
+  // 不过这里的 install 暴露出去貌似也没什么用吧？
   install,
   // todo: 字符串有啥用？
   version: '__VERSION__',
