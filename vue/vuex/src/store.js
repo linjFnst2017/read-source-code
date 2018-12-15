@@ -66,6 +66,10 @@ export class Store {
 
     // 这里的 this 是 vuex 类的一个实例， 所以上面的所有属性和这里的 dispatch 和 commit 都是挂载在 this 实例上的
     // const { dispatch, commit } = this 这里的 dispatch 和 commit 则是挂载在 vuex 的原型上的
+    // todo: 不是很清楚这里到底为啥要特意声明一下 挂载这两个函数到实例上去， 直接调用原型链上的函数就可以吧 ？
+    // done: https://www.cnblogs.com/DM428/p/7777539.html
+    // 如果你传递一个函数名给一个变量，然后通过在变量后加括号()来调用这个方法，此时方法内部的this的指向就会丢失
+    // 简单的例子： https://www.cnblogs.com/nanshanlaoyao/p/5910645.html
     this.dispatch = function boundDispatch(type, payload) {
       return dispatch.call(store, type, payload)
     }
