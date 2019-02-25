@@ -7,12 +7,15 @@ require('graceful-process')({ logLevel: 'warn' });
 
 const script = process.argv[2];
 // 从下标为3开始
+// roadhog xxx argv xxx ?
 const args = process.argv.slice(3);
 
 // 获取node版本
 const nodeVersion = process.versions.node;
 const versions = nodeVersion.split('.');
+// 大版本号
 const major = versions[0];
+// 小版本号
 const minor = versions[1];
 
 if (major * 10 + minor * 1 < 65) {

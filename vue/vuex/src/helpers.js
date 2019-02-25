@@ -33,6 +33,7 @@ export const mapState = normalizeNamespace((namespace, states) => {
  * @param {String} [namespace] - Module's namespace
  * @param {Object|Array} mutations # Object's item can be a function which accept `commit` function as the first param, it can accept anthor params. You can commit mutation and do any other things in this function. specially, You need to pass anthor params from the mapped function.
  * @return {Object}
+ * 支持传入 function array object
  */
 export const mapMutations = normalizeNamespace((namespace, mutations) => {
   const res = {}
