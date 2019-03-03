@@ -3,13 +3,16 @@ import { extend } from '../util/misc'
 
 export default {
   name: 'RouterView',
+  // 函数式组件，没有 this
   functional: true,
+  // 实际使用 <router-view></router-view> 通常 name 好像都不传
   props: {
     name: {
       type: String,
       default: 'default'
     }
   },
+  // render 函数的两个参数： createElement, context
   render(_, { props, children, parent, data }) {
     // used by devtools to display a router-view badge
     data.routerView = true
