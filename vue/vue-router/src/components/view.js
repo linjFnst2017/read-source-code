@@ -2,15 +2,19 @@ import { warn } from '../util/warn'
 import { extend } from '../util/misc'
 
 export default {
+  // TODO: vue 初始化时，对于 name 的定义怎么样的？ 随便取名都可以？
   name: 'RouterView',
+  // 函数式组件，没有 this
   functional: true,
+  // 实际使用 <router-view></router-view> 通常 name 好像都不传
   props: {
     name: {
       type: String,
       default: 'default'
     }
   },
-  render (_, { props, children, parent, data }) {
+  // render 函数的两个参数： createElement, context， 一般也常常将第一个参数写成 h 函数，蛮常见的
+  render(_, { props, children, parent, data }) {
     // used by devtools to display a router-view badge
     data.routerView = true
 
@@ -63,11 +67,11 @@ export default {
       }
     }
 
-    // also register instance in prepatch hook
-    // in case the same component instance is reused across different routes
-    ;(data.hook || (data.hook = {})).prepatch = (_, vnode) => {
-      matched.instances[name] = vnode.componentInstance
-    }
+      // also register instance in prepatch hook
+      // in case the same component instance is reused across different routes
+      ; (data.hook || (data.hook = {})).prepatch = (_, vnode) => {
+        matched.instances[name] = vnode.componentInstance
+      }
 
     // resolve props
     let propsToPass = data.props = resolveProps(route, matched.props && matched.props[name])
@@ -88,7 +92,7 @@ export default {
   }
 }
 
-function resolveProps (route, config) {
+function resolveProps(route, config) {
   switch (typeof config) {
     case 'undefined':
       return
