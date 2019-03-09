@@ -25,7 +25,7 @@ const app = new Vue({
   ...App
 })
 
-async function start () {
+async function start() {
   app.$mount('#app')
 
   // Restore last route
