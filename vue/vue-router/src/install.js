@@ -67,5 +67,6 @@ export function install(Vue) {
   const strats = Vue.config.optionMergeStrategies
   // use the same hook merging strategy for route hooks
   // TODO: 看不懂这一步操作是啥
+  // beforeRouteEnter beforeRouteLeave beforeRouteUpdate 这几个都是单个的 vue 实例中的路由守卫函数，并不是实际在 vue-router 进行声明的呀？
   strats.beforeRouteEnter = strats.beforeRouteLeave = strats.beforeRouteUpdate = strats.created
 }

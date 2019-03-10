@@ -18,9 +18,11 @@ export default {
       type: String,
       default: 'a'
     },
+    // 准确的
     exact: Boolean,
     append: Boolean,
     replace: Boolean,
+    // 路由命中之后的给 a 标签添加的 class
     activeClass: String,
     exactActiveClass: String,
     event: {
@@ -28,9 +30,12 @@ export default {
       default: 'click'
     }
   },
-  render (h: Function) {
+  render(h: Function) {
+    // $router为VueRouter实例，想要导航到不同URL，则使用$router.push方法， 返回上一个history也是使用$router.go方法
     const router = this.$router
+    // $route为当前router跳转对象里面可以获取name、path、query、params等
     const current = this.$route
+    // TODO: resolve
     const { location, route, href } = router.resolve(this.to, current, this.append)
 
     const classes = {}
@@ -102,7 +107,7 @@ export default {
   }
 }
 
-function guardEvent (e) {
+function guardEvent(e) {
   // don't redirect with control keys
   if (e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) return
   // don't redirect when preventDefault called
@@ -121,7 +126,7 @@ function guardEvent (e) {
   return true
 }
 
-function findAnchor (children) {
+function findAnchor(children) {
   if (children) {
     let child
     for (let i = 0; i < children.length; i++) {

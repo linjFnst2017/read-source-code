@@ -14,8 +14,9 @@ export default {
     }
   },
   // render 函数的两个参数： createElement, context， 一般也常常将第一个参数写成 h 函数，蛮常见的
+  // TODO: context 是指 初始化 vue 的参数么？ 
   render(_, { props, children, parent, data }) {
-    // used by devtools to display a router-view badge
+    // TODO: used by devtools to display a router-view badge
     data.routerView = true
 
     // directly use parent context's createElement() function

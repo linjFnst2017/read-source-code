@@ -7,12 +7,13 @@ import { fillParams } from './params'
 import { warn } from './warn'
 import { extend } from './misc'
 
-export function normalizeLocation (
+export function normalizeLocation(
   raw: RawLocation,
   current: ?Route,
   append: ?boolean,
   router: ?VueRouter
 ): Location {
+  // 未经过处理的 location 如果是一个字符串的话，就转化为一个对象
   let next: Location = typeof raw === 'string' ? { path: raw } : raw
   // named target
   if (next.name || next._normalized) {

@@ -13,17 +13,18 @@ export type Matcher = {
   addRoutes: (routes: Array<RouteConfig>) => void;
 };
 
-export function createMatcher (
+export function createMatcher(
   routes: Array<RouteConfig>,
   router: VueRouter
 ): Matcher {
+  // 这里返回的内容属于初始化内容， pathList = []  pathMap 和 nameMap 为 {}
   const { pathList, pathMap, nameMap } = createRouteMap(routes)
 
-  function addRoutes (routes) {
+  function addRoutes(routes) {
     createRouteMap(routes, pathList, pathMap, nameMap)
   }
 
-  function match (
+  function match(
     raw: RawLocation,
     currentRoute?: Route,
     redirectedFrom?: Location
@@ -71,7 +72,7 @@ export function createMatcher (
     return _createRoute(null, location)
   }
 
-  function redirect (
+  function redirect(
     record: RouteRecord,
     location: Location
   ): Route {
@@ -133,7 +134,7 @@ export function createMatcher (
     }
   }
 
-  function alias (
+  function alias(
     record: RouteRecord,
     location: Location,
     matchAs: string
@@ -152,7 +153,7 @@ export function createMatcher (
     return _createRoute(null, location)
   }
 
-  function _createRoute (
+  function _createRoute(
     record: ?RouteRecord,
     location: Location,
     redirectedFrom?: Location
@@ -172,7 +173,7 @@ export function createMatcher (
   }
 }
 
-function matchRoute (
+function matchRoute(
   regex: RouteRegExp,
   path: string,
   params: Object
@@ -197,6 +198,6 @@ function matchRoute (
   return true
 }
 
-function resolveRecordPath (path: string, record: RouteRecord): string {
+function resolveRecordPath(path: string, record: RouteRecord): string {
   return resolvePath(path, record.parent ? record.parent.path : '/', true)
 }

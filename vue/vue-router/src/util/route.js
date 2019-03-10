@@ -5,7 +5,7 @@ import { stringifyQuery } from './query'
 
 const trailingSlashRE = /\/?$/
 
-export function createRoute (
+export function createRoute(
   record: ?RouteRecord,
   location: Location,
   redirectedFrom?: ?Location,
@@ -16,7 +16,7 @@ export function createRoute (
   let query: any = location.query || {}
   try {
     query = clone(query)
-  } catch (e) {}
+  } catch (e) { }
 
   const route: Route = {
     name: location.name || (record && record.name),
@@ -34,7 +34,9 @@ export function createRoute (
   return Object.freeze(route)
 }
 
-function clone (value) {
+// @Wonderful: 写的非常好的一个深拷贝函数。
+// @note: 平时的业务逻辑一般我都很少写深拷贝函数，主要是因为怕频繁的递归影响页面的性能
+function clone(value) {
   if (Array.isArray(value)) {
     return value.map(clone)
   } else if (value && typeof value === 'object') {
@@ -53,7 +55,7 @@ export const START = createRoute(null, {
   path: '/'
 })
 
-function formatMatch (record: ?RouteRecord): Array<RouteRecord> {
+function formatMatch(record: ?RouteRecord): Array<RouteRecord> {
   const res = []
   while (record) {
     res.unshift(record)
@@ -62,7 +64,7 @@ function formatMatch (record: ?RouteRecord): Array<RouteRecord> {
   return res
 }
 
-function getFullPath (
+function getFullPath(
   { path, query = {}, hash = '' },
   _stringifyQuery
 ): string {
@@ -70,7 +72,7 @@ function getFullPath (
   return (path || '/') + stringify(query) + hash
 }
 
-export function isSameRoute (a: Route, b: ?Route): boolean {
+export function isSameRoute(a: Route, b: ?Route): boolean {
   if (b === START) {
     return a === b
   } else if (!b) {
@@ -93,7 +95,7 @@ export function isSameRoute (a: Route, b: ?Route): boolean {
   }
 }
 
-function isObjectEqual (a = {}, b = {}): boolean {
+function isObjectEqual(a = {}, b = {}): boolean {
   // handle null value #1566
   if (!a || !b) return a === b
   const aKeys = Object.keys(a)
@@ -112,7 +114,7 @@ function isObjectEqual (a = {}, b = {}): boolean {
   })
 }
 
-export function isIncludedRoute (current: Route, target: Route): boolean {
+export function isIncludedRoute(current: Route, target: Route): boolean {
   return (
     current.path.replace(trailingSlashRE, '/').indexOf(
       target.path.replace(trailingSlashRE, '/')
@@ -122,7 +124,7 @@ export function isIncludedRoute (current: Route, target: Route): boolean {
   )
 }
 
-function queryIncludes (current: Dictionary<string>, target: Dictionary<string>): boolean {
+function queryIncludes(current: Dictionary<string>, target: Dictionary<string>): boolean {
   for (const key in target) {
     if (!(key in current)) {
       return false
