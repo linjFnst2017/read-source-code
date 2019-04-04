@@ -1,5 +1,3 @@
-/* @flow */
-
 import config from '../config'
 import { initProxy } from './proxy'
 import { initState } from './state'
@@ -12,11 +10,11 @@ import { extend, mergeOptions, formatComponentName } from '../util/index'
 
 let uid = 0
 
-export function initMixin(Vue: Class<Component>) {
-  Vue.prototype._init = function (options?: Object) {
+export function initMixin(Vue) {
+  Vue.prototype._init = function (options) {
     // _init 函数是被挂载在 Vue 对象的原型链上的，所以一般最终也是由 Vue 的一个实例进行调用
-    // 所以这里的 vm 值就是 一个 Vue 实例， 就是this 的值
-    const vm: Component = this
+    // 所以这里的 vm 值就是 一个 Vue 实例， 就是 this 的值
+    const vm = this
     // TODO::
     // 多个Vue组件按顺序初始化的时候， uid 有什么作用？
     // a uid
@@ -24,13 +22,13 @@ export function initMixin(Vue: Class<Component>) {
 
     let startTag, endTag
     /* istanbul ignore if */
+    // TODO: performance 是否记录性能？
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       startTag = `vue-perf-start:${vm._uid}`
       endTag = `vue-perf-end:${vm._uid}`
       mark(startTag)
     }
 
-    // TODO:
     // 避免被观察？
     // a flag to avoid this being observed
     vm._isVue = true
@@ -43,13 +41,13 @@ export function initMixin(Vue: Class<Component>) {
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
       // TODO::
-      // 优化内部组件实例化
+      // 优化内部组件实例化， 初始化内部函数
       // 因为动态 options 合并非常缓慢，并且内部组件 options 都不需要特殊处理
       // 这个函数的作用是将 额外的 options 参数扩展到 vm的 options 中去， 相同的引用值 vm.$options
       initInternalComponent(vm, options)
     } else {
       // TODO:：
-      // 如果 options 中的不是一个组件？ 就直接 merge options ？
+      // 如果 options 中的不是一个组件？ 就直接 merge options ？传出构造函数的 options 参数？
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},
@@ -92,7 +90,7 @@ export function initMixin(Vue: Class<Component>) {
   }
 }
 
-export function initInternalComponent(vm: Component, options: InternalComponentOptions) {
+export function initInternalComponent(vm, options) {
   // TODO:
   // 为什么要 Object.create(...) 创建一个以 vm.constructor.options 为原型的对象 ？
   // opts 访问 vm.constructor.options 中的对象是访问的到的，导师 Object.keys() 将会是空的数组
@@ -129,7 +127,7 @@ export function initInternalComponent(vm: Component, options: InternalComponentO
 }
 
 // 从函数的名称看， 这个函数的作用是 对外 resolve 参数（一个构造函数） 的 options
-export function resolveConstructorOptions(Ctor: Class<Component>) {
+export function resolveConstructorOptions(Ctor) {
   let options = Ctor.options
   // TODO:
   // 组件的 super 函数，表示是 extends 的子类 ， super 函数是父类的构造函数？
@@ -159,7 +157,7 @@ export function resolveConstructorOptions(Ctor: Class<Component>) {
   return options
 }
 
-function resolveModifiedOptions(Ctor: Class<Component>): ?Object {
+function resolveModifiedOptions(Ctor) {
   let modified
   // TODO:
   // 实际 Ctor 的值是 Vue （一个实例）的构造函数 vm.constructor

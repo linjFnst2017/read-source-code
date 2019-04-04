@@ -73,6 +73,7 @@ export default class VNode {
 export const createEmptyVNode = (text: string = '') => {
   const node = new VNode()
   node.text = text
+  // TODO: 允许评价？
   node.isComment = true
   return node
 }

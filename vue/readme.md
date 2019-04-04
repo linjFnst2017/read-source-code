@@ -1,5 +1,7 @@
 # vue 生态源码阅读
-...
+写在前面，这个 repo 是我在实际工作和学习中的阅读源码的记录，本来对于阅读源码这一件事情很疑惑，明明现在上车已经很晚了（外面对于 vue 的剖析的文档博客早就满天飞了），那为什么还要自己逐字逐句逐行去阅读呢？理解原理的话，其实集合各家的精髓就应该足够了，而且频繁出现的“vue 源码” 类的博文，想必外界都已经疲惫了。我后来想了很久，说到底是我一直不够明白为什么我要阅读它，我是为了工作中更方便排查一些问题？ 还是说是为了写
+
+http://hcysun.me/vue-design/art/
 
 ## vue 源码
 
@@ -8,9 +10,6 @@ vue 最简单的调用是：
 var app = new Vue({
   ...
 })
-
-// mount
-app.$mount('.TODO:app')
 ```
 
 那么接下来的源码阅读就从 new Vue({...}) 开始。
@@ -32,6 +31,12 @@ eventsMixin(Vue)
 lifecycleMixin(Vue)
 renderMixin(Vue)
 ```
+
+其中 initMixin 函数做的工作主要是：
+1. initLifecycle 初始化生命周期函数
+2. initEvents 初始化事件机制
+3. initRender 初始化 render 函数 ？
+4. 
 
 
 ### vue 实例属性

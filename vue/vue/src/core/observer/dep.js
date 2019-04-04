@@ -7,35 +7,36 @@ import config from '../config'
 let uid = 0
 
 /**
- * A dep is an observable that can have multiple
- * directives subscribing to it.
+ * dep是一个可观察的对象，可以有多个指令订阅它
  */
 export default class Dep {
   static target: ?Watcher;
   id: number;
   subs: Array<Watcher>;
 
-  constructor () {
+  constructor() {
     this.id = uid++
     this.subs = []
   }
 
-  addSub (sub: Watcher) {
+  addSub(sub: Watcher) {
     this.subs.push(sub)
   }
 
-  removeSub (sub: Watcher) {
+  removeSub(sub: Watcher) {
     remove(this.subs, sub)
   }
 
-  depend () {
+  depend() {
+    // 静态 target 对象
     if (Dep.target) {
       Dep.target.addDep(this)
     }
   }
 
-  notify () {
-    // stabilize the subscriber list first
+  // 通知
+  notify() {
+    // 首先更新 ？订阅者列表
     const subs = this.subs.slice()
     if (process.env.NODE_ENV !== 'production' && !config.async) {
       // subs aren't sorted in scheduler if not running async
@@ -55,11 +56,11 @@ export default class Dep {
 Dep.target = null
 const targetStack = []
 
-export function pushTarget (_target: ?Watcher) {
+export function pushTarget(_target: ?Watcher) {
   if (Dep.target) targetStack.push(Dep.target)
   Dep.target = _target
 }
 
-export function popTarget () {
+export function popTarget() {
   Dep.target = targetStack.pop()
 }

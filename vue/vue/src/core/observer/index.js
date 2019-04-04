@@ -35,14 +35,12 @@ export function toggleObserving(value: boolean) {
  * collect dependencies and dispatch updates.
  */
 export class Observer {
-  value: any;
-  dep: Dep;
-  vmCount: number; // number of vms that has this object as root $data
-
-  constructor(value: any) {
+  constructor(value) {
     this.value = value
     this.dep = new Dep()
+    // 将此对象作为根$data的vm数量
     this.vmCount = 0
+    // TODO: 诡异的定义方式
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
       const augment = hasProto
@@ -129,7 +127,7 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
 }
 
 /**
- * Define a reactive property on an Object.
+ * 在一个对象上定义一个响应式属性
  */
 export function defineReactive(
   obj: Object,
@@ -138,13 +136,17 @@ export function defineReactive(
   customSetter?: ?Function,
   shallow?: boolean
 ) {
+  // 订阅器，响应式关键（值改变之后能够推送 ？）
   const dep = new Dep()
 
+  // 方法返回指定对象上一个自有属性对应的属性描述符。（自有属性指的是直接赋予该对象的属性，不需要从原型链上进行查找的属性）
   const property = Object.getOwnPropertyDescriptor(obj, key)
+  // configurable 是否可配置，writable 是否可以被更改，后者优先级更高。https://www.cnblogs.com/asdfq/p/7011396.html
   if (property && property.configurable === false) {
     return
   }
 
+  // TODO: 满足预定义的getter/setter ？
   // cater for pre-defined getter/setters
   const getter = property && property.get
   const setter = property && property.set
@@ -194,15 +196,24 @@ export function defineReactive(
  * Set a property on an object. Adds the new property and
  * triggers change notification if the property doesn't
  * already exist.
+ * 在对象上设置属性。添加新属性，并且如果属性原本是不存在的，那就更改通知机制（也就是多加一个监听器）
  */
-export function set(target: Array<any> | Object, key: any, val: any): any {
+// target 值可以为对象或者数组， key 表示新增的属性键名， val 表示新增的属性值
+export function set(target, key, val) {
+  // isUndef 检查是否是 undefined 或者 null
+  // isPrimitive 检查是否是原始值
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
-    warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`)
+    // 不能在 undefined null 或者 js 的原始值上设置响应式的属性
+    warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target)}`)
   }
+
+  // 如果 set 函数的 target 的属性是一个对象的已经存在的属性或者是一个数组已存在的下标，就直接修改 target 的值即可（将会触发 target 的 set 函数）
   if (Array.isArray(target) && isValidArrayIndex(key)) {
+    // Math.max(...) 返回一组数里的最大值， 直接修改数组的 length 属性会修改数组的长度（变大扩展）
     target.length = Math.max(target.length, key)
+    // 删除已存在 index = key 的属性，并添加一个新的 val 值
     target.splice(key, 1, val)
     return val
   }
@@ -210,37 +221,44 @@ export function set(target: Array<any> | Object, key: any, val: any): any {
     target[key] = val
     return val
   }
-  const ob = (target: any).__ob__
+
+  // key 是 target 对象的新属性
+  // __ob__ 响应式对象包含的一个属性，是一个 Observer 实例， http://hcysun.me/vue-design/art/7vue-reactive.html#observer-%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0
+  const ob = target.__ob__
+  // TODO: 
   if (target._isVue || (ob && ob.vmCount)) {
     process.env.NODE_ENV !== 'production' && warn(
+      // 避免在运行时向 Vue 实例或其根 $data 添加反应性属性——在data选项中预先声明它
       'Avoid adding reactive properties to a Vue instance or its root $data ' +
       'at runtime - declare it upfront in the data option.'
     )
     return val
   }
+  // TODO: 不是响应式对象了啊 ？？？
   if (!ob) {
     target[key] = val
     return val
   }
   defineReactive(ob.value, key, val)
+  // 通知值被修改了
   ob.dep.notify()
   return val
 }
 
 /**
- * Delete a property and trigger change if necessary.
+ * 删除属性并在必要时触发更改
  */
-export function del(target: Array<any> | Object, key: any) {
+export function del(target, key) {
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
-    warn(`Cannot delete reactive property on undefined, null, or primitive value: ${(target: any)}`)
+    warn(`Cannot delete reactive property on undefined, null, or primitive value: ${(target)}`)
   }
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.splice(key, 1)
     return
   }
-  const ob = (target: any).__ob__
+  const ob = target.__ob__
   if (target._isVue || (ob && ob.vmCount)) {
     process.env.NODE_ENV !== 'production' && warn(
       'Avoid deleting properties on a Vue instance or its root $data ' +
@@ -255,6 +273,7 @@ export function del(target: Array<any> | Object, key: any) {
   if (!ob) {
     return
   }
+  // 通知值被修改了
   ob.dep.notify()
 }
 

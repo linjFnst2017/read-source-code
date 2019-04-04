@@ -23,7 +23,7 @@ let index = 0
 /**
  * Reset the scheduler's state.
  */
-function resetSchedulerState () {
+function resetSchedulerState() {
   index = queue.length = activatedChildren.length = 0
   has = {}
   if (process.env.NODE_ENV !== 'production') {
@@ -35,7 +35,7 @@ function resetSchedulerState () {
 /**
  * Flush both queues and run the watchers.
  */
-function flushSchedulerQueue () {
+function flushSchedulerQueue() {
   flushing = true
   let watcher, id
 
@@ -93,7 +93,7 @@ function flushSchedulerQueue () {
   }
 }
 
-function callUpdatedHooks (queue) {
+function callUpdatedHooks(queue) {
   let i = queue.length
   while (i--) {
     const watcher = queue[i]
@@ -108,14 +108,14 @@ function callUpdatedHooks (queue) {
  * Queue a kept-alive component that was activated during patch.
  * The queue will be processed after the entire tree has been patched.
  */
-export function queueActivatedComponent (vm: Component) {
+export function queueActivatedComponent(vm: Component) {
   // setting _inactive to false here so that a render function can
   // rely on checking whether it's in an inactive tree (e.g. router-view)
   vm._inactive = false
   activatedChildren.push(vm)
 }
 
-function callActivatedHooks (queue) {
+function callActivatedHooks(queue) {
   for (let i = 0; i < queue.length; i++) {
     queue[i]._inactive = true
     activateChildComponent(queue[i], true /* true */)
@@ -123,19 +123,24 @@ function callActivatedHooks (queue) {
 }
 
 /**
- * Push a watcher into the watcher queue.
- * Jobs with duplicate IDs will be skipped unless it's
- * pushed when the queue is being flushed.
+ * 将一个 watcher 推入 watcher 队列。
+ * 具有重复id的 任务 将被跳过，除非在刷新队列时推送它。
  */
-export function queueWatcher (watcher: Watcher) {
+export function queueWatcher(watcher) {
   const id = watcher.id
+  // undefined == null
+  // has 是一个对象 用作 map
   if (has[id] == null) {
     has[id] = true
+    // 正在刷新
     if (!flushing) {
       queue.push(watcher)
     } else {
+      // 如果已经刷新，则根据其id拼接监视程序
       // if already flushing, splice the watcher based on its id
+      // 如果已经超过了它的id，它将立即运行
       // if already past its id, it will be run next immediately.
+      // TODO: 
       let i = queue.length - 1
       while (i > index && queue[i].id > watcher.id) {
         i--

@@ -7,8 +7,7 @@ export let mark
 export let measure
 
 if (process.env.NODE_ENV !== 'production') {
-  // TODO:
-  // window.performance 不知道做了什么工作
+  // window.performance 一般用于前端性能监控方案中的一个 api
   const perf = inBrowser && window.performance
   /* istanbul ignore if */
   if (

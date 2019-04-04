@@ -4,7 +4,8 @@ export const emptyObject = Object.freeze({})
 
 // these helpers produces better vm code in JS engines due to their
 // explicitness and function inlining
-export function isUndef(v: any): boolean % checks {
+// 这些助手在JS引擎中产生了更好的vm代码，因为它们的明确性和功能内联
+export function isUndef(v) {
   return v === undefined || v === null
 }
 
@@ -21,13 +22,12 @@ export function isFalse(v: any): boolean % checks {
 }
 
 /**
- * Check if value is primitive
+ * 检查是都是 js 原始值
  */
-export function isPrimitive(value: any): boolean % checks {
+export function isPrimitive(value) {
   return (
     typeof value === 'string' ||
     typeof value === 'number' ||
-    // $flow-disable-line
     typeof value === 'symbol' ||
     typeof value === 'boolean'
   )
@@ -64,10 +64,11 @@ export function isRegExp(v: any): boolean {
 }
 
 /**
- * Check if val is a valid array index.
+ * 检查 val 值是都是一个合法的数组下标
  */
-export function isValidArrayIndex(val: any): boolean {
+export function isValidArrayIndex(val) {
   const n = parseFloat(String(val))
+  // Math.floor 向下取整, isFinite 检查是否是一个有限数
   return n >= 0 && Math.floor(n) === n && isFinite(val)
 }
 
