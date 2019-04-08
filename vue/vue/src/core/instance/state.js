@@ -312,44 +312,45 @@ function createWatcher(
   return vm.$watch(expOrFn, handler, options)
 }
 
-export function stateMixin(Vue: Class<Component>) {
-  // flow 不知为何在使用Object.defineProperty直接定义对象的时候会有问题，所以我们必须在程序上建立起来 ？
+export function stateMixin(Vue) {
+  // 在使用 Object.defineProperty 时，flow在直接声明定义对象方面存在一些问题，因此我们必须在这里以程序的方式构建对象
   // flow somehow has problems with directly declared definition object
   // when using Object.defineProperty, so we have to procedurally build up
   // the object here.
 
-  // TODO:
-  // data descriptor function
+  // data descriptor function set 和 get 函数
   const dataDef = {}
+  // $data 属性实际上代理的是 _data 这个实例属性
   dataDef.get = function () { return this._data }
   const propsDef = {}
+  // $props 代理的是 _props 这个实例属性
   propsDef.get = function () { return this._props }
+  // 也就是说，$data 和 $props 是两个只读的属性，所以，现在让你使用 js 实现一个只读的属性，你应该知道要怎么做了。
   if (process.env.NODE_ENV !== 'production') {
-    dataDef.set = function (newData: Object) {
+    // newData 是一个对象
+    dataDef.set = function (newData) {
+      // 避免替换实例根$data。而是使用嵌套数据属性。
       warn(
         'Avoid replacing instance root $data. ' +
         'Use nested data properties instead.',
         this
       )
     }
+    // $props 对象是只读的
     propsDef.set = function () {
       warn(`$props is readonly.`, this)
     }
   }
-  // TODO:
+
   // Object.defineProperty(obj,prop,descriptor), 方法会直接在一个对象上定义一个新属性，或者修改一个已经存在的属性， 并返回这个对象。
   // descriptor 必须为一个包含 set / get 函数的一个对象， 也就是 dataDef， propsDef
   // 在Vue 原型链上定义完 $data 和 $props 之后，data 和 props 就会变成响应式了
   Object.defineProperty(Vue.prototype, '$data', dataDef)
   Object.defineProperty(Vue.prototype, '$props', propsDef)
 
-  // TODO:
   // 实例方法
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
-
-  // TODO:
-  // 实例方法
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
     cb: any,

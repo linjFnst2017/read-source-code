@@ -11,10 +11,9 @@ import { renderStatic, markOnce } from './render-static'
 import { bindObjectListeners } from './bind-object-listeners'
 import { resolveScopedSlots } from './resolve-slots'
 
-// helpers 实际就是为 Vue 原型链挂载很多的函数
-// TODO:
+// installRenderHelpers 实际就是为 Vue 原型链挂载很多的函数
 // 但是为什么它这个属性名这个诡异？
-export function installRenderHelpers(target: any) {
+export function installRenderHelpers(target) {
   target._o = markOnce
   target._n = toNumber
   target._s = toString

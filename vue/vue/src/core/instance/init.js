@@ -12,17 +12,17 @@ let uid = 0
 
 export function initMixin(Vue) {
   Vue.prototype._init = function (options) {
-    // _init 函数是被挂载在 Vue 对象的原型链上的，所以一般最终也是由 Vue 的一个实例进行调用
-    // 所以这里的 vm 值就是 一个 Vue 实例， 就是 this 的值
+    // _init 函数是被挂载在 Vue 对象的原型链上的，最终也是由 Vue 的一个实例进行调用, this._init(options)
+    // 这里的 vm 值就是 一个 Vue 实例， 就是 this 的值
     const vm = this
-    // TODO::
-    // 多个Vue组件按顺序初始化的时候， uid 有什么作用？
+    // 多个Vue组件按顺序初始化的时候， uid 应该是可以用来起缓存作用的？ 更快查询实例？
     // a uid
     vm._uid = uid++
 
     let startTag, endTag
     /* istanbul ignore if */
-    // TODO: performance 是否记录性能？
+    // TODO: performance 是否记录性能
+    // config.performance 默认为 false ， mark 值似乎也跟 performance 有关系
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       startTag = `vue-perf-start:${vm._uid}`
       endTag = `vue-perf-end:${vm._uid}`
@@ -81,6 +81,7 @@ export function initMixin(Vue) {
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       vm._name = formatComponentName(vm, false)
       mark(endTag)
+      // 测量 measure 
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
 

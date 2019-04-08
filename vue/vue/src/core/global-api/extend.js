@@ -4,7 +4,8 @@ import { ASSET_TYPES } from 'shared/constants'
 import { defineComputed, proxy } from '../instance/state'
 import { extend, mergeOptions, validateComponentName } from '../util/index'
 
-export function initExtend (Vue: GlobalAPI) {
+// initExtend 方法在 Vue 上添加了 Vue.cid 静态属性，和 Vue.extend 静态方法。
+export function initExtend(Vue: GlobalAPI) {
   /**
    * Each instance constructor, including Vue, has a unique
    * cid. This enables us to create wrapped "child
@@ -30,7 +31,7 @@ export function initExtend (Vue: GlobalAPI) {
       validateComponentName(name)
     }
 
-    const Sub = function VueComponent (options) {
+    const Sub = function VueComponent(options) {
       this._init(options)
     }
     Sub.prototype = Object.create(Super.prototype)
@@ -80,14 +81,14 @@ export function initExtend (Vue: GlobalAPI) {
   }
 }
 
-function initProps (Comp) {
+function initProps(Comp) {
   const props = Comp.options.props
   for (const key in props) {
     proxy(Comp.prototype, `_props`, key)
   }
 }
 
-function initComputed (Comp) {
+function initComputed(Comp) {
   const computed = Comp.options.computed
   for (const key in computed) {
     defineComputed(Comp.prototype, key, computed[key])

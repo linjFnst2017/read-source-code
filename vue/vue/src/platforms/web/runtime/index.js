@@ -1,5 +1,3 @@
-/* @flow */
-
 import Vue from 'core/index'
 import config from 'core/config'
 import { extend, noop } from 'shared/util'
@@ -19,18 +17,20 @@ import { patch } from './patch'
 import platformDirectives from './directives/index'
 import platformComponents from './components/index'
 
-// install platform specific utils
+// 覆盖默认导出的 config 对象的属性，安装平台特定的工具方法
 Vue.config.mustUseProp = mustUseProp
 Vue.config.isReservedTag = isReservedTag
 Vue.config.isReservedAttr = isReservedAttr
 Vue.config.getTagNamespace = getTagNamespace
 Vue.config.isUnknownElement = isUnknownElement
 
-// install platform runtime directives & components
+// 为 Vue.options.xxx 扩展上 web 平台专有的指令和组件
+// 添加了两个指令(vue 默认存在的两个指令): model, show
 extend(Vue.options.directives, platformDirectives)
+// 添加了两个组件(专场动画):   Transition, TransitionGroup
 extend(Vue.options.components, platformComponents)
 
-// install platform patch function
+// 在 Vue.prototype 上添加 __patch__ 方法，如果在浏览器环境运行的话，这个方法的值为 patch 函数，否则是一个空函数 noop。
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method

@@ -16,10 +16,10 @@ const banner =
   ' */'
 
 const weexFactoryPlugin = {
-  intro () {
+  intro() {
     return 'module.exports = function weexFactory (exports, document) {'
   },
-  outro () {
+  outro() {
     return '}'
   }
 }
@@ -168,7 +168,7 @@ const builds = {
   }
 }
 
-function genConfig (name) {
+function genConfig(name) {
   const opts = builds[name]
   const config = {
     input: opts.entry,

@@ -124,4 +124,5 @@ export function renderMixin(Vue: Class<Component>) {
     vnode.parent = _parentVnode
     return vnode
   }
+
 }

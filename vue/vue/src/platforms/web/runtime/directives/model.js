@@ -20,7 +20,8 @@ if (isIE9) {
 }
 
 const directive = {
-  inserted (el, binding, vnode, oldVnode) {
+  inserted(el, binding, vnode, oldVnode) {
+    // TODO: 为什么没有普通的 input 选择框 ？
     if (vnode.tag === 'select') {
       // #6903
       if (oldVnode.elm && !oldVnode.elm._vOptions) {
@@ -33,7 +34,10 @@ const directive = {
       el._vOptions = [].map.call(el.options, getValue)
     } else if (vnode.tag === 'textarea' || isTextInputType(el.type)) {
       el._vModifiers = binding.modifiers
+      // v-model.lazy 修饰符
       if (!binding.modifiers.lazy) {
+        // compositionstart 事件触发于一段文字的输入之前。 在输入中文（包括语音识别时）会先后触发compositionstart、compositionend事件，类似于keydown和keyup的组合
+        // 触发compositionstart时，文本框会填入 “虚拟文本”（待确认文本），同时触发input事件；在触发compositionend时，就是填入实际内容后（已确认文本）
         el.addEventListener('compositionstart', onCompositionStart)
         el.addEventListener('compositionend', onCompositionEnd)
         // Safari < 10.2 & UIWebView doesn't fire compositionend when
@@ -49,7 +53,7 @@ const directive = {
     }
   },
 
-  componentUpdated (el, binding, vnode) {
+  componentUpdated(el, binding, vnode) {
     if (vnode.tag === 'select') {
       setSelected(el, binding, vnode.context)
       // in case the options rendered by v-for have changed,
@@ -72,7 +76,7 @@ const directive = {
   }
 }
 
-function setSelected (el, binding, vm) {
+function setSelected(el, binding, vm) {
   actuallySetSelected(el, binding, vm)
   /* istanbul ignore if */
   if (isIE || isEdge) {
@@ -82,14 +86,14 @@ function setSelected (el, binding, vm) {
   }
 }
 
-function actuallySetSelected (el, binding, vm) {
+function actuallySetSelected(el, binding, vm) {
   const value = binding.value
   const isMultiple = el.multiple
   if (isMultiple && !Array.isArray(value)) {
     process.env.NODE_ENV !== 'production' && warn(
       `<select multiple v-model="${binding.expression}"> ` +
       `expects an Array value for its binding, but got ${
-        Object.prototype.toString.call(value).slice(8, -1)
+      Object.prototype.toString.call(value).slice(8, -1)
       }`,
       vm
     )
@@ -117,28 +121,30 @@ function actuallySetSelected (el, binding, vm) {
   }
 }
 
-function hasNoMatchingOption (value, options) {
+function hasNoMatchingOption(value, options) {
   return options.every(o => !looseEqual(o, value))
 }
 
-function getValue (option) {
+function getValue(option) {
   return '_value' in option
     ? option._value
     : option.value
 }
 
-function onCompositionStart (e) {
+function onCompositionStart(e) {
+  // composing 正在 working
   e.target.composing = true
 }
 
-function onCompositionEnd (e) {
+function onCompositionEnd(e) {
   // prevent triggering an input event for no reason
   if (!e.target.composing) return
   e.target.composing = false
   trigger(e.target, 'input')
 }
 
-function trigger (el, type) {
+function trigger(el, type) {
+  // 自定义事件
   const e = document.createEvent('HTMLEvents')
   e.initEvent(type, true, true)
   el.dispatchEvent(e)

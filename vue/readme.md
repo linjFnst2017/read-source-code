@@ -36,7 +36,6 @@ renderMixin(Vue)
 1. initLifecycle 初始化生命周期函数
 2. initEvents 初始化事件机制
 3. initRender 初始化 render 函数 ？
-4. 
 
 
 ### vue 实例属性
@@ -55,3 +54,43 @@ renderMixin(Vue)
   ```
 - vm.$parent vue 实例的父实例 ？
 - ...
+
+
+
+### 以简单的例子为例：
+```
+<div id="app">{{test}}</div>
+...
+var vm = new Vue({
+    el: '#app',
+    data: {
+        test: 1
+    }
+})
+```
+
+以这一段代码为例，简单创建了一个 vue 实例。 调用 new Vue 的时候传递了两个参数: el 和 data 进去，接着就去找一下 Vue 的构造函数。
+Vue 的构造函数定义在 core/instance/index.js 文件中:
+
+```
+function Vue (options) {
+  if (process.env.NODE_ENV !== 'production' &&
+    !(this instanceof Vue)
+  ) {
+    warn('Vue is a constructor and should be called with the `new` keyword')
+  }
+  this._init(options)
+}
+```
+
+也就是说实际我们调用 new Vue 创建一个 Vue 实例的时候，是调用了 this._init(options) 函数，options 是构造函数的参数。
+接着看一看 _init 函数做的事情, _init 方法在 src/core/instance/init.js:
+
+```
+const vm = this
+vm._uid = uid++
+```
+
+vm 常亮存储一下当前的 Vue 实例。 并声明一个 _uid 变量来记录当前 Vue 实例的 uid， 最开始的 uid 值为 0， 没调用一个 initMixin 函数就会 +1
+
+

@@ -47,7 +47,7 @@ export function updateComponentListeners(
   target = undefined
 }
 
-export function eventsMixin(Vue: Class<Component>) {
+export function eventsMixin(Vue) {
   const hookRE = /^hook:/
 
   // 监听当前实例上的自定义事件。事件可以由vm.$emit触发。回调函数会接收所有传入事件触发函数的额外参数。

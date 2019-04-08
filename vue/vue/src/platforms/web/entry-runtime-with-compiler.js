@@ -1,20 +1,26 @@
-/* @flow */
-
+// 完整版的 Vue，入口文件是 entry-runtime-with-compiler.js，我们知道完整版和运行时版的区别就在于 compiler，
+// 所以其实在我们看这个文件的代码之前也能够知道这个文件的作用：就是在运行时版的基础上添加 compiler
 import config from 'core/config'
 import { warn, cached } from 'core/util/index'
 import { mark, measure } from 'core/util/perf'
 
+// 导入 运行时 的 Vue
 import Vue from './runtime/index'
 import { query } from './util/index'
+// 从 ./compiler/index.js 文件导入 compileToFunctions， 字面意思： 编译成函数？
 import { compileToFunctions } from './compiler/index'
 import { shouldDecodeNewlines, shouldDecodeNewlinesForHref } from './util/compat'
 
+// 根据 id 获取元素的 innerHTML
 const idToTemplate = cached(id => {
   const el = query(id)
   return el && el.innerHTML
 })
 
+// 使用 mount 变量缓存 Vue.prototype.$mount 方法
 const mount = Vue.prototype.$mount
+// TODO: ??? 为啥要重写？
+// 重写 Vue.prototype.$mount 方法
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
@@ -84,8 +90,9 @@ Vue.prototype.$mount = function (
 /**
  * Get outerHTML of elements, taking care
  * of SVG elements in IE as well.
+ * 获取元素的 outerHTML
  */
-function getOuterHTML (el: Element): string {
+function getOuterHTML(el: Element): string {
   if (el.outerHTML) {
     return el.outerHTML
   } else {
@@ -95,6 +102,7 @@ function getOuterHTML (el: Element): string {
   }
 }
 
+// 在 Vue 上添加一个全局API `Vue.compile` 其值为上面导入进来的 compileToFunctions
 Vue.compile = compileToFunctions
 
 export default Vue

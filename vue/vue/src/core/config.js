@@ -35,6 +35,7 @@ export type Config = {
   _lifecycleHooks: Array<string>;
 };
 
+// 这个配置是与平台有关的，很可能会被覆盖掉。
 export default ({
   /**
    * Option merge strategies (used in core/util/options)
