@@ -21,21 +21,20 @@ export function initMixin(Vue) {
 
     let startTag, endTag
     /* istanbul ignore if */
-    // TODO: performance 是否记录性能
-    // config.performance 默认为 false ， mark 值似乎也跟 performance 有关系
+    // config 的值跟只读属性 Vue.config 指向的是同一个值， Vue 提供了全局配置 Vue.config.performance
+    // config.performance 默认为 false ，默认不记录渲染性能。 mark 是浏览器 window.performance.mark 函数
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       startTag = `vue-perf-start:${vm._uid}`
       endTag = `vue-perf-end:${vm._uid}`
       mark(startTag)
     }
 
-    // 避免被观察？
-    // a flag to avoid this being observed
+    // TODO:
+    // 避免被观察？vue 实例上的数据变动不要被响应式系统监听？
+    // 在 vue 实例上挂载一个 _isVue 属性并且值是 true, 表示这是一个 vue 实例
     vm._isVue = true
     // merge options
-    // TODO:
-    // 既然有 _isComponent 这个属性，（看起来这个 options 可能是一个 Vue 实例）
-    // 事实上 options 的值就是 index.js 中传过来的 Vue 构造函数啊！！
+    // options 是初始化 Vue 的传参，但是并没有传 _isComponent 找个值， 这个属性是一个内部选项，具体后面在进行介绍
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
@@ -46,13 +45,24 @@ export function initMixin(Vue) {
       // 这个函数的作用是将 额外的 options 参数扩展到 vm的 options 中去， 相同的引用值 vm.$options
       initInternalComponent(vm, options)
     } else {
-      // TODO:：
-      // 如果 options 中的不是一个组件？ 就直接 merge options ？传出构造函数的 options 参数？
+      // 通常情况下都是走这里的逻辑，因为一般初始化 Vue 不会传 _isComponent
+
+      // 传递给 mergeOptions 的三个参数：
+      // 1. 通过 resolveConstructorOptions 函数得到，字面意思是“从构造函数中 resolve （分离，这个翻译总感觉怪怪的）出选项值”
+      // 2. options 当前的选项
+      // 3. vm 当前的 vue 实例
+      // 在 vue 实例上添加了一个 $options 属性， 在 Vue 的官方文档中有关于对 $options 的介绍，这个属性用于当前 Vue 实例的初始化，
+      // 而实际初始化 Vue 是下面 initXXX 这些函数做的事情，vm.$options 也是在那些函数中被调用的
+      // mergeOptions 简单可以理解为会返回最终初始化 Vue 的时候的参数
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor),
-        options || {},
+        resolveConstructorOptions(vm.constructor), // 根 Vue 实例，在这函数执行之后 return 的值是 Vue.options
+        options || {}, // 根 Vue 实例的 options: 类似这样的对象，在 main.js 中 { el: '#app', data: { test: 1 } }
         vm
       )
+
+      // TODO: 
+      // vm.constructor 在这里例子中值是 Vue 的构造函数，但是 Vue.extend() 获取到的 class new 出来的实例 constructor 就不是 Vue 函数，这里之后再看
+      // 
     }
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
@@ -77,11 +87,13 @@ export function initMixin(Vue) {
     initProvide(vm) // resolve provide after data/props
     callHook(vm, 'created')
 
+    // _init(options) 函数就是渲染组件初始化（不包括挂载的时间）的全部时间了
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+      // 简单理解 formatComponentName 的作用是通过一定的格式化方式返回了一个 name，会避免所有 vue 实例的 _name 重复
       vm._name = formatComponentName(vm, false)
       mark(endTag)
-      // 测量 measure 
+      // 计算渲染的性能 
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
 
@@ -129,10 +141,12 @@ export function initInternalComponent(vm, options) {
 
 // 从函数的名称看， 这个函数的作用是 对外 resolve 参数（一个构造函数） 的 options
 export function resolveConstructorOptions(Ctor) {
+  // core/global-api/index.js
+  // Vue.options = { components: { KeepAlive }, directives: Object.create(null), filters: Object.create(null), _base: Vue }
   let options = Ctor.options
-  // TODO:
-  // 组件的 super 函数，表示是 extends 的子类 ， super 函数是父类的构造函数？
+  // 组件的 super 函数，`Ctor.super`，`super` 这是子类才有的属性, `super` 这个属性是与 `Vue.extend` 有关系的
   if (Ctor.super) {
+    // 递归调用，这里需要获取根 Vue 实例初始化的时候的 options
     const superOptions = resolveConstructorOptions(Ctor.super)
     // TODO:
     // 组件实例本身是有 superOptions 这个属性的 ？

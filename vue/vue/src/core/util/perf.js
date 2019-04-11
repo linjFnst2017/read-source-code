@@ -1,8 +1,6 @@
 // 判断是否在浏览器中。
 import { inBrowser } from './env'
 
-// TODO:
-// 不知道代表什么意思
 export let mark
 export let measure
 
@@ -17,11 +15,15 @@ if (process.env.NODE_ENV !== 'production') {
     perf.clearMarks &&
     perf.clearMeasures
   ) {
+    // perf.mark: 创建标记
     mark = tag => perf.mark(tag)
     measure = (name, startTag, endTag) => {
+      // 记录两个标记的时间间隔, 以 name 为 key 存储
       perf.measure(name, startTag, endTag)
+      // 清除指定标记
       perf.clearMarks(startTag)
       perf.clearMarks(endTag)
+      // 清除指定记录间隔数据
       perf.clearMeasures(name)
     }
   }

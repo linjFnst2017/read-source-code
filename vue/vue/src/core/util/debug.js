@@ -7,7 +7,9 @@ import { noop } from '../../shared/util'
 
 export let warn = noop
 export let tip = noop
-export let generateComponentTrace = (noop: any) // work around flow check
+// work around flow check
+// 只声明没赋值， 类型是一个 noop 这里只是为了 flow 的校验
+export let generateComponentTrace = (noop: any)
 export let formatComponentName = (noop: any)
 
 if (process.env.NODE_ENV !== 'production') {

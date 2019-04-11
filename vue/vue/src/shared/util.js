@@ -102,6 +102,7 @@ export function makeMap(
 ): (key: string) => true | void {
   const map = Object.create(null)
   const list: Array<string> = str.split(',')
+  // @Wonderful: 这里的设计比较好，会用来判断数组中是否有重复的值 ？
   for (let i = 0; i < list.length; i++) {
     map[list[i]] = true
   }
@@ -112,6 +113,7 @@ export function makeMap(
 
 /**
  * Check if a tag is a built-in tag.
+ * `slot` 和 `component` 这两个名字被 `Vue` 作为内置标签
  */
 export const isBuiltInTag = makeMap('slot,component', true)
 
@@ -156,6 +158,7 @@ export function cached<F: Function>(fn: F): F {
 }
 
 /**
+ * 哇 鬼东西 一下看不明白
  * Camelize a hyphen-delimited string.
  */
 const camelizeRE = /-(\w)/g

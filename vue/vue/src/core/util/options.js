@@ -1,5 +1,4 @@
-/* @flow */
-
+// 这整个文件的作用都是为了 Vue 选项（参数）的合并
 import config from '../config'
 import { warn } from './debug'
 import { nativeWatch } from './env'
@@ -247,6 +246,7 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
 
 /**
  * Validate component names
+ * 验证组件名字是否符合要求
  */
 function checkComponents(options: Object) {
   for (const key in options.components) {
@@ -255,17 +255,19 @@ function checkComponents(options: Object) {
 }
 
 export function validateComponentName(name: string) {
-  // \W 元字符用于查找非单词字符。
   // 单词字符包括：a-z、A-Z、0-9，以及下划线。
   if (!/^[a-zA-Z][\w-]*$/.test(name)) {
+    // `Vue` 限定组件的名字由普通的字符和中横线(-)组成，且必须以字母开头。
     warn(
       'Invalid component name: "' + name + '". Component names ' +
       'can only contain alphanumeric characters and the hyphen, ' +
       'and must start with a letter.'
     )
   }
-  // TODO:
+  // `isBuiltInTag` 方法的作用是用来检测你所注册的组件是否是 Vue 内置的标签
+  // isReservedTag  作用应该是校验名字是否是 html 的预留名字， 定义在 web/util/element.js 中 web 特有的 api （想想也是，其他平台应该不需要考虑这个问题吧。。。）
   if (isBuiltInTag(name) || config.isReservedTag(name)) {
+    // 总之就是不要将 html 预留的名字 和 Vue 的一些内置标签名字用作 vue 实例的名字
     warn(
       'Do not use built-in or reserved HTML elements as component ' +
       'id: ' + name
@@ -276,8 +278,8 @@ export function validateComponentName(name: string) {
 /**
  * Ensure all props option syntax are normalized into the
  * Object-based format.
+ * 确保所有的 props 参数语法都是 以 Object 为基础的格式
  */
-// 确保所有的 props 参数语法都是 以 Object 为基础的格式
 function normalizeProps(options: Object, vm: ?Component) {
   const props = options.props
   if (!props) return
@@ -291,35 +293,44 @@ function normalizeProps(options: Object, vm: ?Component) {
     // 使用 i-- 来终止 while 的自循环
     while (i--) {
       val = props[i]
+      // props 通过数组的形式传值，必须是 string 语法
       if (typeof val === 'string') {
-        // TODO:
-        // camelize 函数什么作用没看懂， 大概是对 string 进行校验，空格裁剪等。
+        // camelize: （横线）转驼峰格式（这个单词见了那么多次竟然没有认出来）
         name = camelize(val)
+        // 通过数组传的 props { type: null } 估计后面就不对类型进行校验了
         res[name] = { type: null }
       } else if (process.env.NODE_ENV !== 'production') {
         warn('props must be strings when using array syntax.')
       }
     }
   } else if (isPlainObject(props)) {
+    // Object.prototype.toString === object .... 表示一个纯对象
     for (const key in props) {
       val = props[key]
+      // 横线转驼峰
       name = camelize(key)
-      // TODO:
-      // 赋值给 res 对象干什么 ？
+      // // 第一种写法，直接写类型
+      // someData1: Number,
+      // // 第二种写法，对象
+      // someData2: {
+      //   type: String,
+      //   default: ''
+      // }
       res[name] = isPlainObject(val)
         ? val
         : { type: val }
     }
   } else if (process.env.NODE_ENV !== 'production') {
+    // props 只接受数组或者对象的形式
     warn(
       `Invalid value for option "props": expected an Array or an Object, ` +
+      // Object.prototype.toString 看一下 props 的类型
       `but got ${toRawType(props)}.`,
       vm
     )
   }
-  // TODO:
   // 前面所有的操作，如果一开始传入的 props 是数组（简单 props），将props转成 对象的形式
-  // 再重新传回给 props， 避免 简单 props 传值的时候 写太多代码？
+  // 再重新传回给 props，之后就可以统一当做一个对象进行处理
   options.props = res
 }
 
@@ -358,6 +369,8 @@ function normalizeDirectives(options: Object) {
   if (dirs) {
     for (const key in dirs) {
       const def = dirs[key]
+      // 注册的指令是一个函数的时候，则将该函数作为对象形式的 `bind` 属性和 `update` 属性的值。
+      // 也就是说，可以把使用函数语法注册指令的方式理解为一种简写
       if (typeof def === 'function') {
         dirs[key] = { bind: def, update: def }
       }
@@ -378,25 +391,43 @@ function assertObjectType(name: string, value: any, vm: ?Component) {
 /**
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
+ * 合并两个选项对象为一个新的对象，这个函数在实例化和继承的时候都有用到
+ * 
+ * 这里的三个参数分别为：
+ * 1. 最年老实例的选项
+ * 2. 当前的选项
+ * 3. 当前的实例
+ * 最终 merge 选项成为一个新的对象
  */
 export function mergeOptions(
   parent: Object,
   child: Object,
   vm?: Component
 ): Object {
+
   if (process.env.NODE_ENV !== 'production') {
+    // 非生产环境下去校验 options.components 数组中的名字是不是跟一些内置、预留的名字冲突了
     checkComponents(child)
   }
 
-  // 通过都会先声明一个 function child() {...} 之后，再给child挂载 一个 options
-  // child.options = ...
+  // 很多时候都会先声明一个 function child() {...} 之后，再给child挂载 一个 options
+  // TODO: 在哪里进行校验？ 如果没有任何配置的话
+  // 这说明 Vue 初始化的时候， options 还可以是一个函数，但是需要包含 options 属性 ？
+  // `child` 参数除了是普通的选项对象外，还可以是一个函数，如果是函数的话就取该函数的`options` 静态属性作为新的`child`
   if (typeof child === 'function') {
     child = child.options
   }
 
+  // 规范化 props
   normalizeProps(child, vm)
+  // TODO: 
+  // 规范化 inject （2.2.0 之后新增， 不过这个一般用于高阶组件，放后面看吧）
   normalizeInject(child, vm)
+  // 规范化 directives 指令
   normalizeDirectives(child)
+
+  // TODO: 
+  // 处理 `extends` 选项和 `mixins` 选项
   const extendsFrom = child.extends
   if (extendsFrom) {
     parent = mergeOptions(parent, extendsFrom, vm)

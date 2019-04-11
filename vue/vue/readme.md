@@ -84,6 +84,16 @@ function Vue (options) {
 ```
 
 也就是说实际我们调用 new Vue 创建一个 Vue 实例的时候，是调用了 this._init(options) 函数，options 是构造函数的参数。
+
+```
+options = {
+    el: '#app',
+    data: {
+        test: 1
+    }
+}
+```
+
 接着看一看 _init 函数做的事情, _init 方法在 src/core/instance/init.js:
 
 ```
@@ -91,6 +101,33 @@ const vm = this
 vm._uid = uid++
 ```
 
-vm 常亮存储一下当前的 Vue 实例。 并声明一个 _uid 变量来记录当前 Vue 实例的 uid， 最开始的 uid 值为 0， 没调用一个 initMixin 函数就会 +1
+vm 常量存储一下当前的 Vue 实例。 并声明一个 _uid 变量来记录当前 Vue 实例的 uid， 最开始的 uid 值为 0， 每调用一次 _init 函数就会 +1
 
+_init 函数中，config 的值跟只读属性 Vue.config 指向的是同一个值， Vue 提供了全局配置 Vue.config.performance，我们通过将其设置为 true，即可开启性能追踪，你可以追踪四个场景的性能：
 
+1、组件初始化(component init)
+2、编译(compile)，将模板(template)编译成渲染函数
+3、渲染(render)，其实就是渲染函数的性能，或者说渲染函数执行且生成虚拟DOM(vnode)的性能
+4、打补丁(patch)，将虚拟DOM渲染为真实DOM的性能
+
+```
+let startTag, endTag
+/* istanbul ignore if */
+// config.performance 默认为 false ，默认不记录渲染性能。 mark 是浏览器 window.performance.mark 函数
+if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+  startTag = `vue-perf-start:${vm._uid}`
+  endTag = `vue-perf-end:${vm._uid}`
+  mark(startTag)
+}
+
+...
+
+if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+  // 简单理解 formatComponentName 的作用是通过一定的格式化方式返回了一个 name，会避免所有 vue 实例的 _name 重复
+  vm._name = formatComponentName(vm, false)
+  mark(endTag)
+  // 计算渲染的性能 
+  measure(`vue ${vm._name} init`, startTag, endTag)
+}
+
+```

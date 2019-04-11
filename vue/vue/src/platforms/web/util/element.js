@@ -37,7 +37,7 @@ export const isReservedTag = (tag: string): ?boolean => {
   return isHTMLTag(tag) || isSVG(tag)
 }
 
-export function getTagNamespace (tag: string): ?string {
+export function getTagNamespace(tag: string): ?string {
   if (isSVG(tag)) {
     return 'svg'
   }
@@ -49,7 +49,7 @@ export function getTagNamespace (tag: string): ?string {
 }
 
 const unknownElementCache = Object.create(null)
-export function isUnknownElement (tag: string): boolean {
+export function isUnknownElement(tag: string): boolean {
   /* istanbul ignore if */
   if (!inBrowser) {
     return true
