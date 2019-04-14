@@ -41,14 +41,14 @@ const normalizeRender = vm => {
     } else {
       throw new Error(
         `render function or template not defined in component: ${
-          vm.$options.name || vm.$options._componentTag || 'anonymous'
+        vm.$options.name || vm.$options._componentTag || 'anonymous'
         }`
       )
     }
   }
 }
 
-function renderNode (node, isRoot, context) {
+function renderNode(node, isRoot, context) {
   if (node.isString) {
     renderStringNode(node, context)
   } else if (isDef(node.componentOptions)) {
@@ -70,7 +70,7 @@ function renderNode (node, isRoot, context) {
   }
 }
 
-function registerComponentForCache (options, write) {
+function registerComponentForCache(options, write) {
   // exposed by vue-loader, need to call this if cache hit because
   // component lifecycle hooks will not be called.
   const register = options._ssrRegister
@@ -80,7 +80,7 @@ function registerComponentForCache (options, write) {
   return register
 }
 
-function renderComponent (node, isRoot, context) {
+function renderComponent(node, isRoot, context) {
   const { write, next, userContext } = context
 
   // check cache hit
@@ -124,7 +124,7 @@ function renderComponent (node, isRoot, context) {
     if (isDef(getKey) && isUndef(cache)) {
       warnOnce(
         `[vue-server-renderer] Component ${
-          Ctor.options.name || '(anonymous)'
+        Ctor.options.name || '(anonymous)'
         } implemented serverCacheKey, ` +
         'but no cache was provided to the renderer.'
       )
@@ -139,7 +139,7 @@ function renderComponent (node, isRoot, context) {
   }
 }
 
-function renderComponentWithCache (node, isRoot, key, context) {
+function renderComponentWithCache(node, isRoot, key, context) {
   const write = context.write
   write.caching = true
   const buffer = write.cacheBuffer
@@ -156,7 +156,7 @@ function renderComponentWithCache (node, isRoot, key, context) {
   renderComponentInner(node, isRoot, context)
 }
 
-function renderComponentInner (node, isRoot, context) {
+function renderComponentInner(node, isRoot, context) {
   const prevActive = context.activeInstance
   // expose userContext on vnode
   node.ssrContext = context.userContext
@@ -174,7 +174,7 @@ function renderComponentInner (node, isRoot, context) {
   renderNode(childNode, isRoot, context)
 }
 
-function renderAsyncComponent (node, isRoot, context) {
+function renderAsyncComponent(node, isRoot, context) {
   const factory = node.asyncFactory
 
   const resolve = comp => {
@@ -239,7 +239,7 @@ function renderAsyncComponent (node, isRoot, context) {
   }
 }
 
-function renderStringNode (el, context) {
+function renderStringNode(el, context) {
   const { write, next } = context
   if (isUndef(el.children) || el.children.length === 0) {
     write(el.open + (el.close || ''), next)
@@ -256,7 +256,7 @@ function renderStringNode (el, context) {
   }
 }
 
-function renderElement (el, isRoot, context) {
+function renderElement(el, isRoot, context) {
   const { write, next } = context
 
   if (isTrue(isRoot)) {
@@ -288,12 +288,12 @@ function renderElement (el, isRoot, context) {
   }
 }
 
-function hasAncestorData (node: VNode) {
+function hasAncestorData(node: VNode) {
   const parentNode = node.parent
   return isDef(parentNode) && (isDef(parentNode.data) || hasAncestorData(parentNode))
 }
 
-function getVShowDirectiveInfo (node: VNode): ?VNodeDirective {
+function getVShowDirectiveInfo(node: VNode): ?VNodeDirective {
   let dir: VNodeDirective
   let tmp
 
@@ -309,7 +309,7 @@ function getVShowDirectiveInfo (node: VNode): ?VNodeDirective {
   return dir
 }
 
-function renderStartingTag (node: VNode, context) {
+function renderStartingTag(node: VNode, context) {
   let markup = `<${node.tag}`
   const { directives, modules } = context
 
@@ -369,13 +369,13 @@ function renderStartingTag (node: VNode, context) {
   return markup + '>'
 }
 
-export function createRenderFunction (
-  modules: Array<(node: VNode) => ?string>,
+export function createRenderFunction(
+  modules: Array<(node: VNode) =>?string>,
   directives: Object,
   isUnaryTag: Function,
   cache: any
 ) {
-  return function render (
+  return function render(
     component: Component,
     write: (text: string, next: Function) => void,
     userContext: ?Object,

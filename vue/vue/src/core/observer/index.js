@@ -37,11 +37,24 @@ export function toggleObserving(value: boolean) {
 export class Observer {
   constructor(value) {
     this.value = value
+    // 依赖数组容器，不是属于某一个属性的，而是属于整个 data 对象或者数组的， 比如 new Vue 创建实例的时候的 data 
     this.dep = new Dep()
     // 将此对象作为根$data的vm数量
     this.vmCount = 0
-    // TODO: 诡异的定义方式
+
+    // 定义不可枚举的属性， 防止被业务代码中对 data 的遍历拿到这个键
     def(value, '__ob__', this)
+    // 执行完是哪个面的代码之后属于 data 对象被扩展了一个不可枚举属性
+    // const data = {
+    //   a: 1,
+    //   // __ob__ 是不可枚举的属性
+    //   __ob__: {
+    //     value: data, // value 属性指向 data 数据对象本身，这是一个循环引用
+    //     dep: dep实例对象, // new Dep()
+    //     vmCount: 0
+    //   }
+    // }
+    // 区分数据对象到底是数组还是一个纯对象
     if (Array.isArray(value)) {
       const augment = hasProto
         ? protoAugment
@@ -49,6 +62,7 @@ export class Observer {
       augment(value, arrayMethods, arrayKeys)
       this.observeArray(value)
     } else {
+      // 观察所有的 value 中的属性
       this.walk(value)
     }
   }
@@ -59,8 +73,10 @@ export class Observer {
    * value type is Object.
    */
   walk(obj: Object) {
+    // 枚举可观察属性
     const keys = Object.keys(obj)
     for (let i = 0; i < keys.length; i++) {
+      // 定义响应式函数
       defineReactive(obj, keys[i])
     }
   }
@@ -104,20 +120,30 @@ function copyAugment(target: Object, src: Object, keys: Array<string>) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  */
+// asRootData: 代表将要被观测的数据是否是根级数据
 export function observe(value: any, asRootData: ?boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
+    // 不是一个对象(因为是 typeof 来判断的，这里包括数组)或者是 `VNode` 实例
     return
   }
+  // 用来保存 Observer （观察者）对象
   let ob: Observer | void
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
+    // 当一个数据对象被观测之后将会在该对象上定义 `__ob__` 属性， 所以这里如果一个数据已经被观察了的话，对象上会有 __ob__ 属性
+    // 如果已经被观察的对象就直接覆盖？ 避免依赖重复收集
     ob = value.__ob__
   } else if (
     shouldObserve &&
+    // 只有当不是服务端渲染的时候才会观测数据
     !isServerRendering() &&
+    // value 是一个数组
     (Array.isArray(value) || isPlainObject(value)) &&
+    // 判断一个对象是否是可扩展的， 因为需要在 value 对象上添加一个 __ob__
     Object.isExtensible(value) &&
+    // 不是 vue 实例
     !value._isVue
   ) {
+    // 对象没有被观察过
     ob = new Observer(value)
   }
   if (asRootData && ob) {
@@ -128,42 +154,72 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
 
 /**
  * 在一个对象上定义一个响应式属性
+ * 核心就是 **将数据对象的数据属性转换为访问器属性**， 即为数据对象的属性设置一对 `getter/setter`
  */
 export function defineReactive(
   obj: Object,
   key: string,
+  // 这里的 val 也是不一定有值的， flow 应该写有 ？
   val: any,
   customSetter?: ?Function,
   shallow?: boolean
 ) {
   // 订阅器，响应式关键（值改变之后能够推送 ？）
+  // data 中的每一个属性都拥有一个依赖收集容器
   const dep = new Dep()
 
   // 方法返回指定对象上一个自有属性对应的属性描述符。（自有属性指的是直接赋予该对象的属性，不需要从原型链上进行查找的属性）
+  // 获取该字段可能已有的属性描述对象
   const property = Object.getOwnPropertyDescriptor(obj, key)
   // configurable 是否可配置，writable 是否可以被更改，后者优先级更高。https://www.cnblogs.com/asdfq/p/7011396.html
   if (property && property.configurable === false) {
+    // 如果不可配置就直接 return 了
     return
   }
 
-  // TODO: 满足预定义的getter/setter ？
+  // 保存来自 `property` 对象的 `get` 和 `set` 函数，  `property` 对象是属性的描述对象，一个对象的属性很可能已经是一个访问器属性了，所以该属性很可能已经存在 `get` 或 `set` 方法。
   // cater for pre-defined getter/setters
+  // 这里的 getter 和 setter 函数一般 data 对象执行到这里都是已经存在了的，通过的是 proxy(vm, `_data`, key) 这个函数
   const getter = property && property.get
   const setter = property && property.set
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
-
+  // shallow: true 浅观察
+  // 默认就是深度观测， val 属性如果是一个对象的话，就需要被继续观测， 但是这里 val 未必有值, 如果 val 未被定义，undefined isObject 函数判断之后不会继续执行下去
   let childOb = !shallow && observe(val)
+
+  // const data = {
+  //   // 属性 a 通过 setter/getter 通过闭包引用着 dep 和 childOb
+  //   a: {
+  //     // 属性 b 通过 setter/getter 通过闭包引用着 dep 和 childOb
+  //     b: 1
+  //   __ob__: { a, dep, vmCount }
+  //   }
+  // __ob__: { data, dep, vmCount }
+  // }
+  // 属性 `a` 闭包引用的 `childOb` 实际上就是 `data.a.__ob__`。
+  // 而属性`b` 闭包引用的`childOb` 是`undefined`，因为属性`b` 是基本类型值，并不是对象也不是数组。
   Object.defineProperty(obj, key, {
+    // 可枚举
     enumerable: true,
+    // 可配置
     configurable: true,
+    // 正确地返回属性值， 以及收集依赖
     get: function reactiveGetter() {
+      // 如果`getter` 存在那么直接调用该函数，并以该函数的返回值作为属性的值，保证属性的原有读取操作正常运作
+      // 执行这个对象上原来就存在的（缓存的 getter）， 否则就返回 val 
       const value = getter ? getter.call(obj) : val
+      // Dep.target Dep 是依赖类， 直接挂载在类上的这个 target 属性用于存储数据改变时需要执行的函数
       if (Dep.target) {
+        // 每一个数据字段都通过闭包引用着属于自己的 `dep` 常量
+        // 依赖收集
         dep.depend()
         if (childOb) {
+          // 而第二个”筐“里收集的依赖的触发时机是在使用 `$set` 或 `Vue.set` 给数据对象添加新属性时触发
+          // 在没有 `Proxy` 之前 `Vue` 没办法拦截到给对象添加属性的操作。所以 `Vue` 才提供了 `$set` 和 `Vue.set` 等方法让我们有能力给对象添加新属性的同时触发依赖
           childOb.dep.depend()
+          //  `Observer` 类在定义响应式属性时对于纯对象和数组的处理方式是不同
           if (Array.isArray(value)) {
             dependArray(value)
           }
@@ -171,9 +227,14 @@ export function defineReactive(
       }
       return value
     },
+    // `set` 函数也要完成两个重要的事情，第一正确地为属性设置新值，第二是能够触发相应的依赖
     set: function reactiveSetter(newVal) {
+      // 执行缓存的 getter， 拿到旧值
       const value = getter ? getter.call(obj) : val
       /* eslint-disable no-self-compare */
+      // 原有的值与新的值作比较，并且只有在原有值与新设置的值不相等的情况下才需要触发依赖和重新设置属性值，
+      // 否则意味着属性值并没有改变，当然不需要做额外的处理
+      // newVal !== newVal && value !== value  =>  NaN === NaN
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
       }
@@ -181,9 +242,13 @@ export function defineReactive(
       if (process.env.NODE_ENV !== 'production' && customSetter) {
         customSetter()
       }
+      // 如果缓存了 setter 函数就执行缓存 setter 函数
+      // 如果属性原来拥有自身的 `set` 函数，那么应该继续使用该函数来设置属性的值，从而保证属性原有的设置操作不受影响。
       if (setter) {
         setter.call(obj, newVal)
       } else {
+        // TODO: 这里的逻辑还不明确。
+        //  val = obj[key]
         val = newVal
       }
       childOb = !shallow && observe(newVal)

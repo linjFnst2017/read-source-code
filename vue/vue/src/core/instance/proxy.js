@@ -24,6 +24,7 @@ if (process.env.NODE_ENV !== 'production') {
     )
   }
 
+  // TODO: Proxy 与 vue 的 set 和 get 有什么区别
   const hasProxy =
     typeof Proxy !== 'undefined' && isNative(Proxy)
 
@@ -63,14 +64,17 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   initProxy = function initProxy(vm) {
+    // 判断当前宿主环境是否支持原生 `Proxy`
     if (hasProxy) {
       // determine which proxy handler to use
       const options = vm.$options
+      // `options.render._withStripped` 这个属性只在测试代码中出现过， 所以一般这个条件为假， 所以 getHandler 会等于 hasHandler
       const handlers = options.render && options.render._withStripped
         ? getHandler
         : hasHandler
       vm._renderProxy = new Proxy(vm, handlers)
     } else {
+      // 如果环境不支持原生 Proxy 的话，跟生产环境下直接添加一个 _renderProxy 值是一样的
       vm._renderProxy = vm
     }
   }

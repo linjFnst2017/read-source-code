@@ -53,12 +53,15 @@ export function initMixin(Vue) {
       // 3. vm 当前的 vue 实例
       // 在 vue 实例上添加了一个 $options 属性， 在 Vue 的官方文档中有关于对 $options 的介绍，这个属性用于当前 Vue 实例的初始化，
       // 而实际初始化 Vue 是下面 initXXX 这些函数做的事情，vm.$options 也是在那些函数中被调用的
-      // mergeOptions 简单可以理解为会返回最终初始化 Vue 的时候的参数
+      // mergeOptions 简单可以理解为会返回最终初始化 Vue 的时候的参数， 最终的返回结果是经过合并的 options
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor), // 根 Vue 实例，在这函数执行之后 return 的值是 Vue.options
         options || {}, // 根 Vue 实例的 options: 类似这样的对象，在 main.js 中 { el: '#app', data: { test: 1 } }
         vm
       )
+
+      // vm.$options 的作用在官网说明是用来添加一些自定义属性。添加自定义属性，由于在 mergeOptions 的时候没有合并的策略函数，所以会直接使用 defaultStrat
+      // 也就是初始化的值是什么，得到的就是什么。
 
       // TODO: 
       // vm.constructor 在这里例子中值是 Vue 的构造函数，但是 Vue.extend() 获取到的 class new 出来的实例 constructor 就不是 Vue 函数，这里之后再看
@@ -66,12 +69,11 @@ export function initMixin(Vue) {
     }
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
-      // TODO:
-      // 暂时看不懂
+      // 作用之一是： 其实就是在实例对象 `vm` 上添加 `_renderProxy` 属性
       initProxy(vm)
     } else {
-      // TODO:
-      // 变成了一个循环对象？
+      // circular structure
+      // 循环引用对象本来没有什么问题，序列化的时候才会发生问题
       vm._renderProxy = vm
     }
     // expose real self
@@ -83,6 +85,7 @@ export function initMixin(Vue) {
     initRender(vm)
     callHook(vm, 'beforeCreate')
     initInjections(vm) // resolve injections before data/props
+    // 
     initState(vm)
     initProvide(vm) // resolve provide after data/props
     callHook(vm, 'created')

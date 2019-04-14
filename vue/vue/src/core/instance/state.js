@@ -45,17 +45,23 @@ export function proxy(target: Object, sourceKey: string, key: string) {
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
+
 export function initState(vm: Component) {
+  // 将用来存储所有该组件实例的 `watcher` 对象
   vm._watchers = []
   const opts = vm.$options
+  // 这里能够看出 created 生命钩子函数中 props methods 以及 data 中的数据是 props 先进行初始化，再是 data 最后才是 computed 和 watch
   if (opts.props) initProps(vm, opts.props)
   if (opts.methods) initMethods(vm, opts.methods)
   if (opts.data) {
     initData(vm)
   } else {
+    // `$data` 属性是一个访问器属性，其代理的值就是 `_data`
+    // 如果组件参数 options 中不存在 data 对象，就 observe 一个空对象
     observe(vm._data = {}, true /* asRootData */)
   }
   if (opts.computed) initComputed(vm, opts.computed)
+  // 由于 ff 浏览器的对象原生就带了一个 watch 对象（Object.prototype.watch），所以在判断 watch 的时候还需要判断一下 options.watch 对象是都是原生 watch
   if (opts.watch && opts.watch !== nativeWatch) {
     initWatch(vm, opts.watch)
   }
@@ -109,27 +115,38 @@ function initProps(vm: Component, propsOptions: Object) {
   toggleObserving(true)
 }
 
+// 实例对象代理访问数据 data
 function initData(vm: Component) {
+  // 挂载在 $options 上的属性是已经通过处理了的，vm.$options.data 最终被处理成一个函数，返回一个对象被 vue 观察
   let data = vm.$options.data
+  // `beforeCreate` 声明周期钩子函数在 mergeOptions 函数执行之后，在 initData 函数执行之前， 虽然在 mergeOptions 函数执行之后 data 一定是一个函数
+  // 但是如果 beforeCreate 钩子函数中修改了 vm.$options.data 的话，这里有必要再进行判断是否是一个 function
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
+  // 通过上面的操作之后（mergeOptions 函数将用户输入的 data 变成一个函数，getData 函数从实例从又获取真实的 data）
+  // 理论上说最后的结果应该是一个简单的对象了，但是如果有意外的话，在生产环境下需要报错， 比如用户的 data 函数 return 的是一个字符串之类的
   if (!isPlainObject(data)) {
     data = {}
+    // data must be a function
     process.env.NODE_ENV !== 'production' && warn(
       'data functions should return an object:\n' +
       'https://vuejs.org/v2/guide/components.html#data-Must-Be-a-Function',
       vm
     )
   }
+
   // proxy data on instance
   const keys = Object.keys(data)
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
+
   while (i--) {
     const key = keys[i]
+    // 声明属性的优先级： props优先级 > methods优先级 > data优先级
     if (process.env.NODE_ENV !== 'production') {
+      // hasOwn: Object​.prototype​.has​OwnProperty 检测 methods 中是否有跟 data 中同名属性，非生产环境下报错
       if (methods && hasOwn(methods, key)) {
         warn(
           `Method "${key}" has already been defined as a data property.`,
@@ -144,19 +161,27 @@ function initData(vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
+      // 检测 key 是否是保留键， 不能以 $ 和 _ 开头。 
+      // 通过 `Object.defineProperty` 函数在实例对象 `vm` 上定义与 `data` 数据字段同名的访问器属性，
+      // 并且这些属性代理的值是`vm._data` 上对应属性的值
       proxy(vm, `_data`, key)
     }
   }
   // observe data
+  // 真正实现数据响应式的函数入口
   observe(data, true /* asRootData */)
 }
 
+// 函数名和参数中了解这个函数的作用是： 从一个 vue 实例中获取到它的 data
 export function getData(data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
+  // 这里调用 pushTarget 和 popTarget 是为了防止通过 props 数据初始化 data 的时候收集冗余的依赖（观察者）
   pushTarget()
   try {
+    // 第一个 this 指定作用域 等二个 this 是 data 函数的参数
     return data.call(vm, vm)
   } catch (e) {
+    // 如果发生错误就直接返回一个空对象
     handleError(e, vm, `data()`)
     return {}
   } finally {
