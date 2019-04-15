@@ -81,10 +81,15 @@ Vue.prototype.$mount = function (
         mark('compile')
       }
 
+      // vue 编译的入口
       // 使用 compileToFunctions 函数将模板(template)字符串编译为渲染函数(render)
       const { render, staticRenderFns } = compileToFunctions(template, {
+        // 分析参数： 
+        // 目的是对浏览器的怪癖做兼容
         shouldDecodeNewlines,
+        //  目的是对浏览器的怪癖做兼容
         shouldDecodeNewlinesForHref,
+        // `delimiters` 和 `comments` 都是 `Vue` 提供的选项
         delimiters: options.delimiters,
         comments: options.comments
       }, this)
