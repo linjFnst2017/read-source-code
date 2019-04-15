@@ -16,6 +16,7 @@ import {
   isServerRendering
 } from '../util/index'
 
+// 通过 Object.getOwnPropertyNames 函数获取所有属于 arrayMethods 对象自身的键
 const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
 
 /**
@@ -54,12 +55,17 @@ export class Observer {
     //     vmCount: 0
     //   }
     // }
-    // 区分数据对象到底是数组还是一个纯对象
+    // 区分数据对象到底是数组还是一个纯对象, 对数组需要进行不一样的观察模式
     if (Array.isArray(value)) {
+      // 数组实际也是一个对象，它的 __proto__ 指向了数组的原型链 arr.__proto__ === Array.prototype
+      // 而数组的原生方法入 push pop 等都是挂载在原型链上的。
       const augment = hasProto
+        // hasProto 是用来检测当前环境是否支持 __proto__ 属性，这个属性仅在 ie11 以上才开始支持
         ? protoAugment
+        // 当前环境不支持 __proto__ 属性的时候做兼容处理
         : copyAugment
       augment(value, arrayMethods, arrayKeys)
+      // 使嵌套的数组或对象同样是响应式数据
       this.observeArray(value)
     } else {
       // 观察所有的 value 中的属性
@@ -98,6 +104,7 @@ export class Observer {
  * the prototype chain using __proto__
  */
 function protoAugment(target, src: Object, keys: any) {
+  // 用来将数组实例的原型指向代理原型(arrayMethods)
   /* eslint-disable no-proto */
   target.__proto__ = src
   /* eslint-enable no-proto */
@@ -108,9 +115,11 @@ function protoAugment(target, src: Object, keys: any) {
  * hidden properties.
  */
 /* istanbul ignore next */
+// 
 function copyAugment(target: Object, src: Object, keys: Array<string>) {
   for (let i = 0, l = keys.length; i < l; i++) {
     const key = keys[i]
+    // 通过 for 循环对其进行遍历，并使用 def 函数在数组实例上定义与数组变异方法同名的且不可枚举的函数
     def(target, key, src[key])
   }
 }

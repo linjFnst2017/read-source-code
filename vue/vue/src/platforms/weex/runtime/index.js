@@ -28,9 +28,10 @@ Vue.options.components = platformComponents
 Vue.prototype.__patch__ = patch
 
 // wrap mount
+// 运行时版 Vue 的 $mount 函数的功能
 Vue.prototype.$mount = function (
-  el?: any,
-  hydrating?: boolean
+  el?: any, // string | Element el 可以是一个字符串也可以是一个 dom 节点
+  hydrating?: boolean // 虚拟 dom 的补丁算法标识
 ): Component {
   return mountComponent(
     this,

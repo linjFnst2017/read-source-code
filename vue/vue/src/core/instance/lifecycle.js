@@ -140,11 +140,14 @@ export function lifecycleMixin(Vue: Class<Component>) {
   }
 }
 
+// 真正的 mount 挂载函数。 实际渲染的规则是利用了 $options.render 函数
 export function mountComponent(
   vm: Component,
   el: ?Element,
   hydrating?: boolean
 ): Component {
+  // $el 的值是组件模板根元素的引用。 vm.$el 始终是组件模板的根元素， 所以如果传了 template 的值（main.js 中）
+  // 那么根元素 $el 的值是 template 的节点， 否则的话，可能是 el （id 选择器）指向的节点
   vm.$el = el
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode
