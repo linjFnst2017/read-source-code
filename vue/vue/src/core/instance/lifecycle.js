@@ -57,6 +57,7 @@ export function initLifecycle(vm: Component) {
 
 export function lifecycleMixin(Vue: Class<Component>) {
 
+
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
@@ -68,9 +69,11 @@ export function lifecycleMixin(Vue: Class<Component>) {
     // based on the rendering backend used.
     if (!prevVnode) {
       // initial render
+      //  `vm.__patch__` 函数的返回值重写
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates
+      //  `vm.__patch__` 函数的返回值重写
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
     activeInstance = prevActiveInstance
@@ -149,8 +152,12 @@ export function mountComponent(
   // $el 的值是组件模板根元素的引用。 vm.$el 始终是组件模板的根元素， 所以如果传了 template 的值（main.js 中）
   // 那么根元素 $el 的值是 template 的节点， 否则的话，可能是 el （id 选择器）指向的节点
   vm.$el = el
+  // 检查 render 渲染函数是否存在
   if (!vm.$options.render) {
+    // 这里肯定不是 template 字符串模板编译成 render 后的直接执行。 
+    // 此时渲染函数的作用将仅仅渲染一个空的 `vnode` 对象， 创建空的 vnode 节点
     vm.$options.render = createEmptyVNode
+    // 非生产环境下打印告警信息
     if (process.env.NODE_ENV !== 'production') {
       /* istanbul ignore if */
       if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') ||
@@ -169,10 +176,13 @@ export function mountComponent(
       }
     }
   }
+  // 触发 beforeMount 的生命钩子函数
   callHook(vm, 'beforeMount')
 
+  // 定义并初始化 `updateComponent` 函数
   let updateComponent
   /* istanbul ignore if */
+  // 性能统计
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
     updateComponent = () => {
       const name = vm._name
@@ -191,7 +201,14 @@ export function mountComponent(
       measure(`vue ${name} patch`, startTag, endTag)
     }
   } else {
+    // 跟上面的功能相同 ，
+    // const vnode = vm._render()
+    // vm._update(vnode, hydrating)
+    // updateComponent 作用: 把渲染函数生成的虚拟DOM渲染成真正的DOM
     updateComponent = () => {
+      // vm._render() 实例的 vm.$options.render:  _render() 函数执行结束之后返回的是一个虚拟节点 vnode 节点
+      // `vm._update` 函数的作用是把 `vm._render` 函数生成的虚拟节点渲染成真正的 `DOM`
+      // `vm._update` 内部是通过虚拟DOM的补丁算法(`patch`)来完成的
       vm._update(vm._render(), hydrating)
     }
   }
@@ -199,7 +216,13 @@ export function mountComponent(
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+  // 我们在 Watcher 的构造函数中设置为 vm._watcher ，因为 watcher的初始补丁可能调用$forceUpdate(例如在子组件的挂载钩子中)，
+  // 它依赖于已经定义的 vm._watcher
+  // 因为 `watcher` 对表达式的求值，触发了数据属性的 `get` 拦截器函数，从而收集到了依赖，当数据变化时能够触发响应.
+  // TODO: 哪里求值了啊
+  // `Watcher` 的原理是通过对“被观测目标”的求值，触发数据属性的 `get` 拦截器函数从而收集依赖， 至于“被观测目标”到底是表达式还是函数或者是其他形式的内容都不重要，重要的是“被观测目标”能否触发数据属性的 `get` 拦截器函数
   new Watcher(vm, updateComponent, noop, {
+    // 当数据变化之后，触发更新之前，如果 `vm._isMounted` 属性的值为真，则会调用 `beforeUpdate` 生命周期钩子。
     before() {
       if (vm._isMounted) {
         callHook(vm, 'beforeUpdate')

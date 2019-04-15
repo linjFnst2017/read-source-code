@@ -27,6 +27,7 @@ export function def(obj, key, val, enumerable) {
 
 /**
  * Parse simple path.
+ * **`Watcher` 只接受简单的点(`.`)分隔路径
  */
 const bailRE = /[^\w.$]/
 export function parsePath(path: string): any {
@@ -34,6 +35,7 @@ export function parsePath(path: string): any {
     return
   }
   const segments = path.split('.')
+  // `parsePath` 返回的新函数将作为 `this.getter` 的值，只有当 `this.getter` 被调用的时候，这个函数才会执行
   return function (obj) {
     for (let i = 0; i < segments.length; i++) {
       if (!obj) return

@@ -42,35 +42,55 @@ export default class Watcher {
   value: any;
 
   constructor(
+    // 实例对象
     vm: Component,
+    // 要观察的表达式 `expOrFn`
     expOrFn: string | Function,
+    // 当被观察的表达式的值变化时的回调函数 `cb`， `noop` 是一个空函数
     cb: Function,
+    // 第四个参数是一个包含 `before` 函数的对象
     options?: ?Object,
     isRenderWatcher?: boolean
   ) {
+    // 每一个观察者实例对象都有一个 `vm` 实例属性， 该属性指明了这个观察者是属于哪一个组件的
     this.vm = vm
+    //  `isRenderWatcher` 标识着是否是渲染函数的观察者
     if (isRenderWatcher) {
+      // 当前观察者实例赋值给 `vm._watcher` 属性， 组件实例的 `_watcher` 属性的值引用着该组件的渲染函数观察者
       vm._watcher = this
     }
+    // 组件实例的 `vm._watchers` 属性是在 `initState` 函数中初始化的，其初始值是一个空数组
+    // 将当前观察者实例对象 `push` 到 `vm._watchers` 数组中，也就是说属于该组件实例的观察者都会被添加到该组件实例对象的 `vm._watchers` 数组
     vm._watchers.push(this)
     // options
     if (options) {
+      // 用来告诉当前观察者实例对象是否是深度观测
       this.deep = !!options.deep
+      // 用来标识当前观察者实例对象是 **开发者定义的** 还是 **内部定义的**
       this.user = !!options.user
+      // 用来告诉观察者当数据变化时是否同步求值并执行回调
       this.lazy = !!options.lazy
       this.sync = !!options.sync
+      // 可以理解为 `Watcher` 实例的钩子，当数据变化之后，触发更新之前，调用在创建渲染函数的观察者实例对象时传递的 `before` 选项
       this.before = options.before
     } else {
       this.deep = this.user = this.lazy = this.sync = false
     }
     this.cb = cb
+    // 观察者实例对象的唯一标识
     this.id = ++uid // uid for batching
+    // 标识着该观察者实例对象是否是激活状态
     this.active = true
     this.dirty = this.lazy // for lazy watchers
+
+    // 用来实现避免收集重复依赖，移除无用依赖的功能
     this.deps = []
     this.newDeps = []
+    // 用来实现避免收集重复依赖，移除无用依赖的功能
     this.depIds = new Set()
     this.newDepIds = new Set()
+
+    // 该属性的值为表达式(`expOrFn`)的字符串表示
     this.expression = process.env.NODE_ENV !== 'production'
       ? expOrFn.toString()
       : ''
@@ -78,6 +98,7 @@ export default class Watcher {
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
+      // 通过 path =》 string 表达式来获取 this 中的值， `this.getter` 函数终将会是一个函数
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
         this.getter = function () { }
@@ -89,19 +110,25 @@ export default class Watcher {
         )
       }
     }
+
     this.value = this.lazy
       ? undefined
+      // `this.value` 属性保存着被观察目标的值， 也就是初始化的时候，除非是指定了 lazy 属性，否则的话，初始化 Watcher 实例成功之后， this.value 储存着被观察的值
       : this.get()
   }
 
   /**
    * Evaluate the getter, and re-collect dependencies.
    */
+  // 求值， 求值的目的有两个，第一个是能够触发访问器属性的 `get` 拦截器函数，第二个是能够获得被观察目标的值。
   get() {
+    //  `Dep` 类拥有一个静态属性，即 `Dep.target` 属性，该属性的初始值为 `null`，其实 `pushTarget` 函数的作用就是用来为 `Dep.target` 属性赋值的，
+    // `pushTarget` 函数会将接收到的参数赋值给`Dep.target` 属性， `Dep.target` 保存着一个观察者对象，其实这个观察者对象就是即将要收集的目标
     pushTarget(this)
     let value
     const vm = this.vm
     try {
+      // 这个函数的执行就意味着对被观察目标的求值， 对被观察目标的求值才得以触发数据属性的 `get` 拦截器函数
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -115,6 +142,7 @@ export default class Watcher {
       if (this.deep) {
         traverse(value)
       }
+      // 最终会清空
       popTarget()
       this.cleanupDeps()
     }
@@ -125,7 +153,9 @@ export default class Watcher {
    * Add a dependency to this directive.
    */
   addDep(dep: Dep) {
+    // dep.id 每一个依赖的唯一 id
     const id = dep.id
+    // 避免重复收集依赖， 先根据 `dep.id` 属性检测该 `Dep` 实例对象是否已经存在于 `newDepIds` 中，如果存在那么说明已经收集过依赖了，什么都不会做
     if (!this.newDepIds.has(id)) {
       this.newDepIds.add(id)
       this.newDeps.push(dep)
