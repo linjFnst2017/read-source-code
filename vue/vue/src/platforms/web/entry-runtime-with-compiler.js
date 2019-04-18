@@ -11,20 +11,19 @@ import { query } from './util/index'
 import { compileToFunctions } from './compiler/index'
 import { shouldDecodeNewlines, shouldDecodeNewlinesForHref } from './util/compat'
 
-// 根据 id 获取元素的 innerHTML
+// 从缓存中根据 id 获取元素的 innerHTML， 结果是一个函数，并且不用每次都去查，只要是查询过的就都有缓存
 const idToTemplate = cached(id => {
   const el = query(id)
   return el && el.innerHTML
 })
 
-// 使用 mount 变量缓存 Vue.prototype.$mount 方法
+// 使用 mount 变量缓存 Vue.prototype.$mount 方法， 最后会需要再调用缓存下来的运行时版的 $mount 函数
 const mount = Vue.prototype.$mount
 // 重新定义了 Vue.prototype.$mount 函数并在重新定义的 $mount 函数体内
-// 调用了缓存下来的运行时版的 $mount 函数
 // 之所以重写 $mount 函数，其目的就是为了给运行时版的 $mount 函数增加编译模板的能力
 Vue.prototype.$mount = function (
-  el?: string | Element,
-  hydrating?: boolean
+  el?: string | Element, // el 也可以是 dom 节点
+  hydrating?: boolean // hydrating 保湿
 ): Component {
   // 使用 query 函数获取到指定的 DOM 元素并重新赋值给 el 变量
   el = el && query(el)
@@ -41,16 +40,18 @@ Vue.prototype.$mount = function (
 
   const options = this.$options
   // resolve template/el and convert to render function
-  // render 选项，是否包含渲染函数
+  // render 选项，是否包含渲染函数， render不存在的时候才会编译template，否则优先使用render
   if (!options.render) {
     // 使用 template 或 el 选项构建渲染函数。 
     // 所以也就是说 运行时版的 vue 是不能够使用模板渲染的。 
-    let template = options.template // 这里应该通过 webpack 的 vue-loader 模块编译之后能够获得 template 这个参数
+    let template = options.template // 这里应该通过 webpack 的 vue-loader 模块编译之后能够获得 template 这个参数。 并且能知道 template 是挂载在 options 上的
     if (template) {
       if (typeof template === 'string') {
+        // TODO: 我怎么感觉像是根节点的编译呢？
         // 第一个字符是 #
         if (template.charAt(0) === '#') {
-          // 会把该字符串作为 css 选择符去选中对应的元素，并把该元素的 innerHTML 作为模板
+          // TODO: 相当于说这里的 template 编译出来结果应该是一个类似 "#app" 这样的结果
+          // 会把该字符串作为选择符去选中对应的元素，并把该元素的 innerHTML 作为模板
           template = idToTemplate(template)
           /* istanbul ignore if */
           if (process.env.NODE_ENV !== 'production' && !template) {
@@ -62,17 +63,22 @@ Vue.prototype.$mount = function (
         }
         // nodeType 元素节点存在
       } else if (template.nodeType) {
+        // nodeType 应该是正常 vue 文件的编译结果， template为DOM节点
         template = template.innerHTML
       } else {
+        // 模板编译的结果只有两种，一种是 # 类型的，一种是 nodeType
         if (process.env.NODE_ENV !== 'production') {
           warn('invalid template option:' + template, this)
         }
+        // 返回实例，毕竟后面的页面还是要继续渲染的， 报错归报错
         return this
       }
     } else if (el) {
-      // 如果不存在 template 的话，直接获取根 html 节点
+      // TODO: 感觉这里才像是 根节点
+      // 如果不存在 template 的话，直接获取根 html 节点 （outerHTML）
       template = getOuterHTML(el)
     }
+
     // template 变量中存储着最终用来生成渲染函数的字符串， 但还是有可能是一个空字符串
     if (template) {
       /* istanbul ignore if */

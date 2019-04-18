@@ -145,15 +145,15 @@ export function hasOwn(obj: Object | Array<*>, key: string): boolean {
 
 /**
  * Create a cached version of a pure function.
+ * 创建纯函数的缓存版本
+ * 执行 cached 函数的结果返回一个函数，这个函数是通过 str 来从一个闭包对象 cache 中获取一个上次执行的结果
  */
 export function cached<F: Function>(fn: F): F {
   const cache = Object.create(null)
   return (function cachedFn(str: string) {
-    // TODO:
-    // 这里不是百分之百 hit === undefined 么？
+    // 这里第一次百分之百 hit === undefined， 但是只要执行一次之后，在闭包中的 cache 对象中已经存有一个函数的缓存了
     const hit = cache[str]
-    // TODO:
-    // 不懂这个赋值语法？
+    // 如果 hit 为 undefind 的话，就执行 cache[str] = fn(str) 并返回执行后的 cache[str] 值
     return hit || (cache[str] = fn(str))
   }: any)
 }

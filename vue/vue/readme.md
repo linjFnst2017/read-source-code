@@ -138,3 +138,11 @@ if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
 
 Watcher 和 Dep 实例是在一起的。 
 Observer 实例与被观察的值是在一起的。 比如 this._data 是一个被观察的对象，被扩展了一个 __ob__ 属性值，是一个 Observer 实例，内容包含了主要是包含了 Dep 实例。
+
+
+## 蛮难理解的东西
+
+### 模板编译
+https://segmentfault.com/a/1190000012922342
+
+### 指令

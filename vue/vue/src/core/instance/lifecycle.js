@@ -44,6 +44,7 @@ export function initLifecycle(vm: Component) {
   // 设置 $root 属性，有父级就是用父级的 $root，否则 $root 指向自身
   vm.$root = parent ? parent.$root : vm
 
+  // 孩子容器里面装的是一个个 vue 实例
   vm.$children = []
   vm.$refs = {}
 
