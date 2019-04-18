@@ -1,5 +1,5 @@
 /* @flow */
-
+// 发布者
 import type Watcher from './watcher'
 import { remove } from '../util/index'
 import config from '../config'
@@ -34,7 +34,7 @@ export default class Dep {
     }
   }
 
-  // 通知
+  // 通知所有订阅者
   notify() {
     // 首先更新 ？订阅者列表
     const subs = this.subs.slice()
@@ -53,6 +53,8 @@ export default class Dep {
 // the current target watcher being evaluated.
 // this is globally unique because there could be only one
 // watcher being evaluated at any time.
+// TODO: 但是这里并不是用完之后才设置为 null 的吧。。。
+// 依赖收集完需要将Dep.target设为null，防止后面重复添加依赖
 Dep.target = null
 const targetStack = []
 

@@ -13,6 +13,7 @@ export function isReserved(str: string): boolean {
  * 为对象定义一个属性
  */
 export function def(obj, key, val, enumerable) {
+  // 定义的属性是在当前对象上的，而不是在原型链上。 可以通过 hadOwnProperty 这个函数进行查找
   Object.defineProperty(obj, key, {
     // 未设置 set 和 get 函数， 那通过 defineProperty 这个函数的意思在哪里？
     // 本来还想说这里为啥要通过 Object.defineProperty 来定义, 比如需要设置成不被遍历，只读属性等特征。

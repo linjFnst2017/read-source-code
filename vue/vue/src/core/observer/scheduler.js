@@ -127,13 +127,16 @@ function callActivatedHooks(queue) {
  * 具有重复id的 任务 将被跳过，除非在刷新队列时推送它。
  */
 export function queueWatcher(watcher) {
+  // 获取watcher的id
   const id = watcher.id
   // undefined == null
-  // has 是一个对象 用作 map
+  // has 是一个全局对象 用作 map
+  // 检验id是否存在，已经存在则直接跳过，不存在则标记哈希表has，用于下次检验
   if (has[id] == null) {
     has[id] = true
     // 正在刷新
     if (!flushing) {
+      // 如果没有flush掉，直接push到队列中即可
       queue.push(watcher)
     } else {
       // 如果已经刷新，则根据其id拼接监视程序
@@ -148,6 +151,7 @@ export function queueWatcher(watcher) {
       queue.splice(i + 1, 0, watcher)
     }
     // queue the flush
+    // waiting 默认 false
     if (!waiting) {
       waiting = true
 

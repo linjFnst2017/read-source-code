@@ -58,6 +58,7 @@ export function initState(vm: Component) {
   } else {
     // `$data` 属性是一个访问器属性，其代理的值就是 `_data`
     // 如果组件参数 options 中不存在 data 对象，就 observe 一个空对象
+    // asRootData: 代表将要被观测的数据是否是根级数据
     observe(vm._data = {}, true /* asRootData */)
   }
   if (opts.computed) initComputed(vm, opts.computed)
@@ -163,12 +164,12 @@ function initData(vm: Component) {
     } else if (!isReserved(key)) {
       // 检测 key 是否是保留键， 不能以 $ 和 _ 开头。 
       // 通过 `Object.defineProperty` 函数在实例对象 `vm` 上定义与 `data` 数据字段同名的访问器属性，
-      // 并且这些属性代理的值是`vm._data` 上对应属性的值
+      // 并且这些属性代理的值是`vm._data` 上对应属性的值. 简单说就是把 this._data.xx 上的值代理到 this 上去.
       proxy(vm, `_data`, key)
     }
   }
   // observe data
-  // 真正实现数据响应式的函数入口
+  // 真正实现数据响应式的函数入口, 将 data 中的所有数据以递归的形式变成响应式的
   observe(data, true /* asRootData */)
 }
 

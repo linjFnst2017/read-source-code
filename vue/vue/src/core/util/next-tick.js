@@ -1,6 +1,6 @@
 /* @flow */
 /* globals MessageChannel */
-
+// Vue 在内部对异步队列尝试使用原生的 Promise.then 和 MessageChannel，如果执行环境不支持，则会采用 setTimeout(fn, 0) 代替。
 import { noop } from 'shared/util'
 import { handleError } from './error'
 import { isIOS, isNative } from './env'
@@ -8,6 +8,7 @@ import { isIOS, isNative } from './env'
 const callbacks = []
 let pending = false
 
+// 刷新（执行）事件队列中的所有回调函数
 function flushCallbacks() {
   pending = false
   const copies = callbacks.slice(0)
@@ -34,11 +35,14 @@ let useMacroTask = false
 // in IE. The only polyfill that consistently queues the callback after all DOM
 // events triggered in the same loop is by using MessageChannel.
 /* istanbul ignore if */
+// setImmediate()是将事件插入到事件队列尾部，主线程和事件队列的函数执行完成之后立即执行setImmediate指定的回调函数
+// 检验是否是原生的 setImmediate 函数
 if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
   macroTimerFunc = () => {
     setImmediate(flushCallbacks)
   }
 } else if (typeof MessageChannel !== 'undefined' && (
+  // https://www.jianshu.com/p/4f07ef18b5d7
   isNative(MessageChannel) ||
   // PhantomJS
   MessageChannel.toString() === '[object MessageChannelConstructor]'
@@ -58,6 +62,7 @@ if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
 
 // Determine microtask defer implementation.
 /* istanbul ignore next, $flow-disable-line */
+// 使用原生的 promise 执行，保证执行顺序
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
   const p = Promise.resolve()
   microTimerFunc = () => {
@@ -88,8 +93,12 @@ export function withMacroTask(fn: Function): Function {
 }
 
 // ctx 执行上下文： Vue 实例
+// 执行的目的是在microtask或者task中推入一个function，在当前栈执行完毕（也许还会有一些排在前面的需要执行的任务）以后执行nextTick传入的function
+// 目的是延迟到当前调用栈执行完以后执行
 export function nextTick(cb?: Function, ctx?: Object) {
+  // 临时 _resolve 
   let _resolve
+  // 存放异步执行的回调， 一开始是空的
   callbacks.push(() => {
     if (cb) {
       try {
@@ -103,6 +112,7 @@ export function nextTick(cb?: Function, ctx?: Object) {
       _resolve(ctx)
     }
   })
+  // 准备中
   if (!pending) {
     pending = true
     if (useMacroTask) {

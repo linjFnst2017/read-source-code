@@ -136,6 +136,7 @@ export function remove(arr: Array<any>, item: any): Array<any> | void {
 
 /**
  * Check whether the object has the property.
+ * hasOwnProperty 只会判断当前的对象上是否有某一个属性，不会去原型链上查找；而 in 会在当前对象属性和原型链上查找是否有某一个属性
  */
 const hasOwnProperty = Object.prototype.hasOwnProperty
 export function hasOwn(obj: Object | Array<*>, key: string): boolean {

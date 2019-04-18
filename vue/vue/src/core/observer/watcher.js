@@ -1,5 +1,5 @@
 /* @flow */
-
+// 观察者
 import {
   warn,
   remove,
@@ -59,7 +59,7 @@ export default class Watcher {
       // 当前观察者实例赋值给 `vm._watcher` 属性， 组件实例的 `_watcher` 属性的值引用着该组件的渲染函数观察者
       vm._watcher = this
     }
-    // 组件实例的 `vm._watchers` 属性是在 `initState` 函数中初始化的，其初始值是一个空数组
+    // 组件实例的 `vm._watchers` 属性是在 `initState` 函数中初始化的，其初始值是一个空数组, 存放订阅者实例
     // 将当前观察者实例对象 `push` 到 `vm._watchers` 数组中，也就是说属于该组件实例的观察者都会被添加到该组件实例对象的 `vm._watchers` 数组
     vm._watchers.push(this)
     // options
@@ -98,6 +98,7 @@ export default class Watcher {
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
+      // TODO: 看起来这里的场景应该是适用于 this.$watch 函数来监听的情况
       // 通过 path =》 string 表达式来获取 this 中的值， `this.getter` 函数终将会是一个函数
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
@@ -120,13 +121,19 @@ export default class Watcher {
   /**
    * Evaluate the getter, and re-collect dependencies.
    */
+  // 获得getter的值, 并且重新进行依赖收集
   // 求值， 求值的目的有两个，第一个是能够触发访问器属性的 `get` 拦截器函数，第二个是能够获得被观察目标的值。
   get() {
     //  `Dep` 类拥有一个静态属性，即 `Dep.target` 属性，该属性的初始值为 `null`，其实 `pushTarget` 函数的作用就是用来为 `Dep.target` 属性赋值的，
     // `pushTarget` 函数会将接收到的参数赋值给`Dep.target` 属性， `Dep.target` 保存着一个观察者对象，其实这个观察者对象就是即将要收集的目标
+    // 将自身 watcher 实例设置给 Dep.target，用以依赖收集。
     pushTarget(this)
     let value
     const vm = this.vm
+    // 通过将 Dep.target 设置为当前的 watcher 实例之后，尝试执行了 getter 函数。
+    // 所有被观察的值，比如 this._data_test 在被 Object.defineProperty 定义的 getter 函数中收集了依赖。
+    // getter 函数被定义在 observer/index.js 中的 defineReactive 函数中, 每一次调用 defineReactive 函数都会（闭包中）创建一个 Dep 实例
+    // 通过获取 Dep.target 的值 push 到 Dep 实例中的 subs 数组中，而这个 Dep 实例在 getter 执行完了之后依然存在，还需要在 setter 函数中被 notify
     try {
       // 这个函数的执行就意味着对被观察目标的求值， 对被观察目标的求值才得以触发数据属性的 `get` 拦截器函数
       value = this.getter.call(vm, vm)
@@ -139,10 +146,12 @@ export default class Watcher {
     } finally {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
+      // 如果存在deep，则触发每个深层对象的依赖，追踪其变化
       if (this.deep) {
+        // 递归每一个对象或者数组，触发它们的getter，使得对象或数组的每一个成员都被依赖收集，形成一个“深（deep）”依赖关系
         traverse(value)
       }
-      // 最终会清空
+      // 清空当前这个临时存储的表达式（其实是 render 函数）
       popTarget()
       this.cleanupDeps()
     }
@@ -151,6 +160,7 @@ export default class Watcher {
 
   /**
    * Add a dependency to this directive.
+   * 添加一个依赖关系到Deps集合中
    */
   addDep(dep: Dep) {
     // dep.id 每一个依赖的唯一 id
@@ -169,6 +179,7 @@ export default class Watcher {
    * Clean up for dependency collection.
    */
   cleanupDeps() {
+    // 移除所有观察者对象
     let i = this.deps.length
     while (i--) {
       const dep = this.deps[i]
@@ -193,8 +204,10 @@ export default class Watcher {
     if (this.lazy) {
       this.dirty = true
     } else if (this.sync) {
+      // 同步则执行run直接渲染视图
       this.run()
     } else {
+      // 异步推送到观察者队列中，由调度者调用。
       queueWatcher(this)
     }
   }
@@ -202,6 +215,7 @@ export default class Watcher {
   /**
    * Scheduler job interface.
    * Will be called by the scheduler.
+   * 调度者工作接口，将被调度者回调。
    */
   run() {
     if (this.active) {
@@ -211,19 +225,24 @@ export default class Watcher {
         // Deep watchers and watchers on Object/Arrays should fire even
         // when the value is the same, because the value may
         // have mutated.
+        // 即便值相同，拥有Deep属性的观察者以及在对象／数组上的观察者应该被触发更新，因为它们的值可能发生改变。
         isObject(value) ||
         this.deep
       ) {
         // set new value
         const oldValue = this.value
+        // 设置新的值
         this.value = value
+        // 触发回调渲染视图
         if (this.user) {
+          // 用户自定义的 watcher 
           try {
             this.cb.call(this.vm, value, oldValue)
           } catch (e) {
             handleError(e, this.vm, `callback for watcher "${this.expression}"`)
           }
         } else {
+          // 系统定义的 watcher cb 一般是 vm 的 render 函数
           this.cb.call(this.vm, value, oldValue)
         }
       }
@@ -233,6 +252,7 @@ export default class Watcher {
   /**
    * Evaluate the value of the watcher.
    * This only gets called for lazy watchers.
+   * 获取观察者的值
    */
   evaluate() {
     this.value = this.get()
@@ -241,6 +261,7 @@ export default class Watcher {
 
   /**
    * Depend on all deps collected by this watcher.
+   * 收集该watcher的所有deps依赖
    */
   depend() {
     let i = this.deps.length
@@ -251,12 +272,14 @@ export default class Watcher {
 
   /**
    * Remove self from all dependencies' subscriber list.
+   * 将自身从所有依赖收集订阅列表删除
    */
   teardown() {
     if (this.active) {
       // remove self from vm's watcher list
       // this is a somewhat expensive operation so we skip it
       // if the vm is being destroyed.
+      // 从vm实例的观察者列表中将自身移除，由于该操作比较耗费资源，所以如果vm实例正在被销毁则跳过该步骤。
       if (!this.vm._isBeingDestroyed) {
         remove(this.vm._watchers, this)
       }

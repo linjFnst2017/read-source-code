@@ -131,3 +131,10 @@ if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
 }
 
 ```
+
+
+
+### 响应式原理
+
+Watcher 和 Dep 实例是在一起的。 
+Observer 实例与被观察的值是在一起的。 比如 this._data 是一个被观察的对象，被扩展了一个 __ob__ 属性值，是一个 Observer 实例，内容包含了主要是包含了 Dep 实例。

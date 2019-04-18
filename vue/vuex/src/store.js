@@ -44,6 +44,7 @@ export class Store {
     this._committing = false // 是否当前正在 commit mutation
     // toString,hasOwnProperty 等这些 Object 上的属性，Vue 都重新拷贝了一份，貌似这里是不想要？
     this._actions = Object.create(null) // todo: 为啥？ 创建的空对象原型链上层是空的了，https://segmentfault.com/q/1010000009976954
+    // 容器。。
     this._actionSubscribers = [] // 对象不需要上层的原型链了，为什么数组这里还需要？
     this._mutations = Object.create(null)
     this._wrappedGetters = Object.create(null)
@@ -70,6 +71,7 @@ export class Store {
     // done: https://www.cnblogs.com/DM428/p/7777539.html
     // 如果你传递一个函数名给一个变量，然后通过在变量后加括号()来调用这个方法，此时方法内部的this的指向就会丢失
     // 简单的例子： https://www.cnblogs.com/nanshanlaoyao/p/5910645.html
+    // 指定 this 范围
     this.dispatch = function boundDispatch(type, payload) {
       return dispatch.call(store, type, payload)
     }
