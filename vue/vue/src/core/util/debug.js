@@ -38,6 +38,7 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   formatComponentName = (vm, includeFile) => {
+    // 如果 vm 实例（所有 vm 实例都拥有 $root 属性）与 vm 相等的话就说明是 "根节点"
     if (vm.$root === vm) {
       return '<Root>'
     }

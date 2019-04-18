@@ -10,13 +10,11 @@ import {
 import { updateListeners } from '../vdom/helpers/index'
 
 export function initEvents(vm: Component) {
-  // TODO:
-  // 这里去看一下 原型链上的属性 和 用字面量创建的属性有什么区别？
-  // 这里应该是只有调用了
-  // 初始化事件对象，值是 回调函数 的集合
+  // 在 vm 上创建一个_events对象，用来存放事件
   vm._events = Object.create(null)
+  // 这个bool标志位来表明是否存在钩子，而不需要通过哈希表的方法来查找是否有钩子，这样做可以减少不必要的开销，优化性能
   vm._hasHookEvent = false
-  // init parent attached events
+  // 初始化父组件的 attached 事件
   const listeners = vm.$options._parentListeners
   if (listeners) {
     updateComponentListeners(vm, listeners)
@@ -53,7 +51,7 @@ export function eventsMixin(Vue) {
   // 监听当前实例上的自定义事件。事件可以由vm.$emit触发。回调函数会接收所有传入事件触发函数的额外参数。
   Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
     const vm: Component = this
-    // 如果event 传递了一个数组（数组的元素都是 string），就自动将所有的事件都调用 $on 注册事件监听器
+    // 如果 event 传递了一个数组（数组的元素都是 string），就自动将所有的事件都调用 $on 注册事件监听器
     if (Array.isArray(event)) {
       for (let i = 0, l = event.length; i < l; i++) {
         this.$on(event[i], fn)
@@ -65,12 +63,10 @@ export function eventsMixin(Vue) {
       // 这里其实蛮奇怪的，为什么将回调函数放在数组中？ 数组中也只有一个 fn 啊，想了想， 如果是对象，还需要一个键名；
       // 因为一个事件名， 可以被多次注册回调，那就只能是数组了。
       (vm._events[event] || (vm._events[event] = [])).push(fn)
-      // 通过使用一个 Boolean 的 flag 来标记是否注册了 事件，而非hash 查找，来优化 (? 查找)钩子事件的话费
-      // optimize hook:event cost by using a boolean flag marked at registration
-      // instead of a hash lookup
-      // TODO:
-      // event: string 如果带有 hook 的话，表示钩子事件？
+      // 通过使用一个 Boolean 的 flag 来标记是否注册了 事件，而非hash 查找，来优化查找钩子事件的花费
+      // _hasHookEvent 这个标志位只用来表示是否有钩子函数，而非有几个
       if (hookRE.test(event)) {
+        // 钩子函数 event name 是以 hook: 开头的
         vm._hasHookEvent = true
       }
     }
@@ -91,7 +87,7 @@ export function eventsMixin(Vue) {
     // TODO:
     // 为啥需要给 on 函数在添加一个 fn 属性呢？
     on.fn = fn
-    // 注册 event 事件
+    // 注册 event 事件， 回调函数是 on ，注册事件的时候仅仅是在 vm._events 数组中推入了一个 fn
     vm.$on(event, on)
     return vm
   }
@@ -100,15 +96,13 @@ export function eventsMixin(Vue) {
   Vue.prototype.$off = function (event?: string | Array<string>, fn?: Function): Component {
     const vm: Component = this
     // all
-    // $off 函数没有参数， event = undefined ， fn = undefined 就将vm._events 置空
-    // 并且这个 vm._events 对象不含有原型链
-    // TODO:
-    // Object.create(null) 为什么要创建没有原型链的一个对象， {} 不行？
+    // $off 函数没有参数， event = undefined ， fn = undefined 就将 vm._events 置空
     if (!arguments.length) {
+      // vue使用一个没有继承关系的空对象，那Object原型对象上的属性(toString,hasOwnProperty,etc)都抛弃了，因为vue自己都重写了一份。
       vm._events = Object.create(null)
       return vm
     }
-    // array of events
+    // 如果event是数组则递归注销事件
     if (Array.isArray(event)) {
       for (let i = 0, l = event.length; i < l; i++) {
         this.$off(event[i], fn)
@@ -151,14 +145,13 @@ export function eventsMixin(Vue) {
     if (process.env.NODE_ENV !== 'production') {
       // toLowerCase() 将字符串转化为全部的小写
       const lowerCaseEvent = event.toLowerCase()
+      // html 节点上的用 v-on 监听事件的时候需要小写就是了。。
       if (lowerCaseEvent !== event && vm._events[lowerCaseEvent]) {
         tip(
           `Event "${lowerCaseEvent}" is emitted in component ` +
-          // TODO:
           `${formatComponentName(vm)} but the handler is registered for "${event}". ` +
           `Note that HTML attributes are case-insensitive and you cannot use ` +
           `v-on to listen to camelCase events when using in-DOM templates. ` +
-          // TODO:
           `You should probably use "${hyphenate(event)}" instead of "${event}".`
         )
       }
@@ -167,6 +160,7 @@ export function eventsMixin(Vue) {
     if (cbs) {
       // TODO:
       // cbs 本来就应该是一个数组才对啊，为什么还需要使用 toArray() 转化
+      // 将类数组的对象转换成数组
       cbs = cbs.length > 1 ? toArray(cbs) : cbs
       // arguments 对象并不是一个数组(是一个类数组的对象，键名为0,1,2,3...)， 但是访问单个参数的方式与访问数组元素的方式相同
       const args = toArray(arguments, 1)
@@ -175,7 +169,6 @@ export function eventsMixin(Vue) {
           // 依次执行注册的回调函数（可能有多个）
           cbs[i].apply(vm, args)
         } catch (e) {
-          // TODO:
           handleError(e, vm, `event handler for "${event}"`)
         }
       }
