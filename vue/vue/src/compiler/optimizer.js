@@ -17,6 +17,9 @@ const genStaticKeysCached = cached(genStaticKeys)
  * 1. Hoist them into constants, so that we no longer need to
  *    create fresh nodes for them on each re-render;
  * 2. Completely skip them in the patching process.
+ * 
+ * optimize的主要作用是标记static静态节点，这是Vue在编译过程中的一处优化，
+ * 后面当update更新界面时，会有一个patch的过程，diff算法会直接跳过静态节点，从而减少了比较的过程，优化了patch的性能。
  */
 export function optimize(root: ?ASTElement, options: CompilerOptions) {
   if (!root) return

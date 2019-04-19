@@ -13,6 +13,7 @@ import { genStaticKeys } from 'shared/util'
 import { isUnaryTag, canBeLeftOpenTag } from './util'
 
 export const baseOptions: CompilerOptions = {
+  // 期望 html ？
   expectHTML: true,
   // class style model
   modules,

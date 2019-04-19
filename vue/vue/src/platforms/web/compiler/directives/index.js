@@ -7,3 +7,9 @@ export default {
   text,
   html
 }
+
+// {
+//   model: function() { },
+//   html: function() { },
+//   text: function() { }
+// }

@@ -19,6 +19,12 @@ const idToTemplate = cached(id => {
 
 // 使用 mount 变量缓存 Vue.prototype.$mount 方法， 最后会需要再调用缓存下来的运行时版的 $mount 函数
 const mount = Vue.prototype.$mount
+
+
+// 比如手写组件时加入的 template 字符串（vue 文件中的 template 标签）都会在运行时编译， 而 render function 会在运行后返回 vnode 节点，
+// 供页面的渲染以及 update 的 patch 。
+
+
 // 重新定义了 Vue.prototype.$mount 函数并在重新定义的 $mount 函数体内
 // 之所以重写 $mount 函数，其目的就是为了给运行时版的 $mount 函数增加编译模板的能力
 Vue.prototype.$mount = function (
@@ -89,6 +95,7 @@ Vue.prototype.$mount = function (
 
       // vue 编译的入口
       // 使用 compileToFunctions 函数将模板(template)字符串编译为渲染函数(render)
+      // 这是vue的编译时优化，static静态不需要在VNode更新时进行patch，优化性能
       const { render, staticRenderFns } = compileToFunctions(template, {
         // 分析参数： 
         // 目的是对浏览器的怪癖做兼容

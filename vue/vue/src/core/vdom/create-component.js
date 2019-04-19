@@ -98,6 +98,7 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
+// 创建一个组件节点
 export function createComponent(
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -105,19 +106,22 @@ export function createComponent(
   children: ?Array<VNode>,
   tag?: string
 ): VNode | Array<VNode> | void {
+  // 构造函数必传
   if (isUndef(Ctor)) {
     return
   }
-
+  // TODO: _base 是什么属性
   const baseCtor = context.$options._base
 
   // plain options object: turn it into a constructor
+  // 如果构造函数是一个对象， 就扩展属性进 baseCtor 基础构造函数中 ？
   if (isObject(Ctor)) {
     Ctor = baseCtor.extend(Ctor)
   }
 
   // if at this stage it's not a constructor or an async component factory,
   // reject.
+  // 如果在该阶段Ctor依然不是一个构造函数或者是一个异步组件工厂则直接返回
   if (typeof Ctor !== 'function') {
     if (process.env.NODE_ENV !== 'production') {
       warn(`Invalid Component definition: ${String(Ctor)}`, context)
@@ -126,8 +130,11 @@ export function createComponent(
   }
 
   // async component
+  // 处理异步组件
   let asyncFactory
+  // cid 不存在
   if (isUndef(Ctor.cid)) {
+    // 暂存旧的构造函数，到最后进行调用
     asyncFactory = Ctor
     Ctor = resolveAsyncComponent(asyncFactory, baseCtor, context)
     if (Ctor === undefined) {

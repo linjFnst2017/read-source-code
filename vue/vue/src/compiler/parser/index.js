@@ -60,11 +60,13 @@ export function createASTElement(
 
 /**
  * Convert HTML string to AST.
+ * parse 会用正则等方式解析template模板中的指令、class、style等数据，形成AST。
  */
 export function parse(
   template: string,
-  options: CompilerOptions
+  options: CompilerOptions // parse 函数中的 options 参数已经是每一个平台的 finalOptions 了
 ): ASTElement | void {
+  // 错误提示函数
   warn = options.warn || baseWarn
 
   platformIsPreTag = options.isPreTag || no

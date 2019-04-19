@@ -22,7 +22,7 @@ export function isFalse(v: any): boolean % checks {
 }
 
 /**
- * 检查是都是 js 原始值
+ * 检查是否都是 js 原始值
  */
 export function isPrimitive(value) {
   return (
