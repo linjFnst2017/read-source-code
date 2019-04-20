@@ -61,6 +61,10 @@ export function createASTElement(
 /**
  * Convert HTML string to AST.
  * parse 会用正则等方式解析template模板中的指令、class、style等数据，形成AST。
+ * 
+ * 大致分为三个阶段，即：词法分析，句法分析，代码生成
+ * 1. 在词法分析阶段 Vue 会把字符串模板解析生一个个的令牌（token）， 这个令牌用于句法分析阶段，在句法分析阶段会根据令牌生成一课 AST
+ *    然后再根据该 AST 生成最终的渲染函数，这样就完成了 code 的生成。
  */
 export function parse(
   template: string,
@@ -109,7 +113,7 @@ export function parse(
   }
 
   // 主要通过调用 `parseHTML` 函数对模板字符串进行解析， 这里的 parseHTML 函数主要是做词法分析的
-  // 而 `parse` 函数的作用则是在词法分析的基础上做句法分析从而生成一棵 `AST`
+  // 而 `parse` 函数的作用， 则是在词法分析的基础上做句法分析从而生成一棵 `AST`
   parseHTML(template, {
     warn,
     expectHTML: options.expectHTML,
@@ -118,6 +122,7 @@ export function parse(
     shouldDecodeNewlines: options.shouldDecodeNewlines,
     shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
     shouldKeepComment: options.comments,
+    // 开始标签钩子函数。 开始钩子函数的参数需要三个，分别是标签名、标签的属性和是否是自闭合标签
     start(tag, attrs, unary) {
       // check namespace.
       // inherit parent ns if there is one
@@ -129,6 +134,7 @@ export function parse(
         attrs = guardIESVGBug(attrs)
       }
 
+      // 钩子函数start中构建了一个元素类型的AST节点
       let element: ASTElement = createASTElement(tag, attrs, currentParent)
       if (ns) {
         element.ns = ns
@@ -224,7 +230,7 @@ export function parse(
         closeElement(element)
       }
     },
-
+    // 结束标签钩子函数
     end() {
       // remove trailing whitespace
       const element = stack[stack.length - 1]
@@ -237,7 +243,7 @@ export function parse(
       currentParent = stack[stack.length - 1]
       closeElement(element)
     },
-
+    // 文本钩子函数
     chars(text: string) {
       if (!currentParent) {
         if (process.env.NODE_ENV !== 'production') {
@@ -270,6 +276,7 @@ export function parse(
         let res
         if (!inVPre && text !== ' ' && (res = parseText(text, delimiters))) {
           children.push({
+            // 文本节点 type = 2
             type: 2,
             expression: res.expression,
             tokens: res.tokens,
@@ -283,14 +290,19 @@ export function parse(
         }
       }
     },
+    // 注释钩子函数
     comment(text: string) {
       currentParent.children.push({
+        // 注释节点 type = 3
         type: 3,
         text,
+        // 同时这个属性也是
         isComment: true
       })
     }
   })
+
+  // parse 函数的作用是在词法分析的技术上做句法分析而生成一棵 AST
   return root
 }
 

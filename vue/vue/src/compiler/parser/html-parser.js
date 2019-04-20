@@ -7,6 +7,10 @@
  * Modified by Juriy "kangax" Zaytsev
  * Original code by Erik Arvidsson, Mozilla Public License
  * http://erik.eae.net/simplehtmlparser/simplehtmlparser.js
+ * 
+ * 通过这段注释我们可以了解到，`Vue` 的 `html parser` 是 `fork` 自 [John Resig 所写的一个开源项目：
+ * http://erik.eae.net/simplehtmlparser/simplehtmlparser.js](http://erik.eae.net/simplehtmlparser/simplehtmlparser.js)，
+ * `Vue` 在此基础上做了很多完善的工作，下面我们就探究一下 `Vue` 中的 `html parser` 都做了哪些事情。
  */
 
 import { makeMap, no } from '../../shared/util'
@@ -14,13 +18,28 @@ import { isNonPhrasingTag } from '../../platforms/web/compiler/util'
 
 // Regular Expressions for parsing tags and attributes
 // 这个正则的作用是用来匹配标签的属性
+// 第三、四、五个都表示匹配属性值，同时 `?` 表明第三、四、五个分组是可选的。 
+// ([^\s"'<>\/=]+) 匹配属性名，排除 空格、引号、尖括号、斜杠、等于号
+// (=) 匹配等于号
+// (?:"([^"]*)  (?:pattern) 匹配 pattern 但不获取匹配结果，也就是说这是一个非获取匹配，不进行存储供以后使用。
+// ([^']*)
+// ([^\s"'=<>`]+)
 const attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/
+// 这是因为在 `html` 标签中有4种写属性值的方式：
+// * 1、使用双引号把值引起来：`class="some-class"`
+// * 2、使用单引号把值引起来：`class='some-class'`
+// * 3、不使用引号：`class=some-class`
+// * 4、单独的属性名：`disabled`
+
 // could use https://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-QName
 // but for Vue templates we can enforce a simple charset
 // `qname` 就是：`<前缀:标签名称>`，也就是合法的XML标签
 // ncname` 的全称是 `An XML name that does not contain a colon (:)` 即：不包含冒号(`:`)的 XML 名称
 const ncname = '[a-zA-Z_][\\w\\-\\.]*'
 const qnameCapture = `((?:${ncname}\\:)?${ncname})`
+// 以开始标签开始的模板 '<div></div>'.match(startTagOpen) // ["<div", "div", index: 0, input: "<div></div>"]
+// 以结束标签开始的模板 '</div><div>我是Berwin</div>'.match(startTagOpen) // null
+// 以文本开始的模板 '我是Berwin</p>'.match(startTagOpen) // null
 const startTagOpen = new RegExp(`^<${qnameCapture}`)
 const startTagClose = /^\s*(\/?)>/
 const endTag = new RegExp(`^<\\/${qnameCapture}[^>]*>`)
@@ -62,6 +81,8 @@ function decodeAttr(value, shouldDecodeNewlines) {
 // 将 `html` 字符串作为字符输入流，并且按照一定的规则将其逐步消化分解
 export function parseHTML(html, options) {
   // 定义一些常量和变量
+  // stack 栈是用来处理标签的父子关系。 每次解析出一个开始标签，就压入;解析出结束标签就弹出一个 stack 中的标签; 解析出其他的标签， 就将当前最新的
+  // stack 顶的标签的 children 设置为当前解析到的节点。
   const stack = []
   const expectHTML = options.expectHTML
   const isUnaryTag = options.isUnaryTag || no
