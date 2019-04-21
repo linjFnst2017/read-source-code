@@ -5,6 +5,15 @@ import { optimize } from './optimizer'
 import { generate } from './codegen/index'
 import { createCompilerCreator } from './create-compiler'
 
+
+// 编译器过程的总结：
+// 解析器的作用是通过模板得到AST（抽象语法树）。
+// 生成AST的过程需要借助HTML解析器，当HTML解析器触发不同的钩子函数时，我们可以构建出不同的节点。
+// 随后，我们可以通过栈来得到当前正在构建的节点的父节点，然后将构建出的节点添加到父节点的下面。
+// 最终，当HTML解析器运行完毕后，我们就可以得到一个完整的带DOM层级关系的AST。
+// HTML解析器的内部原理是一小段一小段地截取模板字符串，每截取一小段字符串，就会根据截取出来的字符串类型触发不同的钩子函数，直到模板字符串截空停止运行。
+// 文本分两种类型，不带变量的纯文本和带变量的文本，后者需要使用文本解析器进行二次加工。
+
 // `createCompilerCreator` allows creating compilers that use alternative
 // parser/optimizer/codegen, e.g the SSR optimizing compiler.
 // Here we just export a default compiler using the default parts.
