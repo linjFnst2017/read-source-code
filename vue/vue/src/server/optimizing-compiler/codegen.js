@@ -36,7 +36,8 @@ export const RAW = 0
 export const INTERPOLATION = 1
 export const EXPRESSION = 2
 
-export function generate (
+// 通过 ast 生成 render 函数
+export function generate(
   ast: ASTElement | void,
   options: CompilerOptions
 ): CodegenResult {
@@ -48,7 +49,7 @@ export function generate (
   }
 }
 
-function genSSRElement (el: ASTElement, state: CodegenState): string {
+function genSSRElement(el: ASTElement, state: CodegenState): string {
   if (el.for && !el.forProcessed) {
     return genFor(el, state, genSSRElement)
   } else if (el.if && !el.ifProcessed) {
@@ -78,52 +79,52 @@ function genSSRElement (el: ASTElement, state: CodegenState): string {
   }
 }
 
-function genNormalElement (el, state, stringifyChildren) {
+function genNormalElement(el, state, stringifyChildren) {
   const data = el.plain ? undefined : genData(el, state)
   const children = stringifyChildren
     ? `[${genChildrenAsStringNode(el, state)}]`
     : genSSRChildren(el, state, true)
   return `_c('${el.tag}'${
     data ? `,${data}` : ''
-  }${
+    }${
     children ? `,${children}` : ''
-  })`
+    })`
 }
 
-function genSSRChildren (el, state, checkSkip) {
+function genSSRChildren(el, state, checkSkip) {
   return genChildren(el, state, checkSkip, genSSRElement, genSSRNode)
 }
 
-function genSSRNode (el, state) {
+function genSSRNode(el, state) {
   return el.type === 1
     ? genSSRElement(el, state)
     : genText(el)
 }
 
-function genChildrenAsStringNode (el, state) {
+function genChildrenAsStringNode(el, state) {
   return el.children.length
     ? `_ssrNode(${flattenSegments(childrenToSegments(el, state))})`
     : ''
 }
 
-function genStringElement (el, state) {
+function genStringElement(el, state) {
   return `_ssrNode(${elementToString(el, state)})`
 }
 
-function genStringElementWithChildren (el, state) {
+function genStringElementWithChildren(el, state) {
   const children = genSSRChildren(el, state, true)
   return `_ssrNode(${
     flattenSegments(elementToOpenTagSegments(el, state))
-  },"</${el.tag}>"${
+    },"</${el.tag}>"${
     children ? `,${children}` : ''
-  })`
+    })`
 }
 
-function elementToString (el, state) {
+function elementToString(el, state) {
   return `(${flattenSegments(elementToSegments(el, state))})`
 }
 
-function elementToSegments (el, state): Array<StringSegment> {
+function elementToSegments(el, state): Array<StringSegment> {
   // v-for / v-if
   if (el.for && !el.forProcessed) {
     el.forProcessed = true
@@ -150,7 +151,7 @@ function elementToSegments (el, state): Array<StringSegment> {
   return openSegments.concat(childrenSegments, close)
 }
 
-function elementToOpenTagSegments (el, state): Array<StringSegment> {
+function elementToOpenTagSegments(el, state): Array<StringSegment> {
   applyModelTransform(el, state)
   let binding
   const segments = [{ type: RAW, value: `<${el.tag}` }]
@@ -197,7 +198,7 @@ function elementToOpenTagSegments (el, state): Array<StringSegment> {
   return segments
 }
 
-function childrenToSegments (el, state): Array<StringSegment> {
+function childrenToSegments(el, state): Array<StringSegment> {
   let binding
   if ((binding = el.attrsMap['v-html'])) {
     return [{ type: EXPRESSION, value: `_s(${binding})` }]
@@ -213,7 +214,7 @@ function childrenToSegments (el, state): Array<StringSegment> {
     : []
 }
 
-function nodesToSegments (
+function nodesToSegments(
   children: Array<ASTNode>,
   state: CodegenState
 ): Array<StringSegment> {
@@ -231,7 +232,7 @@ function nodesToSegments (
   return segments
 }
 
-function flattenSegments (segments: Array<StringSegment>): string {
+function flattenSegments(segments: Array<StringSegment>): string {
   const mergedSegments = []
   let textBuffer = ''
 
