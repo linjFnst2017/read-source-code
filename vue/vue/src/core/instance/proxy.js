@@ -74,7 +74,7 @@ if (process.env.NODE_ENV !== 'production') {
         : hasHandler
       vm._renderProxy = new Proxy(vm, handlers)
     } else {
-      // 如果环境不支持原生 Proxy 的话，跟生产环境下直接添加一个 _renderProxy 值是一样的
+      // 如果环境不支持原生 Proxy 的话，在生产环境下直接添加一个 _renderProxy 值是一样的
       vm._renderProxy = vm
     }
   }

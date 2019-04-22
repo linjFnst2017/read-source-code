@@ -65,7 +65,6 @@ export function initMixin(Vue) {
 
       // TODO: 
       // vm.constructor 在这里例子中值是 Vue 的构造函数，但是 Vue.extend() 获取到的 class new 出来的实例 constructor 就不是 Vue 函数，这里之后再看
-      // 
     }
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
@@ -78,14 +77,18 @@ export function initMixin(Vue) {
     }
     // expose real self
     vm._self = vm
+    // 仅仅是在 vm 挂载一些与生命钩子函数相关的属性
     initLifecycle(vm)
-    // TODO:
     // vm 实例添加 _events 属性， 初始化好四个实例函数（事件）所需的条件 ？
     initEvents(vm)
+    // 初始化渲染函数（在 vm 实例上挂载跟渲染相关的属性，比如 $slots $vnode $$attrs $listeners等）
     initRender(vm)
+    // 触发 beforeCreate 钩子函数。也就是说上面的事情都是在 beforeCreate 之前处理的
     callHook(vm, 'beforeCreate')
+    // TODO: 
+    // provide 和 inject 主要为高阶插件/组件库提供用例
     initInjections(vm) // resolve injections before data/props
-    // 
+    // 初始化 props methods data computed watch  ;代理 data 上的属性到 this 上去
     initState(vm)
     initProvide(vm) // resolve provide after data/props
     callHook(vm, 'created')
@@ -107,7 +110,6 @@ export function initMixin(Vue) {
 }
 
 export function initInternalComponent(vm, options) {
-  // TODO:
   // 为什么要 Object.create(...) 创建一个以 vm.constructor.options 为原型的对象 ？
   // opts 访问 vm.constructor.options 中的对象是访问的到的，导师 Object.keys() 将会是空的数组
   const opts = vm.$options = Object.create(vm.constructor.options)

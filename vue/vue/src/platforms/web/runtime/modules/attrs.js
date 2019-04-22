@@ -17,20 +17,28 @@ import {
   isFalsyAttrValue
 } from 'web/util/index'
 
-function updateAttrs (oldVnode: VNodeWithData, vnode: VNodeWithData) {
+function updateAttrs(oldVnode: VNodeWithData, vnode: VNodeWithData) {
   const opts = vnode.componentOptions
+  // TODO: 
+  // inheritAttrs 继承属性
   if (isDef(opts) && opts.Ctor.options.inheritAttrs === false) {
     return
   }
+  // TODO: 
+  // oldVnode.data.attrs
   if (isUndef(oldVnode.data.attrs) && isUndef(vnode.data.attrs)) {
     return
   }
   let key, cur, old
+  // TODO: 
+  // vnode.elm ? vm.$el ?
   const elm = vnode.elm
   const oldAttrs = oldVnode.data.attrs || {}
   let attrs: any = vnode.data.attrs || {}
   // clone observed objects, as the user probably wants to mutate it
+  // 克隆观察的对象，因为用户可能希望对其进行修改
   if (isDef(attrs.__ob__)) {
+    // extend 应该是不会复制出 __ob__ 因为这个 __ob__ 属性不可枚举
     attrs = vnode.data.attrs = extend({}, attrs)
   }
 
@@ -58,7 +66,7 @@ function updateAttrs (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   }
 }
 
-function setAttr (el: Element, key: string, value: any) {
+function setAttr(el: Element, key: string, value: any) {
   if (el.tagName.indexOf('-') > -1) {
     baseSetAttr(el, key, value)
   } else if (isBooleanAttr(key)) {
@@ -87,7 +95,7 @@ function setAttr (el: Element, key: string, value: any) {
   }
 }
 
-function baseSetAttr (el, key, value) {
+function baseSetAttr(el, key, value) {
   if (isFalsyAttrValue(value)) {
     el.removeAttribute(key)
   } else {

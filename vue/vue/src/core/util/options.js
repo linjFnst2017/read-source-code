@@ -312,11 +312,9 @@ function normalizeProps(options: Object, vm: ?Component) {
   if (!props) return
   const res = {}
   let i, val, name
-  // vm 中的 props ，如果是 数组的话，是最简单的形式，没有格式限制、默认值等
-  // 如果是 简单对象的话，会有默认值，格式限制等。
   if (Array.isArray(props)) {
+    // vm 中的 props ，如果是数组的话，成员都应该是字符串，是最简单的形式，没有格式限制、默认值等
     i = props.length
-    // 学习： 
     // 使用 i-- 来终止 while 的自循环
     while (i--) {
       val = props[i]
@@ -331,7 +329,7 @@ function normalizeProps(options: Object, vm: ?Component) {
       }
     }
   } else if (isPlainObject(props)) {
-    // Object.prototype.toString === object .... 表示一个纯对象
+    // 如果是 简单对象的话，会有默认值，格式限制等。Object.prototype.toString === object .... 表示一个纯对象
     for (const key in props) {
       val = props[key]
       // 横线转驼峰
@@ -356,7 +354,7 @@ function normalizeProps(options: Object, vm: ?Component) {
       vm
     )
   }
-  // 前面所有的操作，如果一开始传入的 props 是数组（简单 props），将props转成 对象的形式
+  // 前面所有的操作，如果一开始传入的 props 是数组（简单 props），将 props 转成 对象的形式。
   // 再重新传回给 props，之后就可以统一当做一个对象进行处理
   options.props = res
 }
@@ -390,8 +388,10 @@ function normalizeInject(options: Object, vm: ?Component) {
 
 /**
  * Normalize raw function directives into object format.
+ * 将原始函数指令规范化为对象格式
  */
 function normalizeDirectives(options: Object) {
+  // 在 options 中注册的 directives 是一个对象
   const dirs = options.directives
   if (dirs) {
     for (const key in dirs) {
@@ -445,20 +445,23 @@ export function mergeOptions(
     child = child.options
   }
 
-  // 规范化 props
+  // 规范化 props。 给 child 挂载上了一个 props 属性，值统一是对象。 $options.props
   normalizeProps(child, vm)
   // TODO: 
   // 规范化 inject （2.2.0 之后新增， 不过这个一般用于高阶组件，放后面看吧）
   normalizeInject(child, vm)
-  // 规范化 directives 指令
+  // 规范化 directives 指令. 
   normalizeDirectives(child)
 
-  // TODO: 
-  // 处理 `extends` 选项和 `mixins` 选项
+  // 处理 `extends` 选项
+  // options.extends 属性是用于在没有调用 `Vue.extend` 时候继承某一个 Vue 组件。 
+  // 值应该是一个 vm , 同样继承的方式只要是将原始类型的 options merge 到子类型（也是 vm 实例）上去就行了
   const extendsFrom = child.extends
   if (extendsFrom) {
+    // TODO: 给 parent 的 options merge 干什么？
     parent = mergeOptions(parent, extendsFrom, vm)
   }
+  // 处理 `mixins` 选项。 值是一个对象数组， 对象的内容是
   if (child.mixins) {
     for (let i = 0, l = child.mixins.length; i < l; i++) {
       parent = mergeOptions(parent, child.mixins[i], vm)

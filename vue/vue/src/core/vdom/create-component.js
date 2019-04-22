@@ -33,6 +33,7 @@ import {
 } from 'weex/runtime/recycle-list/render-component-template'
 
 // inline hooks to be invoked on component VNodes during patch
+// 在 patch 期间将在组件 vnode 上调用内联钩子
 const componentVNodeHooks = {
   init(vnode: VNodeWithData, hydrating: boolean): ?boolean {
     if (

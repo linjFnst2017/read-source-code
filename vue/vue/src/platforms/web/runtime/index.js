@@ -30,7 +30,8 @@ extend(Vue.options.directives, platformDirectives)
 // 添加了两个组件(专场动画):   Transition, TransitionGroup
 extend(Vue.options.components, platformComponents)
 
-// 在 Vue.prototype 上添加 __patch__ 方法，如果在浏览器环境运行的话，这个方法的值为 patch 函数，否则是一个空函数 noop。
+// 在 Vue.prototype 上添加 __patch__ 方法，如果在浏览器环境运行的话，这个方法的值为 patch 函数，
+// 否则是一个空函数 noop， 比如 weex 平台，等待重写 __patch__ 函数
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method

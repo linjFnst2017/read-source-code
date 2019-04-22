@@ -21,6 +21,7 @@ import {
 export let activeInstance: any = null
 export let isUpdatingChildComponent: boolean = false
 
+// 在 vm 实例上挂载 $parent ，指定父子组件的关系，并且挂载了一些跟 Vue 生命周期相关的属性
 export function initLifecycle(vm: Component) {
   const options = vm.$options
 
@@ -30,8 +31,7 @@ export function initLifecycle(vm: Component) {
   // 如果当前实例有父组件，且当前实例不是抽象的
   // 将当前实例添加到父实例的 `$children` 属性里，并设置当前实例的 `$parent` 指向父实例
   if (parent && !options.abstract) {
-    // TODO: 
-    // 使用 while 循环查找第一个非抽象的父组件
+    // 使用 while 循环查找第一个非抽象的父组件。 抽象组件，例如 keep-alive 等内置组件，是不需要进行渲染的，在父子容器之间的关系上也不用体现。即不需要将某一个子组件放入一个抽象父组件的 children 中。
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }
@@ -56,21 +56,27 @@ export function initLifecycle(vm: Component) {
   vm._isBeingDestroyed = false
 }
 
+// 生命周期函数的声明，直接在原型链上挂载相关的方法
 export function lifecycleMixin(Vue: Class<Component>) {
-
-
+  // 更新， Vue 的响应式原理中，set 函数触发重新渲染就是用的 _update 函数
+  // hydrating 保湿的
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
+    // 获取之前（当前）渲染的 dom 节点和 _vnode 节点 （也就是一个真实的节点，一个虚拟节点）
     const prevEl = vm.$el
+    // TODO: _vnode 最早是什么时候挂载的
     const prevVnode = vm._vnode
     const prevActiveInstance = activeInstance
+    // 当前激活的实例
     activeInstance = vm
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
+    // TODO: 
+    // Vue.prototype.__patch__ 函数在 render 函数执行之后每一个实例上都被注入了。 
     if (!prevVnode) {
       // initial render
-      //  `vm.__patch__` 函数的返回值重写
+      //  `vm.__patch__` 函数的返回值是一个真实的 dom 节点。
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates
@@ -249,6 +255,7 @@ export function updateChildComponent(
   renderChildren: ?Array<VNode>
 ) {
   if (process.env.NODE_ENV !== 'production') {
+    // 正在更新组件
     isUpdatingChildComponent = true
   }
 
@@ -261,6 +268,7 @@ export function updateChildComponent(
     vm.$scopedSlots !== emptyObject // has old scoped slots
   )
 
+  // 在 options 参数上挂载一个”私有的“ 父虚拟节点， 后面蛮多地方要用的
   vm.$options._parentVnode = parentVnode
   vm.$vnode = parentVnode // update vm's placeholder node without re-render
 
@@ -348,11 +356,16 @@ export function deactivateChildComponent(vm: Component, direct?: boolean) {
   }
 }
 
+// 触发钩子
 export function callHook(vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
+  // 在调用生命周期钩子时禁用 dep 集合， 其实就是给 Dep.target 置为 undefined 值，但是 targetStack 数组中还是会 push 进入一个函数的
   pushTarget()
+  // TODO: 我记得钩子函数是数组 ？
+  // 获取 vm 实例上定义的钩子函数
   const handlers = vm.$options[hook]
   if (handlers) {
+    // 循环触发数组中的 handler
     for (let i = 0, j = handlers.length; i < j; i++) {
       try {
         handlers[i].call(vm)
@@ -361,8 +374,11 @@ export function callHook(vm: Component, hook: string) {
       }
     }
   }
+  // TODO: 
+  // _hasHookEvent 这个标志位是用来表示是否有钩子函数，貌似说是提高速度 ？
   if (vm._hasHookEvent) {
     vm.$emit('hook:' + hook)
   }
+  // 本质上是不希望依赖收集的，所以将栈中的 函数删除
   popTarget()
 }

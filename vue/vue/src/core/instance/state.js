@@ -122,6 +122,8 @@ function initData(vm: Component) {
   let data = vm.$options.data
   // `beforeCreate` 声明周期钩子函数在 mergeOptions 函数执行之后，在 initData 函数执行之前， 虽然在 mergeOptions 函数执行之后 data 一定是一个函数
   // 但是如果 beforeCreate 钩子函数中修改了 vm.$options.data 的话，这里有必要再进行判断是否是一个 function
+  // 当一个组件被定义，data 必须声明为返回一个初始数据对象的函数，因为组件可能被用来创建多个实例。如果 data 仍然是一个纯粹的对象，则所有的实例将共享引用同一个数据对象
+  // 通过提供 data 函数，每次创建一个新实例后，我们能够调用 data 函数，从而返回初始数据的一个全新副本数据对象
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
@@ -177,29 +179,34 @@ function initData(vm: Component) {
 export function getData(data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
   // 这里调用 pushTarget 和 popTarget 是为了防止通过 props 数据初始化 data 的时候收集冗余的依赖（观察者）
+  // 将 Dep.target 值置为空的。 因为 data 函数执行的时候不希望被依赖收集
   pushTarget()
   try {
-    // 第一个 this 指定作用域 等二个 this 是 data 函数的参数
+    // 第一个 this 指定作用域 等二个 this 是 data 函数的参数。 最终返回一个全新副本数据对象
     return data.call(vm, vm)
   } catch (e) {
     // 如果发生错误就直接返回一个空对象
     handleError(e, vm, `data()`)
     return {}
   } finally {
+    // 重新置为原来的 Dep.target
     popTarget()
   }
 }
 
 const computedWatcherOptions = { lazy: true }
 
+// 计算属性挂载
 function initComputed(vm: Component, computed: Object) {
   // $flow-disable-line
   const watchers = vm._computedWatchers = Object.create(null)
   // computed properties are just getters during SSR
+  // 计算属性只是SSR期间的getter
   const isSSR = isServerRendering()
 
   for (const key in computed) {
     const userDef = computed[key]
+    // userDef.get 这样的形式是通过在 computed 中定义一个包含 set 和 get 的对象来处理的
     const getter = typeof userDef === 'function' ? userDef : userDef.get
     if (process.env.NODE_ENV !== 'production' && getter == null) {
       warn(
@@ -210,6 +217,7 @@ function initComputed(vm: Component, computed: Object) {
 
     if (!isSSR) {
       // create internal watcher for the computed property.
+      // 为计算属性创建 内部 watcher
       watchers[key] = new Watcher(
         vm,
         getter || noop,
@@ -221,7 +229,9 @@ function initComputed(vm: Component, computed: Object) {
     // component-defined computed properties are already defined on the
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
+    // 组件定义的计算属性已经在组件原型上定义。我们只需要定义在实例化时定义的计算属性。
     if (!(key in vm)) {
+      // vm 实例上还没有 key 计算属性， 就挂载一个
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
       if (key in vm.$data) {
@@ -238,7 +248,10 @@ export function defineComputed(
   key: string,
   userDef: Object | Function
 ) {
+  // 是否应该缓存
+  // TODO: 为啥需要通过 isServerRendering 是不是 ssr 来判断？
   const shouldCache = !isServerRendering()
+  // 在 computed 中定义的 function 最终还是要处理成 set 和 getter 来处理的
   if (typeof userDef === 'function') {
     sharedPropertyDefinition.get = shouldCache
       ? createComputedGetter(key)
@@ -281,6 +294,7 @@ function createComputedGetter(key) {
   }
 }
 
+// 为 vm 实例挂载 methods 对象中定义的方法
 function initMethods(vm: Component, methods: Object) {
   const props = vm.$options.props
   for (const key in methods) {
@@ -292,12 +306,14 @@ function initMethods(vm: Component, methods: Object) {
           vm
         )
       }
+      // 提醒 props 中有同名的属性， 也体现 props 的优先级更高
       if (props && hasOwn(props, key)) {
         warn(
           `Method "${key}" has already been defined as a prop.`,
           vm
         )
       }
+      // 与 vm 实例一些内置属性冲突
       if ((key in vm) && isReserved(key)) {
         warn(
           `Method "${key}" conflicts with an existing Vue instance method. ` +
@@ -305,6 +321,8 @@ function initMethods(vm: Component, methods: Object) {
         )
       }
     }
+    // 不含值的键，定义为空函数
+    // 自动为函数指定 this. 注意这里的方法是直接挂载在 vm 实例上的，而不是跟 data 一样通过代理的形式
     vm[key] = methods[key] == null ? noop : bind(methods[key], vm)
   }
 }

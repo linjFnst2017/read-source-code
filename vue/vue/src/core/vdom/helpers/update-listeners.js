@@ -5,15 +5,15 @@ import { cached, isUndef, isPlainObject } from 'shared/util'
 
 const normalizeEvent = cached((name: string): {
   name: string,
-  once: boolean,
-  capture: boolean,
-  passive: boolean,
+  once: boolean, // $once
+  capture: boolean, // 捕获
+  passive: boolean, // 被动
   handler?: Function,
   params?: Array<any>
 } => {
   const passive = name.charAt(0) === '&'
   name = passive ? name.slice(1) : name
-  const once = name.charAt(0) === '~' // Prefixed last, checked first
+  const once = name.charAt(0) === '~' // Prefixed last, checked first 前缀last，勾选first ？？？
   name = once ? name.slice(1) : name
   const capture = name.charAt(0) === '!'
   name = capture ? name.slice(1) : name
@@ -25,8 +25,8 @@ const normalizeEvent = cached((name: string): {
   }
 })
 
-export function createFnInvoker (fns: Function | Array<Function>): Function {
-  function invoker () {
+export function createFnInvoker(fns: Function | Array<Function>): Function {
+  function invoker() {
     const fns = invoker.fns
     if (Array.isArray(fns)) {
       const cloned = fns.slice()
@@ -42,8 +42,11 @@ export function createFnInvoker (fns: Function | Array<Function>): Function {
   return invoker
 }
 
-export function updateListeners (
+// 更新监听器
+export function updateListeners(
+  // on 貌似是 vm 实例
   on: Object,
+  // 
   oldOn: Object,
   add: Function,
   remove: Function,

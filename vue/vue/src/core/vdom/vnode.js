@@ -60,7 +60,7 @@ export default class VNode {
     this.fnScopeId = undefined
     // 节点的key属性，被当作节点的标志，用以优化
     this.key = data && data.key
-    // 组件的option选项
+    // 组件的 option 选项
     this.componentOptions = componentOptions
     // 当前节点对应的组件的实例
     this.componentInstance = undefined

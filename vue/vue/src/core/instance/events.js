@@ -12,10 +12,12 @@ import { updateListeners } from '../vdom/helpers/index'
 export function initEvents(vm: Component) {
   // 在 vm 上创建一个_events对象，用来存放事件
   vm._events = Object.create(null)
-  // 这个bool标志位来表明是否存在钩子，而不需要通过哈希表的方法来查找是否有钩子，这样做可以减少不必要的开销，优化性能
+  // 这个 bool 标志位来表明是否存在钩子，而不需要通过哈希表的方法来查找是否有钩子，这样做可以减少不必要的开销，优化性能
   vm._hasHookEvent = false
-  // 初始化父组件的 attached 事件
+  // TODO: _parentListeners 不确定是哪里挂载上去的
+  // 初始化父组件的附加（attached）事件
   const listeners = vm.$options._parentListeners
+  // TODO: 更新组件监听器？
   if (listeners) {
     updateComponentListeners(vm, listeners)
   }
@@ -40,6 +42,7 @@ export function updateComponentListeners(
   listeners: Object,
   oldListeners: ?Object
 ) {
+  // 局部变量 target 这里存储 vm 是为了给 add 和 remove 调用
   target = vm
   updateListeners(listeners, oldListeners || {}, add, remove, vm)
   target = undefined

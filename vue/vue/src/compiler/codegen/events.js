@@ -49,7 +49,7 @@ const modifierCode: { [key: string]: string } = {
   right: genGuard(`'button' in $event && $event.button !== 2`)
 }
 
-export function genHandlers (
+export function genHandlers(
   events: ASTElementHandlers,
   isNative: boolean,
   warn: Function
@@ -63,7 +63,7 @@ export function genHandlers (
 
 // Generate handler code with binding params on Weex
 /* istanbul ignore next */
-function genWeexHandler (params: Array<any>, handlerCode: string) {
+function genWeexHandler(params: Array<any>, handlerCode: string) {
   let innerHandlerCode = handlerCode
   const exps = params.filter(exp => simplePathRE.test(exp) && exp !== '$event')
   const bindings = exps.map(exp => ({ '@binding': exp }))
@@ -79,7 +79,7 @@ function genWeexHandler (params: Array<any>, handlerCode: string) {
     '}'
 }
 
-function genHandler (
+function genHandler(
   name: string,
   handler: ASTElementHandler | Array<ASTElementHandler>
 ): string {
@@ -116,12 +116,12 @@ function genHandler (
         }
       } else if (key === 'exact') {
         const modifiers: ASTModifiers = (handler.modifiers: any)
-        genModifierCode += genGuard(
-          ['ctrl', 'shift', 'alt', 'meta']
-            .filter(keyModifier => !modifiers[keyModifier])
-            .map(keyModifier => `$event.${keyModifier}Key`)
-            .join('||')
-        )
+          genModifierCode += genGuard(
+            ['ctrl', 'shift', 'alt', 'meta']
+              .filter(keyModifier => !modifiers[keyModifier])
+              .map(keyModifier => `$event.${keyModifier}Key`)
+              .join('||')
+          )
       } else {
         keys.push(key)
       }
@@ -146,11 +146,11 @@ function genHandler (
   }
 }
 
-function genKeyFilter (keys: Array<string>): string {
+function genKeyFilter(keys: Array<string>): string {
   return `if(!('button' in $event)&&${keys.map(genFilterCode).join('&&')})return null;`
 }
 
-function genFilterCode (key: string): string {
+function genFilterCode(key: string): string {
   const keyVal = parseInt(key, 10)
   if (keyVal) {
     return `$event.keyCode!==${keyVal}`
