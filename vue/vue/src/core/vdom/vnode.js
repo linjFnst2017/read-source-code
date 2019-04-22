@@ -38,7 +38,7 @@ export default class VNode {
     elm?: Node,
     context?: Component,
     componentOptions?: VNodeComponentOptions,
-    asyncFactory?: Function
+    asyncFactory?: Function // 异步组件工厂函数
   ) {
     // 当前节点的标签名
     this.tag = tag
@@ -80,6 +80,7 @@ export default class VNode {
     this.isOnce = false
     this.asyncFactory = asyncFactory
     this.asyncMeta = undefined
+    // 是否是异步占位符
     this.isAsyncPlaceholder = false
   }
 

@@ -23,13 +23,17 @@ export const optimizability = {
 
 let isPlatformReservedTag
 
-export function optimize (root: ?ASTElement, options: CompilerOptions) {
+// vue 如何优化编译出来的代码
+// optimize的主要作用是标记static静态节点，这是Vue在编译过程中的一处优化，后面当update更新界面时，
+// 会有一个patch的过程，diff算法会直接跳过静态节点，从而减少了比较的过程，优化了patch的性能。
+// ast 对象中的一些属性： 比如static表示是否是静态节点，staticClass表示静态class属性（非bind:class）
+export function optimize(root: ?ASTElement, options: CompilerOptions) {
   if (!root) return
   isPlatformReservedTag = options.isReservedTag || no
   walk(root, true)
 }
 
-function walk (node: ASTNode, isRoot?: boolean) {
+function walk(node: ASTNode, isRoot?: boolean) {
   if (isUnOptimizableTree(node)) {
     node.ssrOptimizability = optimizability.FALSE
     return
@@ -71,7 +75,7 @@ function walk (node: ASTNode, isRoot?: boolean) {
   }
 }
 
-function optimizeSiblings (el) {
+function optimizeSiblings(el) {
   const children = el.children
   const optimizedChildren = []
 
@@ -106,7 +110,7 @@ function optimizeSiblings (el) {
   return optimizedChildren
 }
 
-function isUnOptimizableTree (node: ASTNode): boolean {
+function isUnOptimizableTree(node: ASTNode): boolean {
   if (node.type === 2 || node.type === 3) { // text or expression
     return false
   }
@@ -120,7 +124,7 @@ function isUnOptimizableTree (node: ASTNode): boolean {
 
 const isBuiltInDir = makeMap('text,html,show,on,bind,model,pre,cloak,once')
 
-function hasCustomDirective (node: ASTNode): ?boolean {
+function hasCustomDirective(node: ASTNode): ?boolean {
   return (
     node.type === 1 &&
     node.directives &&
@@ -130,7 +134,7 @@ function hasCustomDirective (node: ASTNode): ?boolean {
 
 // <select v-model> cannot be optimized because it requires a runtime check
 // to determine proper selected option
-function isSelectWithModel (node: ASTNode): boolean {
+function isSelectWithModel(node: ASTNode): boolean {
   return (
     node.type === 1 &&
     node.tag === 'select' &&

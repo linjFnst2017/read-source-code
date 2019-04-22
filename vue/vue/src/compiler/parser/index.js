@@ -244,6 +244,8 @@ export function parse(
       closeElement(element)
     },
     // 文本钩子函数
+    // vuejs 中处理文本的时候，parseHtml 是分两部分来处理的，第一步从模板字符串中将不符合特定标签的字符串都解析提取出来作为文本标签
+    // 但是如果是带变量类型的字符串 {{}} 比如这种的话，就需要 vuejs 使用变量来填充模板字符串的内容。
     chars(text: string) {
       if (!currentParent) {
         if (process.env.NODE_ENV !== 'production') {
@@ -274,15 +276,19 @@ export function parse(
         : preserveWhitespace && children.length ? ' ' : ''
       if (text) {
         let res
+        // 在构建文本类型的AST时，纯文本和带变量的文本是不同的处理方式。如果是带变量的文本，我们需要借助文本解析器对它进行二次加工
+        // parseText后有返回结果，则说明文本是带变量的文本，并且已经通过文本解析器（parseText）二次加工
         if (!inVPre && text !== ' ' && (res = parseText(text, delimiters))) {
+          // 构建一个带变量的文本类型的AST并将其添加到父节点的children属性
           children.push({
-            // 文本节点 type = 2
+            // 带变量的文本节点的 type 是 2 ，这里的 text 会被转化为 text + _s(name)
             type: 2,
-            expression: res.expression,
+            expression: res.expression, // "Hello "+_s(name)
             tokens: res.tokens,
             text
           })
         } else if (text !== ' ' || !children.length || children[children.length - 1].text !== ' ') {
+          // 普通文本节点 type = 3
           children.push({
             type: 3,
             text

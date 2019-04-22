@@ -32,15 +32,32 @@ export const emptyNode = new VNode('', {}, [])
 
 const hooks = ['create', 'activate', 'update', 'remove', 'destroy']
 
+// 比较是否是两个相同的 vnode , 不是实际意义上的是否是同一个 vnode
+/**
+ * 判断两个VNode节点是否是同一个节点，需要满足以下条件
+ * key相同
+ * tag（当前节点的标签名）相同
+ * isComment（是否为注释节点）相同
+ * 是否data（当前节点对应的对象，包含了具体的一些数据信息，是一个VNodeData类型，可以参考VNodeData类型中的数据信息）都有定义
+ * 当标签是<input>的时候，type必须相同
+ * @param {*} a 
+ * @param {*} b 
+ */
 function sameVnode(a, b) {
   return (
+    // key相同
     a.key === b.key && (
       (
+        // tag（当前节点的标签名）相同
         a.tag === b.tag &&
+        // isComment（是否为注释节点）相同
         a.isComment === b.isComment &&
+        // data 是否有定义
         isDef(a.data) === isDef(b.data) &&
+        // 当标签是 <input> 的时候，type必须相同
         sameInputType(a, b)
       ) || (
+        // TODO: 新增的判断是否是同一个 vnode 节点判断条件
         isTrue(a.isAsyncPlaceholder) &&
         a.asyncFactory === b.asyncFactory &&
         isUndef(b.asyncFactory.error)
@@ -49,6 +66,8 @@ function sameVnode(a, b) {
   )
 }
 
+// 判断当标签是<input>的时候，type是否相同
+// 某些浏览器不支持动态修改<input>类型，所以他们被视为不同类型
 function sameInputType(a, b) {
   if (a.tag !== 'input') return true
   let i
@@ -498,6 +517,14 @@ export function createPatchFunction(backend) {
     }
   }
 
+  /**
+   * patchVnode的规则:
+   * 1. 
+   * @param {*} oldVnode 
+   * @param {*} vnode 
+   * @param {*} insertedVnodeQueue 
+   * @param {*} removeOnly 
+   */
   function patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly) {
     if (oldVnode === vnode) {
       return
@@ -682,7 +709,10 @@ export function createPatchFunction(backend) {
     }
   }
 
+  // _update 会将新旧两个 VNode 进行一次 patch 的过程，得出两个 VNode 最小的差异，然后将这些差异渲染到视图上
+  // 旧的VNode与新VNode进行patch的过程，他们只是在同层级的VNode之间进行比较得到变化
   return function patch(oldVnode, vnode, hydrating, removeOnly) {
+    // 如果新的 vnode 是 undefined 或者 null, 也就是说新的 vnode 不存在了，而旧的 vnode 是存在的话，那就出发 Destory 钩子函数
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
@@ -693,14 +723,18 @@ export function createPatchFunction(backend) {
 
     if (isUndef(oldVnode)) {
       // empty mount (likely as component), create new root element
+      // 空挂载？ 比如一个组件，创建一个新的根组件
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
     } else {
       const isRealElement = isDef(oldVnode.nodeType)
+      // 在 patch 的过程中，如果两个 VNode 被认为是同一个 VNode（sameVnode），则会进行深度的比较，得出最小差异，
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
         // patch existing root node
+        // 这两个VNode则算sameVnode，可以直接进行patchVnode操作
         patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly)
       } else {
+        // 否则直接删除旧有DOM节点，创建新的DOM节点。
         if (isRealElement) {
           // mounting to a real element
           // check if this is server-rendered content and if we can perform

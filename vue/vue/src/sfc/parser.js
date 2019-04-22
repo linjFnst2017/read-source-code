@@ -16,7 +16,7 @@ type Attribute = {
 /**
  * Parse a single-file component (*.vue) file into an SFC Descriptor Object.
  */
-export function parseComponent (
+export function parseComponent(
   content: string,
   options?: Object = {}
 ): SFCDescriptor {
@@ -29,7 +29,7 @@ export function parseComponent (
   let depth = 0
   let currentBlock: ?SFCBlock = null
 
-  function start (
+  function start(
     tag: string,
     attrs: Array<Attribute>,
     unary: boolean,
@@ -62,7 +62,7 @@ export function parseComponent (
     }
   }
 
-  function checkAttrs (block: SFCBlock, attrs: Array<Attribute>) {
+  function checkAttrs(block: SFCBlock, attrs: Array<Attribute>) {
     for (let i = 0; i < attrs.length; i++) {
       const attr = attrs[i]
       if (attr.name === 'lang') {
@@ -80,7 +80,7 @@ export function parseComponent (
     }
   }
 
-  function end (tag: string, start: number, end: number) {
+  function end(tag: string, start: number, end: number) {
     if (depth === 1 && currentBlock) {
       currentBlock.end = start
       let text = deindent(content.slice(currentBlock.start, currentBlock.end))
@@ -95,7 +95,7 @@ export function parseComponent (
     depth--
   }
 
-  function padContent (block: SFCBlock, pad: true | "line" | "space") {
+  function padContent(block: SFCBlock, pad: true | "line" | "space") {
     if (pad === 'space') {
       return content.slice(0, block.start).replace(replaceRE, ' ')
     } else {

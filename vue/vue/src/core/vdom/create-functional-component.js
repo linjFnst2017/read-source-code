@@ -16,7 +16,7 @@ import {
   validateProp
 } from '../util/index'
 
-export function FunctionalRenderContext (
+export function FunctionalRenderContext(
   data: VNodeData,
   props: Object,
   children: ?Array<VNode>,
@@ -75,7 +75,7 @@ export function FunctionalRenderContext (
 
 installRenderHelpers(FunctionalRenderContext.prototype)
 
-export function createFunctionalComponent (
+export function createFunctionalComponent(
   Ctor: Class<Component>,
   propsData: ?Object,
   data: VNodeData,
@@ -116,7 +116,7 @@ export function createFunctionalComponent (
   }
 }
 
-function cloneAndMarkFunctionalResult (vnode, data, contextVm, options) {
+function cloneAndMarkFunctionalResult(vnode, data, contextVm, options) {
   // #7817 clone node before setting fnContext, otherwise if the node is reused
   // (e.g. it was from a cached normal slot) the fnContext causes named slots
   // that should not be matched to match.
@@ -129,7 +129,7 @@ function cloneAndMarkFunctionalResult (vnode, data, contextVm, options) {
   return clone
 }
 
-function mergeProps (to, from) {
+function mergeProps(to, from) {
   for (const key in from) {
     to[camelize(key)] = from[key]
   }
