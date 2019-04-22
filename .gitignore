@@ -1,9 +1,7 @@
-test
 dist
 build
 docs
 docs-gitbook
-examples
 types
 
 .babelrc
