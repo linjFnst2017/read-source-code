@@ -22,6 +22,7 @@ function createFunction(code, errors) {
 
 // 真正的编译函数
 export function createCompileToFunctionFn(compile: Function): Function {
+  // cache 用来缓存函数执行的结果
   const cache = Object.create(null)
 
   // 返回值是一个函数， 我们真正需要的 compileToFunctions 函数
@@ -63,11 +64,12 @@ export function createCompileToFunctionFn(compile: Function): Function {
 
     // check cache
     // 这么做的目的是缓存字符串模板的编译结果，防止重复编译，提升性能
-    // delimiters 分割符号
+    // delimiters 分割符号. 如果用户有自定义的分隔符的话，将分隔符 + template 作为一个 key 来缓存编译函数
+    // TODO: 这里难道就不担心， template 很长很长么？
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
-    // 存在直接返回 `cache[key]` 从缓存中拿 template ？
+    // 存在直接返回 `cache[key]` 从缓存中拿 template
     if (cache[key]) {
       return cache[key]
     }
@@ -103,7 +105,7 @@ export function createCompileToFunctionFn(compile: Function): Function {
     // `render` 属性，实际上就是最终生成的 渲染函数！！！， compiled.render 应该是一个函数体的字符串形式
     // fnGenErrors： 创建函数出错时的错误信息被 `push` 到这个数组里了
     // compiled 是 compile 编译函数的结果，也就是说，compile 函数编译模板字符串之后所得到的是字符串形式的函数体，赋值给了 render 属性（string）
-    res.render = createFunction(compiled.render, fnGenErrors) // 创建 render 函数
+    res.render = createFunction(compiled.render, fnGenErrors) // 根据字符串形式的 render 函数创建可执行的 render 函数（调用 new Function() ）
     //  `staticRenderFns` 静态渲染方法， 主要作用是渲染优化
     // `res.staticRenderFns` 是一个 函数数组 （code 是字符串形式的函数体），是通过对 `compiled.staticRenderFns` 遍历生成的
     res.staticRenderFns = compiled.staticRenderFns.map(code => {

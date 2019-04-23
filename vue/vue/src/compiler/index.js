@@ -34,7 +34,7 @@ export const createCompiler = createCompilerCreator(function baseCompile(
    * 优化的目标是：生成模板 ast 检测不需要进行 dom 改变的静态子树
    * 一旦检测到这些静态树，我们就做下面的事情：
    * 1. 把它们变成常数，这样我们就再也不需要每次重新渲染时创建新的节点了。
-   * 2. 在patch的过程中直接跳过。
+   * 2. 在 patch 的过程中直接跳过。
    */
 
   if (options.optimize !== false) {
@@ -48,7 +48,7 @@ export const createCompiler = createCompilerCreator(function baseCompile(
   return {
     // 抽象语法树(`ast`)
     ast,
-    // 渲染函数
+    // 渲染函数（字符串形式的函数，需要 new Function() 之后才能真正执行的函数）
     render: code.render,
     // 静态渲染函数
     staticRenderFns: code.staticRenderFns

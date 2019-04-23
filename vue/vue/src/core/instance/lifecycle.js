@@ -181,8 +181,12 @@ export function mountComponent(
 ): Component {
   // $el 的值是组件模板根元素的引用。 vm.$el 始终是组件模板的根元素， 所以如果传了 template 的值（main.js 中）
   // 那么根元素 $el 的值是 template 的节点， 否则的话，可能是 el （id 选择器）指向的节点
+  // TODO:
+  // 通常来说 el 这里是个字符串比较多 ？
   vm.$el = el
   // 检查 render 渲染函数是否存在。 
+  // 如果是 vue 自己编译的 template 而在 $options 挂载的 render 函数的话（因为如果开发者传参了 render 选项，vue 就不会编译了）
+  // render 肯定是有结果的，最多是个 noop 空函数。 所以在 vue mount 中调用 mountComponent 函数时不会走入这里的逻辑
   if (!vm.$options.render) {
     // 这里肯定不是 template 字符串模板编译成 render 后的直接执行。 
     // 此时渲染函数的作用将仅仅渲染一个空的 `vnode` 对象， 创建空的 vnode 节点。 
@@ -212,7 +216,7 @@ export function mountComponent(
   // 定义并初始化 `updateComponent` 函数
   let updateComponent
   /* istanbul ignore if */
-  // 性能统计
+  // 非生产环境下的性能统计
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
     updateComponent = () => {
       const name = vm._name
@@ -260,6 +264,9 @@ export function mountComponent(
       }
     }
   }, true /* isRenderWatcher 标识着是否是渲染函数的观察者*/)
+  // 当期这个观察者实例 
+  // watcher.getter = updateComponent
+  // watcher.before = before
   hydrating = false
 
   // manually mounted instance, call mounted on self
@@ -269,6 +276,7 @@ export function mountComponent(
   // TODO: $vnode 
   if (vm.$vnode == null) {
     vm._isMounted = true
+    // 执行用户在 mounted 中定义的任务
     callHook(vm, 'mounted')
   }
   return vm
