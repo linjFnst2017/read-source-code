@@ -51,7 +51,7 @@ export function updateComponentListeners(
 export function eventsMixin(Vue) {
   const hookRE = /^hook:/
 
-  // 监听当前实例上的自定义事件。事件可以由vm.$emit触发。回调函数会接收所有传入事件触发函数的额外参数。
+  // 监听当前实例上的自定义事件。事件可以由 vm.$emit 触发。回调函数会接收所有传入事件触发函数的额外参数。
   Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
     const vm: Component = this
     // 如果 event 传递了一个数组（数组的元素都是 string），就自动将所有的事件都调用 $on 注册事件监听器
@@ -68,6 +68,7 @@ export function eventsMixin(Vue) {
       (vm._events[event] || (vm._events[event] = [])).push(fn)
       // 通过使用一个 Boolean 的 flag 来标记是否注册了 事件，而非hash 查找，来优化查找钩子事件的花费
       // _hasHookEvent 这个标志位只用来表示是否有钩子函数，而非有几个
+      // TODO: 这里很奇怪，钩子函数不会通过 this.$on 来调用吧
       if (hookRE.test(event)) {
         // 钩子函数 event name 是以 hook: 开头的
         vm._hasHookEvent = true
@@ -77,8 +78,6 @@ export function eventsMixin(Vue) {
   }
 
   // 监听一个自定义事件，但是只触发一次，在第一次触发之后移除监听器。
-  // TODO:
-  // $once 能够传 event 数组么？
   Vue.prototype.$once = function (event: string, fn: Function): Component {
     const vm: Component = this
     function on() {
@@ -101,7 +100,7 @@ export function eventsMixin(Vue) {
     // all
     // $off 函数没有参数， event = undefined ， fn = undefined 就将 vm._events 置空
     if (!arguments.length) {
-      // vue使用一个没有继承关系的空对象，那Object原型对象上的属性(toString,hasOwnProperty,etc)都抛弃了，因为vue自己都重写了一份。
+      // vue 使用一个没有继承关系的空对象，那 Object 原型对象上的属性 (toString,hasOwnProperty,etc) 都抛弃了，因为 vue 自己都重写了一份。
       vm._events = Object.create(null)
       return vm
     }
@@ -112,7 +111,7 @@ export function eventsMixin(Vue) {
       }
       return vm
     }
-    // specific event
+    // specific event 特殊的事件
     const cbs = vm._events[event]
     // 如果本身 vm._events[event] 就不含事件回调，就直接返回实例
     if (!cbs) {

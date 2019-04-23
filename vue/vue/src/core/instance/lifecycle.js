@@ -63,6 +63,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     // 获取之前（当前）渲染的 dom 节点和 _vnode 节点 （也就是一个真实的节点，一个虚拟节点）
+    // TODO: $el 最早是什么时候挂载的
     const prevEl = vm.$el
     // TODO: _vnode 最早是什么时候挂载的
     const prevVnode = vm._vnode
@@ -77,6 +78,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
     if (!prevVnode) {
       // initial render
       //  `vm.__patch__` 函数的返回值是一个真实的 dom 节点。
+      // （如果上一个 vnode 节点不存在的话）初次渲染，就直接调用 __patch__ ?
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates
@@ -85,6 +87,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
     }
     activeInstance = prevActiveInstance
     // update __vue__ reference
+    // 更新 __vue__ 指向
     if (prevEl) {
       prevEl.__vue__ = null
     }
@@ -99,8 +102,10 @@ export function lifecycleMixin(Vue: Class<Component>) {
     // updated in a parent's updated hook.
   }
 
+  // 强制更新 dom
   Vue.prototype.$forceUpdate = function () {
     const vm: Component = this
+    // 通过监听器直接视图更新，关键在于 _watcher 这里是负责通知到视图进行更新的
     if (vm._watcher) {
       vm._watcher.update()
     }
@@ -108,37 +113,54 @@ export function lifecycleMixin(Vue: Class<Component>) {
 
   Vue.prototype.$destroy = function () {
     const vm: Component = this
+    // _isBeingDestroyed 已经正在被销毁中 ？
     if (vm._isBeingDestroyed) {
       return
     }
+    // 触发定义的 beforeDestroy 钩子函数
     callHook(vm, 'beforeDestroy')
+    // 标志位
     vm._isBeingDestroyed = true
     // remove self from parent
+    // 从父节点中移除自身
     const parent = vm.$parent
+    // 父节点此时没有正在被销毁， 并且父节点也不能是抽象组件。 事实上这里如果是抽象组件的话，不能从父节点中移除 ？？？
     if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
+      // 从父节点的 $children 数组中将当前节点移除
       remove(parent.$children, vm)
     }
     // teardown watchers
+    // 拆卸 watcher。 因为组件被销毁了，依赖监听可以不用执行了，下一次如果节点再被加载的话，依赖收集的操作应该在挂载之前 ？？？
     if (vm._watcher) {
+      // TODO: 
       vm._watcher.teardown()
     }
+    // TODO: 怎么有 _watcher 还有 _watchers 
     let i = vm._watchers.length
+    // 全部监听器都拆卸调
     while (i--) {
       vm._watchers[i].teardown()
     }
     // remove reference from data ob
     // frozen object may not have observer.
+    // 移除 data 对象上的观察属性 __ob__
     if (vm._data.__ob__) {
+      // 被观察的 vm 个数减少一个
       vm._data.__ob__.vmCount--
     }
     // call the last hook...
+    // 标志为已删除
     vm._isDestroyed = true
     // invoke destroy hooks on current rendered tree
+    // 在真实 dom 上移除
     vm.__patch__(vm._vnode, null)
     // fire destroyed hook
+    // 触发用户定义的 destroyed 钩子函数
     callHook(vm, 'destroyed')
     // turn off all instance listeners.
+    // 关闭 vm 上的所有监听器实例
     vm.$off()
+    // TODO: __vue__ ???
     // remove __vue__ reference
     if (vm.$el) {
       vm.$el.__vue__ = null

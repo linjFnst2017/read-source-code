@@ -20,15 +20,18 @@ function Vue(options) {
 }
 
 // *Mixin 方法的作用其实就是包装 Vue.prototype，在其上挂载一些属性和方法
+
 // 将 Vue 作为参数传递给导入的五个方法
 // 为Vue 原型链 定义了一个 _init 初始化函数
 initMixin(Vue)
-// 订阅 vue 实例中的 props 和 data ，将props 和 data 对象通过 Object.defineProperty() 方法扩展到 Vue 原型链上
+// 代理 vue 实例中的 _props 和 _data ，将props 和 data 对象通过 Object.defineProperty() 方法扩展到 Vue 原型链上。
 stateMixin(Vue)
 // 在Vue 原型链上定义了 $on, $once, $emit, $off 事件类型的实例方法
 // 在不使用 Vuex的时候，跨组件之间的通信， eventBus 通过事件emit、on 传递参数是一个解决方法 eventBus
 eventsMixin(Vue)
+// 生命钩子函数相关的混入。 在 Vue 原型链上挂载了 _update $forceUpdate 和 $destroy 方法
 lifecycleMixin(Vue)
+// 渲染相关的函数的混入，在 Vue 原型链上挂载了 $nextTick 和 _render 方法
 renderMixin(Vue)
 
 // 导出 Vue

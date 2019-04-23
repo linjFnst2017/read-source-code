@@ -12,4 +12,6 @@ yarn.lock
 package-lock.json
 
 .github
+examples
+test
 

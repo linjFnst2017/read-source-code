@@ -90,7 +90,9 @@ export function initMixin(Vue) {
     initInjections(vm) // resolve injections before data/props
     // 初始化 props methods data computed watch  ;代理 data 上的属性到 this 上去
     initState(vm)
+    // TODO: 
     initProvide(vm) // resolve provide after data/props
+    // 调用 created 钩子函数
     callHook(vm, 'created')
 
     // _init(options) 函数就是渲染组件初始化（不包括挂载的时间）的全部时间了
@@ -103,7 +105,9 @@ export function initMixin(Vue) {
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
 
+    // 如果参数中传了 el 参数（一般只有在根实例初始化时才会传 el 参数用于指定挂载的 vdom 的位置），就执行 vm 的 $mount 
     if (vm.$options.el) {
+      // TODO: $mount 函数是经过重写的，根据不同平台有不同的特性
       vm.$mount(vm.$options.el)
     }
   }

@@ -140,7 +140,7 @@ var app = new Vue({
 })
 
 // handle routing
-function onHashChange () {
+function onHashChange() {
   var visibility = window.location.hash.replace(/#\/?/, '')
   if (filters[visibility]) {
     app.visibility = visibility

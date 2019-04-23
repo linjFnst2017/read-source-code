@@ -86,6 +86,7 @@ function createKeyToOldIdx(children, beginIdx, endIdx) {
   return map
 }
 
+// 创建 patch 函数的函数
 export function createPatchFunction(backend) {
   let i, j
   const cbs = {}
@@ -367,9 +368,13 @@ export function createPatchFunction(backend) {
     let i, j
     const data = vnode.data
     if (isDef(data)) {
+      // 如果 data.hook.destroy 存在的话，也就是自定义的 destroy 钩子函数存在的话，执行它
       if (isDef(i = data.hook) && isDef(i = i.destroy)) i(vnode)
+      // TODO: 
       for (i = 0; i < cbs.destroy.length; ++i) cbs.destroy[i](vnode)
     }
+    // 如果当前 vnode 还存在子节点的话，需要循环去执行 destroy 钩子函数，因为如果不手动去销毁的话
+    // 子节点会导致被其他地方引用的问题，内存无法得到释放导致内存泄露
     if (isDef(i = vnode.children)) {
       for (j = 0; j < vnode.children.length; ++j) {
         invokeDestroyHook(vnode.children[j])
@@ -518,6 +523,7 @@ export function createPatchFunction(backend) {
   }
 
   /**
+   * TODO:
    * patchVnode的规则:
    * 1. 
    * @param {*} oldVnode 
@@ -526,13 +532,17 @@ export function createPatchFunction(backend) {
    * @param {*} removeOnly 
    */
   function patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly) {
+    //两个节点引用都相同的话， 啥也不用做
     if (oldVnode === vnode) {
       return
     }
 
+    // TODO: elm ?
     const elm = vnode.elm = oldVnode.elm
 
+    // 异步占位符
     if (isTrue(oldVnode.isAsyncPlaceholder)) {
+      // 异步工厂函数是否已经返回了
       if (isDef(vnode.asyncFactory.resolved)) {
         hydrate(oldVnode.elm, vnode, insertedVnodeQueue)
       } else {
@@ -709,8 +719,9 @@ export function createPatchFunction(backend) {
     }
   }
 
+  // createPatchFunction 函数返回的结果是一个 patch 函数
+  // 旧的 VNode 与新 VNode 进行 patch 的过程，他们只是在同层级的 VNode 之间进行比较得到变化
   // _update 会将新旧两个 VNode 进行一次 patch 的过程，得出两个 VNode 最小的差异，然后将这些差异渲染到视图上
-  // 旧的VNode与新VNode进行patch的过程，他们只是在同层级的VNode之间进行比较得到变化
   return function patch(oldVnode, vnode, hydrating, removeOnly) {
     // 如果新的 vnode 是 undefined 或者 null, 也就是说新的 vnode 不存在了，而旧的 vnode 是存在的话，那就出发 Destory 钩子函数
     if (isUndef(vnode)) {
@@ -721,17 +732,20 @@ export function createPatchFunction(backend) {
     let isInitialPatch = false
     const insertedVnodeQueue = []
 
+    // TODO: 
+    // 如果没有旧的节点
     if (isUndef(oldVnode)) {
       // empty mount (likely as component), create new root element
       // 空挂载？ 比如一个组件，创建一个新的根组件
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
     } else {
+      // TODO: nodeType
       const isRealElement = isDef(oldVnode.nodeType)
       // 在 patch 的过程中，如果两个 VNode 被认为是同一个 VNode（sameVnode），则会进行深度的比较，得出最小差异，
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
         // patch existing root node
-        // 这两个VNode则算sameVnode，可以直接进行patchVnode操作
+        // 这两个 VNode 算 sameVnode 的话，可以直接进行 patchVnode 操作
         patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly)
       } else {
         // 否则直接删除旧有DOM节点，创建新的DOM节点。
