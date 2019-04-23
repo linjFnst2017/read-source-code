@@ -172,6 +172,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
   }
 }
 
+// 被 entry-runtime.js 中的 mount 函数进行调用的方法
 // 真正的 mount 挂载函数。 实际渲染的规则是利用了 $options.render 函数
 export function mountComponent(
   vm: Component,
@@ -181,11 +182,11 @@ export function mountComponent(
   // $el 的值是组件模板根元素的引用。 vm.$el 始终是组件模板的根元素， 所以如果传了 template 的值（main.js 中）
   // 那么根元素 $el 的值是 template 的节点， 否则的话，可能是 el （id 选择器）指向的节点
   vm.$el = el
-  // 检查 render 渲染函数是否存在
+  // 检查 render 渲染函数是否存在。 
   if (!vm.$options.render) {
     // 这里肯定不是 template 字符串模板编译成 render 后的直接执行。 
-    // 此时渲染函数的作用将仅仅渲染一个空的 `vnode` 对象， 创建空的 vnode 节点
-    vm.$options.render = createEmptyVNode
+    // 此时渲染函数的作用将仅仅渲染一个空的 `vnode` 对象， 创建空的 vnode 节点。 
+    vm.$options.render = createEmptyVNode // 空的 vnode 节点是注释节点
     // 非生产环境下打印告警信息
     if (process.env.NODE_ENV !== 'production') {
       /* istanbul ignore if */
@@ -238,6 +239,7 @@ export function mountComponent(
       // vm._render() 实例的 vm.$options.render:  _render() 函数执行结束之后返回的是一个虚拟节点 vnode 节点
       // `vm._update` 函数的作用是把 `vm._render` 函数生成的虚拟节点渲染成真正的 `DOM`
       // `vm._update` 内部是通过虚拟DOM的补丁算法(`patch`)来完成的
+      // vm._render() return 的是一个 vnode 也就是说 _update 函数第一个参数是 vnode。 _render 函数定义在 instance/render.js 中
       vm._update(vm._render(), hydrating)
     }
   }
@@ -257,11 +259,14 @@ export function mountComponent(
         callHook(vm, 'beforeUpdate')
       }
     }
-  }, true /* isRenderWatcher */)
+  }, true /* isRenderWatcher 标识着是否是渲染函数的观察者*/)
   hydrating = false
 
   // manually mounted instance, call mounted on self
   // mounted is called for render-created child components in its inserted hook
+  // 手动挂载实例，在自挂载上挂载的调用调用其插入的钩子中的委托方创建的子组件
+  // 主动触发 mounted 钩子函数，并且将 vm 的 _isMounted 属性设置为 true 表示已经被挂载的
+  // TODO: $vnode 
   if (vm.$vnode == null) {
     vm._isMounted = true
     callHook(vm, 'mounted')

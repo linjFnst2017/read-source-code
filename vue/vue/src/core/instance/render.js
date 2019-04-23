@@ -66,13 +66,14 @@ export function initRender(vm: Component) {
 
 export function renderMixin(Vue: Class<Component>) {
   // install runtime convenience helpers
-  // helpers 是直接操作 Vue 的原型链的
+  // helpers 是直接操作 Vue 的原型链的。 为 Vue.prototype 原型链上挂载很多跟渲染相关的函数，估计因为都是内部渲染的时候进行调用，名字都比较诡异
   installRenderHelpers(Vue.prototype)
 
   Vue.prototype.$nextTick = function (fn: Function) {
     return nextTick(fn, this)
   }
 
+  // TODO: 
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
     // TODO:
@@ -102,6 +103,7 @@ export function renderMixin(Vue: Class<Component>) {
     // render self
     let vnode
     try {
+      // TODO: _renderProxy $createElement 
       vnode = render.call(vm._renderProxy, vm.$createElement)
     } catch (e) {
       handleError(e, vm, `render`)

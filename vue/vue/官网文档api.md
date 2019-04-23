@@ -7,3 +7,8 @@
 
 
 - abstract
+
+
+## TODO
+### vue 的异步事件渲染机制
+优先 setImmdiate ， 不行的话通过 MessageChannel ，再不行的话通过 settimeout 的形式，或者通过 promise ？

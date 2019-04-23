@@ -35,7 +35,7 @@ let useMacroTask = false
 // in IE. The only polyfill that consistently queues the callback after all DOM
 // events triggered in the same loop is by using MessageChannel.
 /* istanbul ignore if */
-// setImmediate()是将事件插入到事件队列尾部，主线程和事件队列的函数执行完成之后立即执行setImmediate指定的回调函数
+// setImmediate()是将事件插入到事件队列尾部，主线程和事件队列的函数执行完成之后立即执行 setImmediate 指定的回调函数
 // 检验是否是原生的 setImmediate 函数
 if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
   macroTimerFunc = () => {
@@ -93,12 +93,12 @@ export function withMacroTask(fn: Function): Function {
 }
 
 // ctx 执行上下文： Vue 实例
-// 执行的目的是在microtask或者task中推入一个function，在当前栈执行完毕（也许还会有一些排在前面的需要执行的任务）以后执行nextTick传入的function
+// 执行的目的是在 microtask 或者 task 中推入一个function，在当前栈执行完毕（也许还会有一些排在前面的需要执行的任务）以后执行nextTick传入的function
 // 目的是延迟到当前调用栈执行完以后执行
 export function nextTick(cb?: Function, ctx?: Object) {
   // 临时 _resolve 
   let _resolve
-  // 存放异步执行的回调， 一开始是空的
+  // 存放异步执行的回调， 一开始是空数组。 push 入一个回调函数
   callbacks.push(() => {
     if (cb) {
       try {
@@ -112,6 +112,7 @@ export function nextTick(cb?: Function, ctx?: Object) {
       _resolve(ctx)
     }
   })
+
   // 准备中
   if (!pending) {
     pending = true
@@ -121,10 +122,12 @@ export function nextTick(cb?: Function, ctx?: Object) {
       microTimerFunc()
     }
   }
+
   // $flow-disable-line
   if (!cb && typeof Promise !== 'undefined') {
     return new Promise(resolve => {
       _resolve = resolve
     })
   }
+
 }
