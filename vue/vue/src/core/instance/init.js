@@ -35,6 +35,7 @@ export function initMixin(Vue) {
     vm._isVue = true
     // merge options
     // options 是初始化 Vue 的传参，但是并没有传 _isComponent 找个值， 这个属性是一个内部选项，具体后面在进行介绍
+    // _isComponent true 表示它是一个组件
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the

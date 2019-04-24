@@ -17,15 +17,15 @@ import {
   isFalsyAttrValue
 } from 'web/util/index'
 
+// 更新属性
 function updateAttrs(oldVnode: VNodeWithData, vnode: VNodeWithData) {
+  // componentOptions 创建 vnode 的时候传的参数，有可能没传为 undefined
   const opts = vnode.componentOptions
-  // TODO: 
-  // inheritAttrs 继承属性
+  // TODO: inheritAttrs 继承属性
   if (isDef(opts) && opts.Ctor.options.inheritAttrs === false) {
     return
   }
-  // TODO: 
-  // oldVnode.data.attrs
+  // TODO: oldVnode.data.attrs
   if (isUndef(oldVnode.data.attrs) && isUndef(vnode.data.attrs)) {
     return
   }

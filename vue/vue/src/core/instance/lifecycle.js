@@ -40,6 +40,8 @@ export function initLifecycle(vm: Component) {
   }
 
   // 设置当前实例的 $parent 属性，指向父级
+  // `vm.$parent` 就是用来保留当前 `vm` 的父实例，并且通过 `parent.$children.push(vm)` 来把当前的 `vm` 存储到父实例的 `$children` 中
+  // 简单说就是保持上下文的作用
   vm.$parent = parent
   // 设置 $root 属性，有父级就是用父级的 $root，否则 $root 指向自身
   vm.$root = parent ? parent.$root : vm
@@ -58,8 +60,8 @@ export function initLifecycle(vm: Component) {
 
 // 生命周期函数的声明，直接在原型链上挂载相关的方法
 export function lifecycleMixin(Vue: Class<Component>) {
+  // _update 是 Vue 实例的私有方法，调用的时机有两个，一个是首次渲染，一个是数据更新的时候。`_update` 方法的作用是把 VNode 渲染成真实的 DOM
   // 更新， Vue 的响应式原理中，set 函数触发重新渲染就是用的 _update 函数
-  // hydrating 保湿的
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     // 获取之前（当前）渲染的 dom 节点和 _vnode 节点 （也就是一个真实的节点，一个虚拟节点）
@@ -67,19 +69,30 @@ export function lifecycleMixin(Vue: Class<Component>) {
     const prevEl = vm.$el
     // TODO: _vnode 最早是什么时候挂载的
     const prevVnode = vm._vnode
+    // 这个 `activeInstance` 作用就是保持当前上下文的 Vue 实例，它是在 `lifecycle` 模块的全局变量
+    // 当前的 `vm` 赋值给 `activeInstance`，同时通过 `const prevActiveInstance = activeInstance` 用 `prevActiveInstance` 保留上一次的 `activeInstance`
+    // 实际上，`prevActiveInstance` 和当前的 `vm` 是一个父子关系
+    // 当一个 `vm` 实例完成它的所有子树的 patch 或者 update 过程后，`activeInstance` 会回到它的父实例，
+    // 这样就完美地保证了`createComponentInstanceForVnode` 整个深度遍历过程中，我们在实例化子组件的时候能传入当前子组件的父 Vue 实例，
+    // 并在`_init` 的过程中，通过`vm.$parent` 把这个父子关系保留。
     const prevActiveInstance = activeInstance
     // 当前激活的实例
     activeInstance = vm
     // _vnode 保存 dom 对应的虚拟节点，这里需要更新为新的 vnode 对应的 dom ，所以 _vnode 也需要更新
+    // 这个 `vnode` 是通过 `vm._render()` 返回的组件渲染 VNode, vm._vnode` 和 `vm.$vnode` 的关系就是一种父子关系
+    // 用代码表达就是 `vm._vnode.parent === vm.$vnode`
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
-    // TODO: 
     // Vue.prototype.__patch__ 函数在 render 函数执行之后每一个实例上都被注入了。 
+    // `_update` 的核心就是调用 `vm.__patch__` 方法。这个方法实际上在不同的平台，比如 web 和 weex 上的定义是不一样的。
     if (!prevVnode) {
-      // initial render
+      // initial render 首次渲染
       //  `vm.__patch__` 函数的返回值是一个真实的 dom 节点。
-      // （如果上一个 vnode 节点不存在的话）初次渲染，就直接调用 __patch__ ?
+      // （如果上一个 vnode 节点不存在的话）初次渲染，就直接调用 __patch__ 
+      // `vm.$el` 对应的是例子中 id 为 `app` 的 DOM 对象 <div id="app">
+      // `vnode` 对应的是调用 `render` 函数的返回值
+      // `hydrating` 在非服务端渲染情况下为 false，`removeOnly` 为 false
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates
@@ -186,6 +199,7 @@ export function mountComponent(
   // 那么根元素 $el 的值是 template 的节点， 否则的话，可能是 el （id 选择器）指向的节点
   // TODO:
   // 通常来说 el 这里是个字符串比较多 ？
+  // 首次加载的时候 el 的值是通过 query(el) 查出来的，<div id="app"></div>
   vm.$el = el
   // 检查 render 渲染函数是否存在。 
   // 如果是 vue 自己编译的 template 而在 $options 挂载的 render 函数的话（因为如果开发者传参了 render 选项，vue 就不会编译了）

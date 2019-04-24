@@ -2,7 +2,7 @@ import Vue from 'core/index'
 import config from 'core/config'
 import { extend, noop } from 'shared/util'
 import { mountComponent } from '../../../core/instance/lifecycle'
-import { devtools, inBrowser, isChrome } from 'core/util/index'
+import { devtools, inBrowser, isChrome } from '../../../core/util/index'
 
 import {
   query,
@@ -31,7 +31,8 @@ extend(Vue.options.directives, platformDirectives)
 extend(Vue.options.components, platformComponents)
 
 // 在 Vue.prototype 上添加 __patch__ 方法，如果在浏览器环境运行的话，这个方法的值为 patch 函数，
-// 否则是一个空函数 noop， 比如 weex 平台，等待重写 __patch__ 函数
+// 否则是一个空函数 noop， 比如 weex 平台，等待重写 __patch__ 函数。甚至在 web 平台上，是否是服务端渲染也会对这个方法产生影响。
+// 因为在服务端渲染中，没有真实的浏览器 DOM 环境，所以不需要把 VNode 最终转换成 DOM，因此是一个空函数
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method

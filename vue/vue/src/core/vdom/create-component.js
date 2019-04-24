@@ -35,6 +35,7 @@ import {
 // inline hooks to be invoked on component VNodes during patch
 // 在 patch 期间将在组件 vnode 上调用内联钩子
 const componentVNodeHooks = {
+  // 初始化 钩子函数
   init(vnode: VNodeWithData, hydrating: boolean): ?boolean {
     if (
       vnode.componentInstance &&
@@ -42,13 +43,16 @@ const componentVNodeHooks = {
       vnode.data.keepAlive
     ) {
       // kept-alive components, treat as a patch
+      // 当作补丁对待
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
+      // 通过 `createComponentInstanceForVnode` 创建一个 Vue 的实例，然后调用 `$mount` 方法挂载子组件
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance
       )
+      // `hydrating` 为 true 一般是服务端渲染的情况，我们只考虑客户端渲染，所以这里 `$mount` 相当于执行 `child.$mount(undefined, false)`
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
@@ -99,7 +103,7 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
-// 创建一个组件节点
+// 创建一个组件节点.
 export function createComponent(
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -213,13 +217,17 @@ export function createComponent(
   return vnode
 }
 
+// 
+// 
 export function createComponentInstanceForVnode(
   vnode: any, // we know it's MountedComponentVNode but flow doesn't
   parent: any, // activeInstance in lifecycle state
 ): Component {
   const options: InternalComponentOptions = {
+    // `_isComponent` 为 `true` 表示它是一个组件
     _isComponent: true,
     _parentVnode: vnode,
+    // `parent` 表示当前激活的组件实例
     parent
   }
   // check inline-template render functions
@@ -228,6 +236,8 @@ export function createComponentInstanceForVnode(
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
+  // 构造的一个内部组件的参数，然后执行 `new vnode.componentOptions.Ctor(options)`
+  // Ctor 对应的就是子组件的构造函数
   return new vnode.componentOptions.Ctor(options)
 }
 

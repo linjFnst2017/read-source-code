@@ -76,8 +76,8 @@ export function renderMixin(Vue: Class<Component>) {
   // TODO: 
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
-    // TODO:
     // 单个vue文件的中， options里是不需要写 render 和 _parentVnode 属性（函数）的，是什么时候被赋值了？
+    //  `_parentVnode` 就是当前组件的父 VNode
     const { render, _parentVnode } = vm.$options
 
     // reset _rendered flag on slots for duplicate slot check
@@ -104,6 +104,7 @@ export function renderMixin(Vue: Class<Component>) {
     let vnode
     try {
       // TODO: _renderProxy $createElement 
+      //  `render` 函数生成的 `vnode` 当前组件的渲染 `vnode
       vnode = render.call(vm._renderProxy, vm.$createElement)
     } catch (e) {
       handleError(e, vm, `render`)
@@ -137,6 +138,7 @@ export function renderMixin(Vue: Class<Component>) {
       vnode = createEmptyVNode()
     }
     // set parent
+    // `vnode` 的 `parent` 指向了 `_parentVnode`，也就是 `vm.$vnode`
     vnode.parent = _parentVnode
     return vnode
   }
