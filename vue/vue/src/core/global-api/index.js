@@ -29,7 +29,7 @@ export function initGlobalAPI(Vue: GlobalAPI) {
       )
     }
   }
-  // Vue 构造函数上挂载 config 属性，只读的属性
+  // Vue 构造函数上代理 config 属性 
   Object.defineProperty(Vue, 'config', configDef)
 
   // 暴露一些工具函数

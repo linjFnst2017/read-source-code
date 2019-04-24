@@ -10,6 +10,7 @@ export function createCompilerCreator(baseCompile: Function): Function {
   // 实际上 `compile` 函数与 `compileToFunctions` 函数的区别就在于 `compile` 函数生成的是字符串形式的代码，
   // 而`compileToFunctions` 生成的才是真正可执行的代码 
   return function createCompiler(baseOptions: CompilerOptions) {
+
     // 将字符串模板转化成字符串函数， 
     // 编译，将模板template编译成AST、render函数以及staticRenderFns函数
     function compile(
@@ -28,8 +29,10 @@ export function createCompilerCreator(baseCompile: Function): Function {
         (tip ? tips : errors).push(msg)
       }
 
-      // 使用编译器编译模板时传递的选项参数，  `baseOptions` 理解为编译器的默认选项或者基本选项， `options` 是用来提供定制能力的扩展选项
-      // 做下面这些merge的目的因为不同平台可以提供自己本身平台的一个baseOptions，内部封装了平台自己的实现，然后把共同的部分抽离开来放在这层compiler中，所以在这里需要merge一下
+      // 合并使用编译器编译模板时传递的选项参数 options 与 baseOptions 
+      // `baseOptions` 理解为编译器的默认选项或者基本选项， `options` 是用来提供定制能力的扩展选项
+      // 做下面这些 merge 的目的因为不同平台可以提供自己本身平台的一个 baseOptions，内部封装了平台自己的实现，
+      // 然后把共同的部分抽离开来放在这层 compiler 中，所以在这里需要 merge 一下
       if (options) {
         // merge custom modules
         // 合并 modules 数组

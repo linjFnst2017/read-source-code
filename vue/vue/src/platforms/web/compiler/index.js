@@ -3,7 +3,7 @@
 // 导入创建编译器的配置
 import { baseOptions } from './options'
 // createCompiler: 创建一个编译器, 在 src/compiler/index.js 文件下
-import { createCompiler } from 'compiler/index'
+import { createCompiler } from '../../../compiler/index'
 
 //  `compileToFunctions` 函数是通过以 `baseOptions` 为参数调用 `createCompiler` 函数创建出来
 // `compile` 函数生成的是字符串形式的代码，就是一个编译器， 它会将传入的 template 字符串转成 AST、render函数以及staticRenderFns函数

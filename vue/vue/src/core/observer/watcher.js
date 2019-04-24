@@ -62,7 +62,7 @@ export default class Watcher {
     // 组件实例的 `vm._watchers` 属性是在 `initState` 函数中初始化的，其初始值是一个空数组, 存放订阅者实例
     // 将当前观察者实例对象 `push` 到 `vm._watchers` 数组中，也就是说属于该组件实例的观察者都会被添加到该组件实例对象的 `vm._watchers` 数组
     vm._watchers.push(this)
-    // options
+    // options。 例如 lifecycle.js 中的 mountComponent 函数，new Watcher 的时候传的 options 是一个包含 before 函数的对象
     if (options) {
       // 用来告诉当前观察者实例对象是否是深度观测
       this.deep = !!options.deep

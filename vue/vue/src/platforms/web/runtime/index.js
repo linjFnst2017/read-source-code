@@ -35,20 +35,28 @@ extend(Vue.options.components, platformComponents)
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method
+// 公共的挂载函数
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
   el = el && inBrowser ? query(el) : undefined
+  // mountComponent 最终返回的是一个 vm 实例，顾名思义，挂载一个组件，那么就需要将整个组件的依赖收集一下，
+  // new Watcher 的时候主要是将从虚拟 dom 转化成真实 dom 的函数定义到依赖变化之后的回调中了，即每次 data 变化都会通知依赖执行从虚拟 dom 到真实 dom 的任务
   return mountComponent(this, el, hydrating)
 }
 
 // devtools global hook
+// vuex 开发者工具
 /* istanbul ignore next */
 if (inBrowser) {
   setTimeout(() => {
+    // 默认在非生产环境下是开启状态的
     if (config.devtools) {
+      // window.__VUE_DEVTOOLS_GLOBAL_HOOK__
       if (devtools) {
+        // 初始化开发者工具，但是 __VUE_DEVTOOLS_GLOBAL_HOOK__ 这个对象的值是什么时候被赋予的？
+        // 貌似是 chrome 的插件往页面 window.__VUE_DEVTOOLS_GLOBAL_HOOK__ 中注入了值
         devtools.emit('init', Vue)
       } else if (
         process.env.NODE_ENV !== 'production' &&
@@ -61,6 +69,7 @@ if (inBrowser) {
         )
       }
     }
+    // 打印 vue 产品标志
     if (process.env.NODE_ENV !== 'production' &&
       process.env.NODE_ENV !== 'test' &&
       config.productionTip !== false &&
