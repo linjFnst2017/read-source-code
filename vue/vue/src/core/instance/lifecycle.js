@@ -63,13 +63,14 @@ export function lifecycleMixin(Vue: Class<Component>) {
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     // 获取之前（当前）渲染的 dom 节点和 _vnode 节点 （也就是一个真实的节点，一个虚拟节点）
-    // TODO: $el 最早是什么时候挂载的
+    // $el 在执行这个函数的时候应该是 undefined 吧， 后来在 mountComponent 函数中 $el 被赋值为 el 挂载的节点
     const prevEl = vm.$el
     // TODO: _vnode 最早是什么时候挂载的
     const prevVnode = vm._vnode
     const prevActiveInstance = activeInstance
     // 当前激活的实例
     activeInstance = vm
+    // _vnode 保存 dom 对应的虚拟节点，这里需要更新为新的 vnode 对应的 dom ，所以 _vnode 也需要更新
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
@@ -82,9 +83,11 @@ export function lifecycleMixin(Vue: Class<Component>) {
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates
-      //  `vm.__patch__` 函数的返回值重写
+      //  `vm.__patch__` 函数的返回值重写， 这里应该需要将新旧 vnode 节点都传入 __patch__ 函数中进行比对之后得出最小的变化，最后更新到 dom 上
+      // 当然了再更新到 dom 之前，是将 dom 节点的值保存在 vm.$el 中的
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
+    // TODO: 
     activeInstance = prevActiveInstance
     // update __vue__ reference
     // 更新 __vue__ 指向
@@ -262,6 +265,7 @@ export function mountComponent(
 
   // manually mounted instance, call mounted on self
   // mounted is called for render-created child components in its inserted hook
+  // 手动挂载实例，在自挂载上挂载的调用调用其插入的钩子中的委托方创建的子组件
   if (vm.$vnode == null) {
     vm._isMounted = true
     callHook(vm, 'mounted')

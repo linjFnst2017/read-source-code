@@ -67,7 +67,7 @@ Vue.prototype.$mount = function (
             )
           }
         }
-        // nodeType 元素节点存在
+        // nodeType 元素节点存在表示已经是一个 dom 节点了 ？
       } else if (template.nodeType) {
         // nodeType 应该是正常 vue 文件的编译结果， template为DOM节点
         template = template.innerHTML
@@ -121,6 +121,7 @@ Vue.prototype.$mount = function (
   }
   // 如果渲染函数存在那么什么都不会做，直接调用运行时版 $mount 函数即可。 也就是说 运行时的 mount 函数挂载是直接通过
   // mountComponent 函数的第一个参数 options 中获取了 render 函数进行渲染。
+  // 否则的话，vue 会进行模板编译，将编译的结果 render 和 staticRenderFns 函数（可以直接执行形成虚拟节点）挂载到 $options 上去
   return mount.call(this, el, hydrating)
 }
 

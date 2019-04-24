@@ -1,7 +1,7 @@
 import Vue from 'core/index'
 import config from 'core/config'
 import { extend, noop } from 'shared/util'
-import { mountComponent } from 'core/instance/lifecycle'
+import { mountComponent } from '../../../core/instance/lifecycle'
 import { devtools, inBrowser, isChrome } from 'core/util/index'
 
 import {
