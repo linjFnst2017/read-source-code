@@ -183,6 +183,7 @@ function renderAsyncComponent(node, isRoot, context) {
     }
     const { data, children, tag } = node.asyncMeta
     const nodeContext = node.asyncMeta.context
+    // 创建一个 vnode
     const resolvedNode: any = createComponent(
       comp,
       data,

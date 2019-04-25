@@ -215,9 +215,12 @@ function initComputed(vm: Component, computed: Object) {
       )
     }
 
+    // 不是 ssr 的话，需要存储计算属性
     if (!isSSR) {
       // create internal watcher for the computed property.
+      // TODO: 具体是如何做到观察的？
       // 为计算属性创建 内部 watcher
+      // 只要 getter 中依赖的值（比如说 data 中的某一个属性）发生了变化， 就会重新执行 getter 从而更新 watchers 的属性
       watchers[key] = new Watcher(
         vm,
         getter || noop,
@@ -243,22 +246,23 @@ function initComputed(vm: Component, computed: Object) {
   }
 }
 
+// 计算属性，有缓存的，依赖变化了才会重新进行计算
 export function defineComputed(
   target: any,
   key: string,
   userDef: Object | Function
 ) {
-  // 是否应该缓存
-  // TODO: 为啥需要通过 isServerRendering 是不是 ssr 来判断？
+  // 是否应该缓存。 服务端渲染不需要。是否是因为服务端计算速度很快，无所谓 ?
   const shouldCache = !isServerRendering()
   // 在 computed 中定义的 function 最终还是要处理成 set 和 getter 来处理的
   if (typeof userDef === 'function') {
     sharedPropertyDefinition.get = shouldCache
-      ? createComputedGetter(key)
-      : userDef
+      ? createComputedGetter(key) // 从缓存中读取数据
+      : userDef // 重新计算属性
     sharedPropertyDefinition.set = noop
   } else {
     sharedPropertyDefinition.get = userDef.get
+      // TODO:  userDef.cache ?
       ? shouldCache && userDef.cache !== false
         ? createComputedGetter(key)
         : userDef.get
@@ -283,9 +287,12 @@ function createComputedGetter(key) {
   return function computedGetter() {
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
+      // TODO: dirty
       if (watcher.dirty) {
         watcher.evaluate()
       }
+      // TODO: 但是我感觉这里的 Dep.target 跟这里么什么关系？ 
+      // 不过我的疑问是， 计算属性的依赖确实也是需要收集的，不知道是不是在这里
       if (Dep.target) {
         watcher.depend()
       }

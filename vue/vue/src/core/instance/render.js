@@ -94,7 +94,8 @@ export function renderMixin(Vue: Class<Component>) {
       }
     }
 
-    // 
+    // 如果父节点存在，并且 data 中包含了 scopedSlots 属性的话，就挂在到 $scopedSlots 上去
+    // TODO: scopedSlots 属性是如何到 data 上去的
     if (_parentVnode) {
       vm.$scopedSlots = _parentVnode.data.scopedSlots || emptyObject
     }
@@ -108,6 +109,10 @@ export function renderMixin(Vue: Class<Component>) {
     // render self
     let vnode
     try {
+      // new Vue 初始化一个函数的时候，手写 render 函数里的参数 h 就是这里的 vm.$createElement 也就是 createElement 函数
+      // 这里的 h 是 createElement 方法
+      // render: h => h(App)
+      // 
       //  `render` 函数生成的 `vnode` 当前组件的渲染 `vnode
       // render 函数的第一个参数是 createElement 也就是这里的 vm.$createElement
       // vm._renderProxy 是在  _init 函数执行的之后，非生产环境时， vm._renderProxy === vm 

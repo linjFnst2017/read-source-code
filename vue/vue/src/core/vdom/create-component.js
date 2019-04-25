@@ -33,7 +33,7 @@ import {
 } from 'weex/runtime/recycle-list/render-component-template'
 
 // inline hooks to be invoked on component VNodes during patch
-// 在 patch 期间将在组件 vnode 上调用内联钩子
+// 在 patch 期间将在组件 vnode 上调用内联钩子。 应该不同于组件的钩子函数
 const componentVNodeHooks = {
   // 初始化 钩子函数
   init(vnode: VNodeWithData, hydrating: boolean): ?boolean {
@@ -104,6 +104,8 @@ const componentVNodeHooks = {
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
 // 创建一个组件节点.
+// 针对组件渲染这个 case 主要就 3 个关键步骤：
+// 构造子类构造函数，安装组件钩子函数和实例化 vnode。
 export function createComponent(
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -115,7 +117,8 @@ export function createComponent(
   if (isUndef(Ctor)) {
     return
   }
-  // TODO: _base 是什么属性
+  // 构造子类构造函数
+  // Vue.options._base = Vue
   const baseCtor = context.$options._base
 
   // plain options object: turn it into a constructor
@@ -195,8 +198,13 @@ export function createComponent(
   }
 
   // install component management hooks onto the placeholder node
+  // snabbdom，它的一个特点是在 VNode 的 patch 流程中对外暴露了各种时机的钩子函数，方便我们做一些额外的事情
+  // Vue.js 也是充分利用这一点，在初始化一个 Component 类型的 VNode 的过程中实现了几个钩子函数
+  // 安装组件钩子函数
   installComponentHooks(data)
 
+  // 实例化 VNode
+  // 通过 new VNode 实例化一个 vnode 并返回。需要注意的是和普通元素节点的 vnode 不同，组件的 vnode 是没有 children 的，这点很关键
   // return a placeholder vnode
   const name = Ctor.options.name || tag
   const vnode = new VNode(
@@ -241,11 +249,17 @@ export function createComponentInstanceForVnode(
   return new vnode.componentOptions.Ctor(options)
 }
 
+// 安装组件钩子函数
 function installComponentHooks(data: VNodeData) {
+  // 把 componentVNodeHooks 的钩子函数合并到 data.hook 中
   const hooks = data.hook || (data.hook = {})
+  // patch 的钩子函数
   for (let i = 0; i < hooksToMerge.length; i++) {
     const key = hooksToMerge[i]
+    // 已存在的 hook ，可以理解为 component 自定义的 hook
+    // TODO: 不过这里 patch 的钩子函数应该不同于组件的钩子函数， 比如组件没有 inserted 的钩子函数
     const existing = hooks[key]
+    // patch 默认的钩子函数
     const toMerge = componentVNodeHooks[key]
     if (existing !== toMerge && !(existing && existing._merged)) {
       hooks[key] = existing ? mergeHook(toMerge, existing) : toMerge
@@ -253,6 +267,7 @@ function installComponentHooks(data: VNodeData) {
   }
 }
 
+// 合并钩子函数反正就是两个钩子函数都执行一遍
 function mergeHook(f1: any, f2: any): Function {
   const merged = (a, b) => {
     // flow complains about extra args which is why we use any

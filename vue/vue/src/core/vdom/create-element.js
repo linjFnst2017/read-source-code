@@ -26,6 +26,8 @@ const ALWAYS_NORMALIZE = 2
 // wrapper function for providing a more flexible interface
 // without getting yelled at by flow
 // 包装器函数，用于提供更灵活的接口，而不会受到 flow 的报错
+// 这里的 h 是 createElement 方法， 而 App 是第一个参数 context 的值
+// render: h => h(App)
 export function createElement(
   // VNode 的上下文环境
   context: Component,
@@ -113,6 +115,7 @@ export function _createElement(
 
   // 经过上面对于 children 规范化之后，接下来会去创建一个 VNode 的实例
   let vnode, ns
+  // 如果是一个普通的 html 标签，实例化一个普通 VNode 节点
   if (typeof tag === 'string') {
     let Ctor
     // 获取tag的名字空间
