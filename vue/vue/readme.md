@@ -151,5 +151,6 @@ https://segmentfault.com/a/1190000012922342
 ### 过滤器
 首先 vue 中过滤器 filters 能实现的地方 methods 都能够实现， 但是 methods 能实现的部分，filters 不一定能实现。 比如说 filters 中没法使用 this. filters 过滤器实际上 vue 并不会主动去绑定 this 作用域。感觉应该类似于公共的函数一样的作用，并且结合 mixin filters 在使用上能更方便一点。
 
+- 如何使用多个 filter 或者一个 filter 使用多个参数 ？
 
 ### lifecycle

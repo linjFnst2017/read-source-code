@@ -4,8 +4,9 @@ import { extend, warn, isObject } from 'core/util/index'
 
 /**
  * Runtime helper for rendering <slot>
+ * 渲染插槽
  */
-export function renderSlot (
+export function renderSlot(
   name: string,
   fallback: ?Array<VNode>,
   props: ?Object,
@@ -43,6 +44,7 @@ export function renderSlot (
 
   const target = props && props.slot
   if (target) {
+    // 
     return this.$createElement('template', { slot: target }, nodes)
   } else {
     return nodes

@@ -2,6 +2,11 @@
 // 首先, template 字符串会被编译成 AST(抽象语法树)，简单说就是用 js 代码来抽象出 dom 树的表现形式。
 // 接着, AST 会经过 generate 得到 render 函数， render 返回的结果是 VNODE, VNODE 是 vue 的虚拟节点。
 
+// 虚拟 dom 产生的原因是因为真正的 DOM 元素是非常庞大的，当频繁去做更新 dom 的操作的时候会很影响浏览器的性能。
+// 而 Virtual DOM 就是用一个原生的 JS 对象去描述一个 DOM 节点，所以它比创建一个 DOM 的代价要小很多。
+// 在 Vue.js 中，Virtual DOM 是用 VNode 这么一个 Class 去描述
+
+// 实际上 Vue.js 中 Virtual DOM 是借鉴了一个开源库 snabbdom 的实现，然后加入了一些 Vue.js 特色的东西
 export default class VNode {
   tag: string | void;
   data: VNodeData | void;
@@ -40,6 +45,8 @@ export default class VNode {
     componentOptions?: VNodeComponentOptions,
     asyncFactory?: Function // 异步组件工厂函数
   ) {
+    // 核心定义无非就几个关键属性，标签名、数据、子节点、键值等,其它属性都是都是用来扩展 VNode 的灵活性以及实现一些特殊 feature 的。
+    // 由于 VNode 只是用来映射到真实 DOM 的渲染，不需要包含操作 DOM 的方法，因此它是非常轻量和简单的
     // 当前节点的标签名
     this.tag = tag
     // 当前节点对应的对象，包含了具体的一些数据信息，是一个VNodeData类型，可以参考VNodeData类型中的数据信息

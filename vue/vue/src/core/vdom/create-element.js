@@ -27,10 +27,15 @@ const ALWAYS_NORMALIZE = 2
 // without getting yelled at by flow
 // 包装器函数，用于提供更灵活的接口，而不会受到 flow 的报错
 export function createElement(
+  // VNode 的上下文环境
   context: Component,
+  // tag 表示标签，它可以是一个字符串，也可以是一个 Component
   tag: any,
+  // data 表示 VNode 的数据，它是一个 VNodeData 类型
   data: any,
+  //  VNode 的子节点，它是任意类型的， 接下来需要被规范为标准的 VNode 数组
   children: any,
+  // normalizationType 表示子节点规范的类型，类型不同规范的方法也就不一样，它主要是参考 render 函数是编译生成的还是用户手写的。
   normalizationType: any,
   alwaysNormalize: boolean
 ): VNode | Array<VNode> {
@@ -44,11 +49,12 @@ export function createElement(
   if (isTrue(alwaysNormalize)) {
     normalizationType = ALWAYS_NORMALIZE
   }
-  // 创建虚拟节点
+  // 创建虚拟节点 vnode
   return _createElement(context, tag, data, children, normalizationType)
 }
 
-// 创建虚拟节点
+// 创建虚拟节点, 返回的是 vnode
+// createElement 创建 VNode 的过程，每个 VNode 有 children，children 每个元素也是一个 VNode，这样就形成了一个 VNode Tree，它很好的描述了我们的 DOM Tree
 export function _createElement(
   context: Component,
   tag?: string | Class<Component> | Function | Object,
@@ -98,17 +104,20 @@ export function _createElement(
     data.scopedSlots = { default: children[0] }
     children.length = 0
   }
+  // 根据 normalizationType 的不同，调用了 normalizeChildren(children) 和 simpleNormalizeChildren(children) 方法
   if (normalizationType === ALWAYS_NORMALIZE) {
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
     children = simpleNormalizeChildren(children)
   }
+
+  // 经过上面对于 children 规范化之后，接下来会去创建一个 VNode 的实例
   let vnode, ns
   if (typeof tag === 'string') {
     let Ctor
     // 获取tag的名字空间
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
-    // 判断是否是保留的标签
+    // 判断是否是保留的标签， 是的话则直接创建一个普通 VNode
     if (config.isReservedTag(tag)) {
       // platform built-in elements
       // 如果是保留的标签则创建一个相应节点
@@ -117,10 +126,12 @@ export function _createElement(
         undefined, undefined, context
       )
     } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
+      // 如果是为已注册的组件名，则通过 createComponent 创建一个组件类型的 VNode
       // component
       // 从 vm 实例的 option 的 components 中寻找该 tag，存在则就是一个组件，创建相应节点，Ctor 为组件的构造类
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
+      // 否则创建一个未知的标签的 VNode。
       // unknown or unlisted namespaced elements
       // check at runtime because it may get assigned a namespace when its
       // parent normalizes children
@@ -131,11 +142,13 @@ export function _createElement(
       )
     }
   } else {
+    // 如果是 tag 一个 Component 类型，则直接调用 createComponent 创建一个组件类型的 VNode 节点
     // direct component options / constructor
     // TODO: 
     // tag 不是字符串的时候则是组件的构造类. tag 作为 createComponent 函数的第一个参数是 Ctor 一个构造函数？
     vnode = createComponent(tag, data, context, children)
   }
+
   if (Array.isArray(vnode)) {
     return vnode
   } else if (isDef(vnode)) {
