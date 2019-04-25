@@ -35,7 +35,7 @@ Vue.prototype.$mount = function (
   // 使用 query 函数获取到指定的 DOM 元素并重新赋值给 el 变量
   el = el && query(el)
 
-  // 不能直接挂载到 body 标签 和 html 标签上去
+  // 对 el 做了限制，Vue 不能挂载在 body、html 这样的根节点上
   // 因为挂载点的本意是组件挂载的占位，它将会被组件自身的模板替换掉，而  <body> 元素和 <html> 元素显然是不能被替换掉的
   if (el === document.body || el === document.documentElement) {
     process.env.NODE_ENV !== 'production' && warn(
@@ -51,6 +51,7 @@ Vue.prototype.$mount = function (
     // 使用 template 或 el 选项构建渲染函数。 
     // 所以也就是说 运行时版的 vue 是不能够使用模板渲染的。 
     let template = options.template // 这里应该通过 webpack 的 vue-loader 模块编译之后能够获得 template 这个参数。 并且能知道 template 是挂载在 options 上的
+    // 无论我们是用单文件 .vue 方式开发组件，还是写了 el 或者 template 属性，最终都会转换成 render 方法，那么这个过程是 Vue 的一个“在线编译”的过程
     if (template) {
       if (typeof template === 'string') {
         // 感觉像是根节点的编译

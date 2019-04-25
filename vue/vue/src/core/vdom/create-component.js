@@ -217,8 +217,7 @@ export function createComponent(
   return vnode
 }
 
-// 
-// 
+// 为虚拟节点创建组件实例
 export function createComponentInstanceForVnode(
   vnode: any, // we know it's MountedComponentVNode but flow doesn't
   parent: any, // activeInstance in lifecycle state
@@ -226,6 +225,7 @@ export function createComponentInstanceForVnode(
   const options: InternalComponentOptions = {
     // `_isComponent` 为 `true` 表示它是一个组件
     _isComponent: true,
+    // 父虚拟节点？
     _parentVnode: vnode,
     // `parent` 表示当前激活的组件实例
     parent

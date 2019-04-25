@@ -34,12 +34,13 @@ export function createElement(
   normalizationType: any,
   alwaysNormalize: boolean
 ): VNode | Array<VNode> {
-  // 兼容不传data的情况
+  // 兼容不传 data 的情况
   if (Array.isArray(data) || isPrimitive(data)) {
     normalizationType = children
     children = data
     data = undefined
   }
+  // 设置为常量 ？
   if (isTrue(alwaysNormalize)) {
     normalizationType = ALWAYS_NORMALIZE
   }
@@ -66,6 +67,7 @@ export function _createElement(
     return createEmptyVNode()
   }
   // object syntax in v-bind
+  // TODO: data.is ?
   if (isDef(data) && isDef(data.is)) {
     tag = data.is
   }
@@ -130,7 +132,8 @@ export function _createElement(
     }
   } else {
     // direct component options / constructor
-    // tag不是字符串的时候则是组件的构造类
+    // TODO: 
+    // tag 不是字符串的时候则是组件的构造类. tag 作为 createComponent 函数的第一个参数是 Ctor 一个构造函数？
     vnode = createComponent(tag, data, context, children)
   }
   if (Array.isArray(vnode)) {

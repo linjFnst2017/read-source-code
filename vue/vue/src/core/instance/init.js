@@ -126,7 +126,7 @@ export function initInternalComponent(vm, options) {
 
   // TODO:: 
   opts.parent = options.parent
-  // TODO:: 
+  // 之后会通过将这个 _parentVnode 赋值给 vm.$vnode 
   opts._parentVnode = parentVnode
 
   // TODO:

@@ -252,7 +252,7 @@ export function mountComponent(
       measure(`vue ${name} patch`, startTag, endTag)
     }
   } else {
-    // 跟上面的功能相同 ，
+    // 跟上面的功能相同
     // const vnode = vm._render()
     // vm._update(vnode, hydrating)
     // updateComponent 作用: 把渲染函数生成的虚拟DOM渲染成真正的DOM
@@ -261,6 +261,7 @@ export function mountComponent(
       // `vm._update` 函数的作用是把 `vm._render` 函数生成的虚拟节点渲染成真正的 `DOM`
       // `vm._update` 内部是通过虚拟DOM的补丁算法(`patch`)来完成的
       // vm._render() return 的是一个 vnode 也就是说 _update 函数第一个参数是 vnode。 _render 函数定义在 instance/render.js 中
+      // 在此方法中调用 vm._render 方法先生成虚拟 Node，最终调用 vm._update 更新 DOM
       vm._update(vm._render(), hydrating)
     }
   }
@@ -272,7 +273,10 @@ export function mountComponent(
   // 它依赖于已经定义的 vm._watcher
   // 因为 `watcher` 对表达式的求值，触发了数据属性的 `get` 拦截器函数，从而收集到了依赖，当数据变化时能够触发响应.
   // TODO: 哪里求值了啊
-  // `Watcher` 的原理是通过对“被观测目标”的求值，触发数据属性的 `get` 拦截器函数从而收集依赖， 至于“被观测目标”到底是表达式还是函数或者是其他形式的内容都不重要，重要的是“被观测目标”能否触发数据属性的 `get` 拦截器函数
+  // `Watcher` 的原理是通过对“被观测目标”的求值，触发数据属性的 `get` 拦截器函数从而收集依赖， 至于“被观测目标”到底是表达式还是函数或者是其他形式的内容都不重要，
+  // 重要的是“被观测目标”能否触发数据属性的`get` 拦截器函数
+  // mountComponent 核心就是先实例化一个渲染Watcher，在它的回调函数中会调用 updateComponent 方法
+  // Watcher 在这里起到两个作用，一个是初始化的时候会执行回调函数，另一个是当 vm 实例中的监测的数据发生变化的时候执行回调函数
   new Watcher(vm, updateComponent, noop, {
     // 当数据变化之后，触发更新之前，如果 `vm._isMounted` 属性的值为真，则会调用 `beforeUpdate` 生命周期钩子。
     before() {
@@ -290,8 +294,10 @@ export function mountComponent(
   // mounted is called for render-created child components in its inserted hook
   // 手动挂载实例，在自挂载上挂载的调用调用其插入的钩子中的委托方创建的子组件
   // 主动触发 mounted 钩子函数，并且将 vm 的 _isMounted 属性设置为 true 表示已经被挂载的
-  // TODO: $vnode 
+  // $vnode 是在 _render 函数执行的时候挂载上去的，值是 _parentVnode ，也就是父虚拟节点
+  //  vm.$vnode 表示 Vue 实例的父虚拟 Node， 它为 Null 则表示当前是根 Vue 的实例
   if (vm.$vnode == null) {
+    // 表示这个实例已经挂载了
     vm._isMounted = true
     // 执行用户在 mounted 中定义的任务
     callHook(vm, 'mounted')

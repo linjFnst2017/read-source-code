@@ -146,10 +146,14 @@ export function createPatchFunction(backend) {
 
   // `createElm` 的作用是通过虚拟节点创建真实的 DOM 并插入到它的父节点中
   function createElm(
+    // 对应真实 dom 节点的虚拟节点
     vnode,
+    // 插入虚拟节点队列
     insertedVnodeQueue,
+    // 需要插入的父节点（貌似是一个真实的 dom 节点）
     parentElm,
     refElm,
+    // 嵌套
     nested,
     ownerArray,
     index
