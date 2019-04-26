@@ -497,6 +497,7 @@ export function mergeOptions(
  * Resolve an asset.
  * This function is used because child instances need access
  * to assets defined in its ancestor chain.
+ * 说明在使用 Vue.component(id, definition) 全局注册组件的时候，id 可以是连字符、驼峰或首字母大写的形式。
  */
 export function resolveAsset(
   options: Object,
@@ -508,11 +509,15 @@ export function resolveAsset(
   if (typeof id !== 'string') {
     return
   }
+  // 组件、指令或者过滤器等对象
   const assets = options[type]
   // check local registration variations first
+  // 首先检查本地注册变量
   if (hasOwn(assets, id)) return assets[id]
+  // 把 id 变成驼峰的形式
   const camelizedId = camelize(id)
   if (hasOwn(assets, camelizedId)) return assets[camelizedId]
+  // 驼峰的基础上把首字母再变成大写的形式
   const PascalCaseId = capitalize(camelizedId)
   if (hasOwn(assets, PascalCaseId)) return assets[PascalCaseId]
   // fallback to prototype chain

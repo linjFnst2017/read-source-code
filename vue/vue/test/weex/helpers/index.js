@@ -9,27 +9,27 @@ const styleRE = /<\s*style\s*\w*>([^(<\/)]*)<\/\s*style\s*>/g
 const scriptRE = /<\s*script.*>([^]*)<\/\s*script\s*>/
 const templateRE = /<\s*template\s*([^>]*)>([^]*)<\/\s*template\s*>/
 
-export function readFile (filename) {
+export function readFile(filename) {
   return fs.readFileSync(path.resolve(__dirname, '../cases/', filename), 'utf8')
 }
 
-export function readObject (filename) {
+export function readObject(filename) {
   return (new Function(`return ${readFile(filename)}`))()
 }
 
-console.debug = () => {}
+console.debug = () => { }
 
 // http://stackoverflow.com/a/35478115
 const matchOperatorsRe = /[|\\{}()[\]^$+*?.]/g
-export function strToRegExp (str) {
+export function strToRegExp(str) {
   return new RegExp(str.replace(matchOperatorsRe, '\\$&'))
 }
 
-function parseStatic (fns) {
+function parseStatic(fns) {
   return '[' + fns.map(fn => `function () { ${fn} }`).join(',') + ']'
 }
 
-export function compileAndStringify (template) {
+export function compileAndStringify(template) {
   const { render, staticRenderFns } = compile(template)
   return {
     render: `function () { ${render} }`,
@@ -42,7 +42,7 @@ export function compileAndStringify (template) {
  * @param {string} source raw text of *.vue file
  * @param {string} componentName whether compile to a component
  */
-export function compileVue (source, componentName) {
+export function compileVue(source, componentName) {
   return new Promise((resolve, reject) => {
     if (!templateRE.test(source)) {
       return reject('No Template!')
@@ -90,7 +90,7 @@ export function compileVue (source, componentName) {
   })
 }
 
-export function compileWithDeps (entryPath, deps) {
+export function compileWithDeps(entryPath, deps) {
   return new Promise((resolve, reject) => {
     if (Array.isArray(deps)) {
       Promise.all(deps.map(dep => {
@@ -104,15 +104,15 @@ export function compileWithDeps (entryPath, deps) {
   })
 }
 
-function isObject (object) {
+function isObject(object) {
   return object !== null && typeof object === 'object'
 }
 
-function isEmptyObject (object) {
+function isEmptyObject(object) {
   return isObject(object) && Object.keys(object).length < 1
 }
 
-function omitUseless (object) {
+function omitUseless(object) {
   if (isObject(object)) {
     delete object.ref
     for (const key in object) {
@@ -131,12 +131,12 @@ function omitUseless (object) {
   return object
 }
 
-export function getRoot (instance) {
+export function getRoot(instance) {
   return omitUseless(instance.$getRoot())
 }
 
 // Get all binding events in the instance
-export function getEvents (instance) {
+export function getEvents(instance) {
   const events = []
   const recordEvent = node => {
     if (!node) { return }
@@ -153,14 +153,14 @@ export function getEvents (instance) {
   return events
 }
 
-export function fireEvent (instance, ref, type, event = {}) {
+export function fireEvent(instance, ref, type, event = {}) {
   const el = instance.document.getRef(ref)
   if (el) {
     instance.document.fireEvent(el, type, event)
   }
 }
 
-export function createInstance (id, code, ...args) {
+export function createInstance(id, code, ...args) {
   WeexRuntime.config.frameworks = { Vue }
   const context = WeexRuntime.init(WeexRuntime.config)
   context.registerModules({
@@ -180,7 +180,7 @@ export function createInstance (id, code, ...args) {
   return instance
 }
 
-export function compileAndExecute (template, additional = '') {
+export function compileAndExecute(template, additional = '') {
   return new Promise(resolve => {
     const id = String(Date.now() * Math.random())
     const { render, staticRenderFns } = compile(template)
@@ -196,7 +196,7 @@ export function compileAndExecute (template, additional = '') {
   })
 }
 
-export function syncPromise (arr) {
+export function syncPromise(arr) {
   let p = Promise.resolve()
   arr.forEach(item => {
     p = p.then(item)
@@ -204,7 +204,7 @@ export function syncPromise (arr) {
   return p
 }
 
-export function checkRefresh (instance, data, checker) {
+export function checkRefresh(instance, data, checker) {
   return () => new Promise(res => {
     instance.$refresh(data)
     setTimeout(() => {
@@ -214,8 +214,8 @@ export function checkRefresh (instance, data, checker) {
   })
 }
 
-export function addTaskHook (hook) {
-  global.callNative = function callNative (id, tasks) {
+export function addTaskHook(hook) {
+  global.callNative = function callNative(id, tasks) {
     if (Array.isArray(tasks) && typeof hook === 'function') {
       tasks.forEach(task => {
         hook(id, {
@@ -228,6 +228,6 @@ export function addTaskHook (hook) {
   }
 }
 
-export function resetTaskHook () {
+export function resetTaskHook() {
   delete global.callNative
 }

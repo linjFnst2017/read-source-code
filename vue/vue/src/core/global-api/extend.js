@@ -52,7 +52,10 @@ export function initExtend(Vue: GlobalAPI) {
     // 原型链上的构造函数指向本身
     Sub.prototype.constructor = Sub
     Sub.cid = cid++
-    // 处理 merge 合并 options
+    // 处理 merge 合并 options。现象是，最终是把 Sub.options.components 合并到 vm.$options.components 上
+    // 也就是说这里的 mergeOptions 是将原型上的 options 和将要扩展的 options 属性进行合并，
+    // 而 Vue.options 上拥有一些全局的资源，比如全局组件、指令、过滤器等，这些都是通过 extend 函数 merge 到了一个新的 options 上
+    // 从而实现了子组件上能够直接使用全局注册的资源
     Sub.options = mergeOptions(
       Super.options,
       extendOptions
