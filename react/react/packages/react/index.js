@@ -8,7 +8,7 @@
  */
 
 'use strict';
-
+// 直接 require
 const React = require('./src/React');
 
 // TODO: decide on the top-level export form.

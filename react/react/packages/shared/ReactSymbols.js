@@ -9,6 +9,9 @@
 
 // The Symbol used to tag the ReactElement-like types. If there is no native Symbol
 // nor polyfill, then a plain number is used for performance.
+// 用于标记 类 ReactElement 类型的符号。如果不支持原生的 Symbol 或 polyfill，则使用普通数字用作性能测试
+// Symbol.for(key) 方法会根据给定的键 key，来从运行时的 symbol 注册表中找到对应的 symbol，如果找到了，则返回它，
+// 否则，新建一个与该键关联的 symbol，并放入全局 symbol 注册表中
 const hasSymbol = typeof Symbol === 'function' && Symbol.for;
 
 export const REACT_ELEMENT_TYPE = hasSymbol
@@ -67,7 +70,7 @@ export const REACT_EVENT_PRESS_TARGET = hasSymbol
 const MAYBE_ITERATOR_SYMBOL = typeof Symbol === 'function' && Symbol.iterator;
 const FAUX_ITERATOR_SYMBOL = '@@iterator';
 
-export function getIteratorFn(maybeIterable: ?any): ?() => ?Iterator<*> {
+export function getIteratorFn(maybeIterable: ?any): ?() =>?Iterator<*> {
   if (maybeIterable === null || typeof maybeIterable !== 'object') {
     return null;
   }

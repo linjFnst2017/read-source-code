@@ -1,6 +1,6 @@
 'use strict';
 
-const {rollup} = require('rollup');
+const { rollup } = require('rollup');
 const babel = require('rollup-plugin-babel');
 const closure = require('./plugins/closure-plugin');
 const commonjs = require('rollup-plugin-commonjs');
@@ -21,7 +21,7 @@ const useForks = require('./plugins/use-forks-plugin');
 const stripUnusedImports = require('./plugins/strip-unused-imports');
 const extractErrorCodes = require('../error-codes/extract-errors');
 const Packaging = require('./packaging');
-const {asyncCopyTo, asyncRimRaf} = require('./utils');
+const { asyncCopyTo, asyncRimRaf } = require('./utils');
 const codeFrame = require('babel-code-frame');
 const Wrappers = require('./wrappers');
 
@@ -129,7 +129,7 @@ function getBabelConfig(updateBabelOptions, bundleType, filename) {
           [
             require('../error-codes/transform-error-messages'),
             // Preserve full error messages in React Native build
-            {noMinify: true},
+            { noMinify: true },
           ],
           // Wrap warning() calls in a __DEV__ check so they are stripped from production.
           require('../babel/wrap-warning-with-env-check'),
@@ -287,7 +287,7 @@ function forbidFBJSImports() {
       if (/^fbjs\//.test(importee)) {
         throw new Error(
           `Don't import ${importee} (found in ${importer}). ` +
-            `Use the utilities in packages/shared/ instead.`
+          `Use the utilities in packages/shared/ instead.`
         );
       }
     },
@@ -364,23 +364,23 @@ function getPlugins(
     commonjs(),
     // Apply dead code elimination and/or minification.
     isProduction &&
-      closure(
-        Object.assign({}, closureOptions, {
-          // Don't let it create global variables in the browser.
-          // https://github.com/facebook/react/issues/10909
-          assume_function_wrapper: !isUMDBundle,
-          // Works because `google-closure-compiler-js` is forked in Yarn lockfile.
-          // We can remove this if GCC merges my PR:
-          // https://github.com/google/closure-compiler/pull/2707
-          // and then the compiled version is released via `google-closure-compiler-js`.
-          renaming: !shouldStayReadable,
-        })
-      ),
+    closure(
+      Object.assign({}, closureOptions, {
+        // Don't let it create global variables in the browser.
+        // https://github.com/facebook/react/issues/10909
+        assume_function_wrapper: !isUMDBundle,
+        // Works because `google-closure-compiler-js` is forked in Yarn lockfile.
+        // We can remove this if GCC merges my PR:
+        // https://github.com/google/closure-compiler/pull/2707
+        // and then the compiled version is released via `google-closure-compiler-js`.
+        renaming: !shouldStayReadable,
+      })
+    ),
     // HACK to work around the fact that Rollup isn't removing unused, pure-module imports.
     // Note that this plugin must be called after closure applies DCE.
     isProduction && stripUnusedImports(pureExternalModules),
     // Add the whitespace back if necessary.
-    shouldStayReadable && prettier({parser: 'babylon'}),
+    shouldStayReadable && prettier({ parser: 'babylon' }),
     // License and haste headers, top-level `if` blocks.
     {
       transformBundle(source) {
@@ -554,10 +554,10 @@ function handleRollupWarning(warning) {
     if (typeof importSideEffects[externalModule] !== 'boolean') {
       throw new Error(
         'An external module "' +
-          externalModule +
-          '" is used in a DEV-only code path ' +
-          'but we do not know if it is safe to omit an unused require() to it in production. ' +
-          'Please add it to the `importSideEffects` list in `scripts/rollup/modules.js`.'
+        externalModule +
+        '" is used in a DEV-only code path ' +
+        'but we do not know if it is safe to omit an unused require() to it in production. ' +
+        'Please add it to the `importSideEffects` list in `scripts/rollup/modules.js`.'
       );
     }
     // Don't warn. We will remove side effectless require() in a later pass.
@@ -590,7 +590,7 @@ function handleRollupError(error) {
   );
   console.error(error.stack);
   if (error.loc && error.loc.file) {
-    const {file, line, column} = error.loc;
+    const { file, line, column } = error.loc;
     // This looks like an error from Rollup, e.g. missing export.
     // We'll use the accurate line numbers provided by Rollup but
     // use Babel code frame because it looks nicer.
@@ -650,8 +650,8 @@ async function buildEverything() {
   if (shouldExtractErrors) {
     console.warn(
       '\nWarning: this build was created with --extract-errors enabled.\n' +
-        'this will result in extremely slow builds and should only be\n' +
-        'used when the error map needs to be rebuilt.\n'
+      'this will result in extremely slow builds and should only be\n' +
+      'used when the error map needs to be rebuilt.\n'
     );
   }
 }

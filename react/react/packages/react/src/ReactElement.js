@@ -7,12 +7,14 @@
 
 import invariant from 'shared/invariant';
 import warningWithoutStack from 'shared/warningWithoutStack';
-import {REACT_ELEMENT_TYPE} from 'shared/ReactSymbols';
+import { REACT_ELEMENT_TYPE } from 'shared/ReactSymbols';
 
 import ReactCurrentOwner from './ReactCurrentOwner';
 
+// 查找对象自身的属性
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
+// 保留属性
 const RESERVED_PROPS = {
   key: true,
   ref: true,
@@ -23,8 +25,11 @@ const RESERVED_PROPS = {
 let specialPropKeyWarningShown, specialPropRefWarningShown;
 
 function hasValidRef(config) {
+  // __DEV__ 会被提到成 isProduction ? 'false' : 'true' 不同规范的 js 的开发环境和生产环境设置了不同的常量来表示，简单理解为 __DEV__ 表示是在开发环境即可
   if (__DEV__) {
     if (hasOwnProperty.call(config, 'ref')) {
+      // getOwnPropertyDescriptor 返回指定对象上一个自有属性对应的属性描述符。
+      // 描述符简单讲就是调用  Object.defineProperty 函数的时候设置的 configurable (是否可配置) enumerable (是否可以被枚举), get,set 等属性
       const getter = Object.getOwnPropertyDescriptor(config, 'ref').get;
       if (getter && getter.isReactWarning) {
         return false;
@@ -47,15 +52,15 @@ function hasValidKey(config) {
 }
 
 function defineKeyPropWarningGetter(props, displayName) {
-  const warnAboutAccessingKey = function() {
+  const warnAboutAccessingKey = function () {
     if (!specialPropKeyWarningShown) {
       specialPropKeyWarningShown = true;
       warningWithoutStack(
         false,
         '%s: `key` is not a prop. Trying to access it will result ' +
-          'in `undefined` being returned. If you need to access the same ' +
-          'value within the child component, you should pass it as a different ' +
-          'prop. (https://fb.me/react-special-props)',
+        'in `undefined` being returned. If you need to access the same ' +
+        'value within the child component, you should pass it as a different ' +
+        'prop. (https://fb.me/react-special-props)',
         displayName,
       );
     }
@@ -68,15 +73,15 @@ function defineKeyPropWarningGetter(props, displayName) {
 }
 
 function defineRefPropWarningGetter(props, displayName) {
-  const warnAboutAccessingRef = function() {
+  const warnAboutAccessingRef = function () {
     if (!specialPropRefWarningShown) {
       specialPropRefWarningShown = true;
       warningWithoutStack(
         false,
         '%s: `ref` is not a prop. Trying to access it will result ' +
-          'in `undefined` being returned. If you need to access the same ' +
-          'value within the child component, you should pass it as a different ' +
-          'prop. (https://fb.me/react-special-props)',
+        'in `undefined` being returned. If you need to access the same ' +
+        'value within the child component, you should pass it as a different ' +
+        'prop. (https://fb.me/react-special-props)',
         displayName,
       );
     }
@@ -108,18 +113,21 @@ function defineRefPropWarningGetter(props, displayName) {
  * indicating filename, line number, and/or other information.
  * @internal
  */
-const ReactElement = function(type, key, ref, self, source, owner, props) {
+const ReactElement = function (type, key, ref, self, source, owner, props) {
   const element = {
     // This tag allows us to uniquely identify this as a React Element
+    // 这个标记允许我们唯一地将其标识为 React Element
     $$typeof: REACT_ELEMENT_TYPE,
 
     // Built-in properties that belong on the element
+    // 属于 element 的内置属性
     type: type,
     key: key,
     ref: ref,
     props: props,
 
     // Record the component responsible for creating this element.
+    // 记录负责创建此元素的组件
     _owner: owner,
   };
 
@@ -300,11 +308,16 @@ export function jsxDEV(type, config, maybeKey, source, self) {
 /**
  * Create and return a new ReactElement of the given type.
  * See https://reactjs.org/docs/react-api.html#createelement
+ * 从在 babel 的 playground 上直接写 jsx 的时候右边看到的编译出来的 js 结果中可以看出，React.createElement 函数的三个参数的意义分别是：
+ * 1. type: 如果是原生的节点，那就是字符串，如果是自定义的组件，那就是一个 class component 或者 function component
+ * 2. config: 是我们写在 html 标签上的所有属性，都会被编译成 key value 的形式存在 config 对象里面，实际在使用过程中会需要进行筛选哪些是 props 或者是需要的属性
+ * 3. children: 是该节点中间存放的内容，子标签或者文字之类的
  */
 export function createElement(type, config, children) {
   let propName;
 
   // Reserved names are extracted
+  // 提取保留名称
   const props = {};
 
   let key = null;
@@ -312,6 +325,8 @@ export function createElement(type, config, children) {
   let self = null;
   let source = null;
 
+  // 如果 elm 只有子节点或者文字作为内容，标签上没有任何属性的话，编译出来的结果是 config === null
+  // config 不等于 null 说明标签上拥有属性
   if (config != null) {
     if (hasValidRef(config)) {
       ref = config.ref;
@@ -323,6 +338,7 @@ export function createElement(type, config, children) {
     self = config.__self === undefined ? null : config.__self;
     source = config.__source === undefined ? null : config.__source;
     // Remaining properties are added to a new props object
+    // 剩余的属性被添加到一个新的props对象中
     for (propName in config) {
       if (
         hasOwnProperty.call(config, propName) &&
@@ -335,11 +351,16 @@ export function createElement(type, config, children) {
 
   // Children can be more than one argument, and those are transferred onto
   // the newly allocated props object.
+  // 子参数可以不止一个，这些参数被转移到新分配的props对象上。剩余的参数都作为 children， jsx 编译出来的子节点一般也都是 React.createElement 形式
   const childrenLength = arguments.length - 2;
+  // 从这里看出 props.children 只有一个子节点的时候是一个 class component 或者 function component
+  // 而如果有多个子节点的时候，就是一个数组
   if (childrenLength === 1) {
     props.children = children;
   } else if (childrenLength > 1) {
+    // 创建数组的形式好诡异。。 new Array(n) 与 Array(n) 的差别在哪里？
     const childArray = Array(childrenLength);
+    // 将子节点压入数组
     for (let i = 0; i < childrenLength; i++) {
       childArray[i] = arguments[i + 2];
     }
