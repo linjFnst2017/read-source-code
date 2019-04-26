@@ -127,6 +127,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
     }
   }
 
+  // 销毁钩子函数
   Vue.prototype.$destroy = function () {
     const vm: Component = this
     // _isBeingDestroyed 已经正在被销毁中 ？
@@ -149,10 +150,9 @@ export function lifecycleMixin(Vue: Class<Component>) {
     // teardown watchers
     // 拆卸 watcher。 因为组件被销毁了，依赖监听可以不用执行了，下一次如果节点再被加载的话，依赖收集的操作应该在挂载之前 ？？？
     if (vm._watcher) {
-      // TODO: 
+      // 将 vm._watcher 从 vm._watchers 数组中删除
       vm._watcher.teardown()
     }
-    // TODO: 怎么有 _watcher 还有 _watchers 
     let i = vm._watchers.length
     // 全部监听器都拆卸调
     while (i--) {
@@ -169,7 +169,9 @@ export function lifecycleMixin(Vue: Class<Component>) {
     // 标志为已删除
     vm._isDestroyed = true
     // invoke destroy hooks on current rendered tree
-    // 在真实 dom 上移除
+    // 在真实 dom 上移除。通过 patch 函数一般至少需要传两个参数，旧的 vnode 节点和新的 vnode 节点。 
+    // 这里第二个参数是就是新的 vnode 节点，值为 null 表示没有新的 vnode 节点了也就是不需要渲染 dom 了，即从 dom 中删除
+    // vm.__patch__(vm._vnode, null) 触发它子组件的销毁钩子函数，这样一层层的递归调用，所以 destroy 钩子函数执行顺序是先子后父，和 mounted 过程一样
     vm.__patch__(vm._vnode, null)
     // fire destroyed hook
     // 触发用户定义的 destroyed 钩子函数

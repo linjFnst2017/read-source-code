@@ -285,6 +285,7 @@ export default class Watcher {
       // if the vm is being destroyed.
       // 从vm实例的观察者列表中将自身移除，由于该操作比较耗费资源，所以如果vm实例正在被销毁则跳过该步骤。
       if (!this.vm._isBeingDestroyed) {
+        // vm._watchers 是收集整个 vm 的依赖的，将当前的这个 watcher 从 _watchers 数组中删除
         remove(this.vm._watchers, this)
       }
       let i = this.deps.length

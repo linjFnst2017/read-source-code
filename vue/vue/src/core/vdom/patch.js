@@ -387,11 +387,15 @@ export function createPatchFunction(backend) {
     }
   }
 
+  // 所以这里我理解（如果有子组件的话）虽然是先调用的父组件的 __patch__ 函数准备将父组件从 dom 上移除，也是先调用父组件 patch 的 destroy 钩子
+  // 但是接着 children 会被循环调用 patch 的 destroy 钩子，而实际 patch 的 destroy 钩子是子组件实例调用 $destroy 函数来从 dom 上移除（真实）子节点
+  // 必然是子组件实例的 destroy 首先会执行完毕，待所有的子组件的 destroy 钩子全都执行完毕之后，父组件实例的 destroy 钩子才会被执行
+  // 因此 destroy 钩子函数执行顺序是先子后父，和 mounted 过程一样
   function invokeDestroyHook(vnode) {
     let i, j
     const data = vnode.data
     if (isDef(data)) {
-      // 如果 data.hook.destroy 存在的话，也就是自定义的 destroy 钩子函数存在的话，执行它
+      // 如果 data.hook.destroy 存在的话，也就是 patch 的 destroy 钩子函数存在的话，执行它。实际是去调用 vm.$destroy() 销毁实例
       if (isDef(i = data.hook) && isDef(i = i.destroy)) i(vnode)
       // TODO: 
       for (i = 0; i < cbs.destroy.length; ++i) cbs.destroy[i](vnode)
@@ -754,6 +758,7 @@ export function createPatchFunction(backend) {
   return function patch(oldVnode, vnode, hydrating, removeOnly) {
     // 如果新的 vnode 是 undefined 或者 null, 也就是说新的 vnode 不存在了，而旧的 vnode 是存在的话，那就出发 Destory 钩子函数
     if (isUndef(vnode)) {
+      // 触发 patch 的 destroy 钩子函数
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
     }
