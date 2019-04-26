@@ -140,13 +140,21 @@ export function createComponent(
     return
   }
 
+  // 参数就是我们的异步组件对象
+  // Vue.component('async-example', function (resolve, reject) {
+  //   // 这个特殊的 require 语法告诉 webpack
+  //   // 自动将编译后的代码分割成不同的块，
+  //   // 这些块将通过 Ajax 请求自动下载。
+  //   require(['./my-async-component'], resolve)
+  // })
   // async component
   // 处理异步组件
   let asyncFactory
-  // cid 不存在
+  // 传入的 Ctor 是一个函数，不会执行 extend ，因此 cid 不存在。 
   if (isUndef(Ctor.cid)) {
     // 暂存旧的构造函数，到最后进行调用
     asyncFactory = Ctor
+    // 进入了异步组件创建的逻辑。
     Ctor = resolveAsyncComponent(asyncFactory, baseCtor, context)
     if (Ctor === undefined) {
       // return a placeholder node for async component, which is rendered
