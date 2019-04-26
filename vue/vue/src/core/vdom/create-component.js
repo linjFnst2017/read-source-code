@@ -50,7 +50,7 @@ const componentVNodeHooks = {
       // 通过 `createComponentInstanceForVnode` 创建一个 Vue 的实例，然后调用 `$mount` 方法挂载子组件
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
-        activeInstance
+        activeInstance // vm vue 实例（暂时理解可以创建 vnode）
       )
       // `hydrating` 为 true 一般是服务端渲染的情况，我们只考虑客户端渲染，所以这里 `$mount` 相当于执行 `child.$mount(undefined, false)`
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
@@ -73,6 +73,7 @@ const componentVNodeHooks = {
     const { context, componentInstance } = vnode
     if (!componentInstance._isMounted) {
       componentInstance._isMounted = true
+      // 每个子组件都是在这个钩子函数中执行 mouted 钩子函数
       callHook(componentInstance, 'mounted')
     }
     if (vnode.data.keepAlive) {
@@ -105,7 +106,9 @@ const hooksToMerge = Object.keys(componentVNodeHooks)
 
 // 创建一个组件节点.
 // 针对组件渲染这个 case 主要就 3 个关键步骤：
-// 构造子类构造函数，安装组件钩子函数和实例化 vnode。
+// 1. 构造子类构造函数
+// 2. 安装组件钩子函数
+// 3. 实例化 vnode。
 export function createComponent(
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -233,7 +236,7 @@ export function createComponentInstanceForVnode(
   const options: InternalComponentOptions = {
     // `_isComponent` 为 `true` 表示它是一个组件
     _isComponent: true,
-    // 父虚拟节点？
+    // 父虚拟节点
     _parentVnode: vnode,
     // `parent` 表示当前激活的组件实例
     parent

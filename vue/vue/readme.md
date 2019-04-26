@@ -154,3 +154,8 @@ https://segmentfault.com/a/1190000012922342
 - 如何使用多个 filter 或者一个 filter 使用多个参数 ？
 
 ### lifecycle
+
+
+
+### doc
+https://ustbhuangyi.github.io/vue-analysis/components/patch.html#createcomponent

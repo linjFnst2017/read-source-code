@@ -85,6 +85,7 @@ export function initMixin(Vue) {
     // 初始化渲染函数（在 vm 实例上挂载跟渲染相关的属性，比如 $slots $vnode $$attrs $listeners等）
     initRender(vm)
     // 触发 beforeCreate 钩子函数。也就是说上面的事情都是在 beforeCreate 之前处理的
+    // beforeCreate 的钩子函数中就不能获取到 props、data 中定义的值，也不能调用 methods 中定义的函数。
     callHook(vm, 'beforeCreate')
     // TODO: 
     // provide 和 inject 主要为高阶插件/组件库提供用例
@@ -95,6 +96,9 @@ export function initMixin(Vue) {
     initProvide(vm) // resolve provide after data/props
     // 调用 created 钩子函数
     callHook(vm, 'created')
+
+    // 在 beforeCreate 和 created 的钩子调用的时候，并没有渲染 DOM，所以我们也不能够访问 DOM。
+    // 一般来说，如果组件在加载的时候需要和后端有交互，放在这俩个钩子函数执行都可以，如果是需要访问 props、data 等数据的话，就需要使用 created 钩子函数。
 
     // _init(options) 函数就是渲染组件初始化（不包括挂载的时间）的全部时间了
     /* istanbul ignore if */

@@ -249,6 +249,7 @@ export function createPatchFunction(backend) {
     if (isDef(i)) {
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
       // 如果 `vnode` 是一个组件 VNode，那么条件会满足，并且得到 `i` 就是 `init` 钩子函数
+      // 创建组件 VNode 的时候合并钩子函数中就包含 init 钩子函数。 所以 patch 的时候每次都会触发 patch 的 init 钩子函数
       if (isDef(i = i.hook) && isDef(i = i.init)) {
         i(vnode, false /* hydrating */)
       }
@@ -624,6 +625,7 @@ export function createPatchFunction(backend) {
       vnode.parent.data.pendingInsert = queue
     } else {
       for (let i = 0; i < queue.length; ++i) {
+        // 执行 insert 这个钩子函数
         queue[i].data.hook.insert(queue[i])
       }
     }
@@ -764,6 +766,7 @@ export function createPatchFunction(backend) {
       // empty mount (likely as component), create new root element
       // 空挂载？ 比如一个组件，创建一个新的根组件
       isInitialPatch = true
+      // 
       createElm(vnode, insertedVnodeQueue)
     } else {
       // 首次渲染的时候，由于我们传入的 `oldVnode` 实际上是一个 DOM container （id 为 app 的那个 div） `isRealElement` 为 true

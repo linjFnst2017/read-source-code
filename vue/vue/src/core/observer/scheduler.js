@@ -84,6 +84,8 @@ function flushSchedulerQueue() {
 
   // call component updated and activated hooks
   callActivatedHooks(activatedQueue)
+  // 获取到 updatedQueue，调用 update 的钩子函数
+  // updatedQueue 是 更新了的 wathcer 数组
   callUpdatedHooks(updatedQueue)
 
   // devtool hook
@@ -98,7 +100,9 @@ function callUpdatedHooks(queue) {
   while (i--) {
     const watcher = queue[i]
     const vm = watcher.vm
+    // 对这些数组做遍历，只有满足当前 watcher 为 vm._watcher 以及组件已经 mounted 这两个条件，才会执行 updated 钩子函数
     if (vm._watcher === watcher && vm._isMounted) {
+      // 只有 vm._watcher 的回调执行完毕后，才会执行 updated 钩子函数。
       callHook(vm, 'updated')
     }
   }

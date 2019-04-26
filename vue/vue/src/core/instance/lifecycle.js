@@ -64,10 +64,10 @@ export function lifecycleMixin(Vue: Class<Component>) {
   // 更新， Vue 的响应式原理中，set 函数触发重新渲染就是用的 _update 函数
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
-    // 获取之前（当前）渲染的 dom 节点和 _vnode 节点 （也就是一个真实的节点，一个虚拟节点）
+    // $el 是获取之前（当前）渲染的 dom 节点和 _vnode 节点 （也就是一个真实的节点，一个虚拟节点）
     // $el 在执行这个函数的时候应该是 undefined 吧， 后来在 mountComponent 函数中 $el 被赋值为 el 挂载的节点
     const prevEl = vm.$el
-    // TODO: _vnode 最早是什么时候挂载的
+    // TODO: _vnode 最早是什么时候挂载的. 感觉上应该是还没更新 dom 对应的 vnode， 也就是旧的 vnode 节点，接下来需要跟传参 vnode 进行 diff 之后才能 patch
     const prevVnode = vm._vnode
     // 这个 `activeInstance` 作用就是保持当前上下文的 Vue 实例，它是在 `lifecycle` 模块的全局变量
     // 当前的 `vm` 赋值给 `activeInstance`，同时通过 `const prevActiveInstance = activeInstance` 用 `prevActiveInstance` 保留上一次的 `activeInstance`
@@ -134,6 +134,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
       return
     }
     // 触发定义的 beforeDestroy 钩子函数
+    // beforeDestroy 钩子函数的执行时机是在 $destroy 函数执行最开始的地方，接着执行了一系列的销毁动作
     callHook(vm, 'beforeDestroy')
     // 标志位
     vm._isBeingDestroyed = true
@@ -142,7 +143,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
     const parent = vm.$parent
     // 父节点此时没有正在被销毁， 并且父节点也不能是抽象组件。 事实上这里如果是抽象组件的话，不能从父节点中移除 ？？？
     if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
-      // 从父节点的 $children 数组中将当前节点移除
+      // 从父节点的 $children 数组中将当前节点移除，删掉自身
       remove(parent.$children, vm)
     }
     // teardown watchers
@@ -227,7 +228,7 @@ export function mountComponent(
       }
     }
   }
-  // 触发 beforeMount 的生命钩子函数
+  // 触发 beforeMount 的生命钩子函数。顾名思义，beforeMount 钩子函数发生在 mount，也就是 DOM 挂载之前，在执行 vm._render() 函数渲染 VNode 之前，执行了 beforeMount 钩子函数
   callHook(vm, 'beforeMount')
 
   // 定义并初始化 `updateComponent` 函数
@@ -279,7 +280,9 @@ export function mountComponent(
   // Watcher 在这里起到两个作用，一个是初始化的时候会执行回调函数，另一个是当 vm 实例中的监测的数据发生变化的时候执行回调函数
   new Watcher(vm, updateComponent, noop, {
     // 当数据变化之后，触发更新之前，如果 `vm._isMounted` 属性的值为真，则会调用 `beforeUpdate` 生命周期钩子。
+    // beforeUpdate 的执行时机是在渲染 Watcher 的 before 函数中
     before() {
+      // 在组件已经 mounted 之后，才会去调用这个钩子函数
       if (vm._isMounted) {
         callHook(vm, 'beforeUpdate')
       }
@@ -299,7 +302,7 @@ export function mountComponent(
   if (vm.$vnode == null) {
     // 表示这个实例已经挂载了
     vm._isMounted = true
-    // 执行用户在 mounted 中定义的任务
+    // 执行用户在 mounted 中定义的任务。在执行完 vm._update() 把 VNode patch 到真实 DOM 后，执行 mouted 钩子
     callHook(vm, 'mounted')
   }
   return vm

@@ -57,6 +57,7 @@ export default class Watcher {
     //  `isRenderWatcher` 标识着是否是渲染函数的观察者
     if (isRenderWatcher) {
       // 当前观察者实例赋值给 `vm._watcher` 属性， 组件实例的 `_watcher` 属性的值引用着该组件的渲染函数观察者
+      // vm._watcher 是专门用来监听 vm 上数据变化然后重新渲染的，所以它是一个渲染相关的 watcher
       vm._watcher = this
     }
     // 组件实例的 `vm._watchers` 属性是在 `initState` 函数中初始化的，其初始值是一个空数组, 存放订阅者实例
