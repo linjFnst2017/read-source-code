@@ -18,16 +18,19 @@ type PropOptions = {
   validator: ?Function
 };
 
-export function validateProp (
+// 验证 prop
+export function validateProp(
   key: string,
   propOptions: Object,
   propsData: Object,
   vm?: Component
 ): any {
   const prop = propOptions[key]
+  // 缺席
   const absent = !hasOwn(propsData, key)
   let value = propsData[key]
-  // boolean casting
+  // boolean casting 铸造
+  // prop 是 Boolean 类型返回 0 非数组、非 Boolean 类型返回 -1
   const booleanIndex = getTypeIndex(Boolean, prop.type)
   if (booleanIndex > -1) {
     if (absent && !hasOwn(prop, 'default')) {
@@ -64,7 +67,7 @@ export function validateProp (
 /**
  * Get the default value of a prop.
  */
-function getPropDefaultValue (vm: ?Component, prop: PropOptions, key: string): any {
+function getPropDefaultValue(vm: ?Component, prop: PropOptions, key: string): any {
   // no default, return undefined
   if (!hasOwn(prop, 'default')) {
     return undefined
@@ -97,7 +100,7 @@ function getPropDefaultValue (vm: ?Component, prop: PropOptions, key: string): a
 /**
  * Assert whether a prop is valid.
  */
-function assertProp (
+function assertProp(
   prop: PropOptions,
   name: string,
   value: any,
@@ -148,7 +151,7 @@ function assertProp (
 
 const simpleCheckRE = /^(String|Number|Boolean|Function|Symbol)$/
 
-function assertType (value: any, type: Function): {
+function assertType(value: any, type: Function): {
   valid: boolean;
   expectedType: string;
 } {
@@ -179,16 +182,23 @@ function assertType (value: any, type: Function): {
  * because a simple equality check will fail when running
  * across different vms / iframes.
  */
-function getType (fn) {
+function getType(fn) {
   const match = fn && fn.toString().match(/^\s*function (\w+)/)
   return match ? match[1] : ''
 }
 
-function isSameType (a, b) {
+function isSameType(a, b) {
   return getType(a) === getType(b)
 }
 
-function getTypeIndex (type, expectedTypes): number {
+function getTypeIndex(type, expectedTypes): number {
+  // title: String,
+  // likes: Number,
+  // isPublished: Boolean,
+  // commentIds: Array,
+  // author: Object,
+  // callback: Function,
+  // contactsPromise: Promise // or any other constructor
   if (!Array.isArray(expectedTypes)) {
     return isSameType(expectedTypes, type) ? 0 : -1
   }
@@ -200,7 +210,7 @@ function getTypeIndex (type, expectedTypes): number {
   return -1
 }
 
-function getInvalidTypeMessage (name, value, expectedTypes) {
+function getInvalidTypeMessage(name, value, expectedTypes) {
   let message = `Invalid prop: type check failed for prop "${name}".` +
     ` Expected ${expectedTypes.map(capitalize).join(', ')}`
   const expectedType = expectedTypes[0]
@@ -209,8 +219,8 @@ function getInvalidTypeMessage (name, value, expectedTypes) {
   const receivedValue = styleValue(value, receivedType)
   // check if we need to specify expected value
   if (expectedTypes.length === 1 &&
-      isExplicable(expectedType) &&
-      !isBoolean(expectedType, receivedType)) {
+    isExplicable(expectedType) &&
+    !isBoolean(expectedType, receivedType)) {
     message += ` with value ${expectedValue}`
   }
   message += `, got ${receivedType} `
@@ -221,7 +231,7 @@ function getInvalidTypeMessage (name, value, expectedTypes) {
   return message
 }
 
-function styleValue (value, type) {
+function styleValue(value, type) {
   if (type === 'String') {
     return `"${value}"`
   } else if (type === 'Number') {
@@ -231,11 +241,11 @@ function styleValue (value, type) {
   }
 }
 
-function isExplicable (value) {
+function isExplicable(value) {
   const explicitTypes = ['string', 'number', 'boolean']
   return explicitTypes.some(elem => value.toLowerCase() === elem)
 }
 
-function isBoolean (...args) {
+function isBoolean(...args) {
   return args.some(elem => elem.toLowerCase() === 'boolean')
 }

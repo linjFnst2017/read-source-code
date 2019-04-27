@@ -69,18 +69,26 @@ export function initState(vm: Component) {
 }
 
 function initProps(vm: Component, propsOptions: Object) {
+  // TODO: propsData ?
+  // 最初的 props 初始化 Vue 实例的时候是在 props 属性上的， mergeOptions 后改名为 propsData ？
   const propsData = vm.$options.propsData || {}
   const props = vm._props = {}
   // cache prop keys so that future props updates can iterate using Array
   // instead of dynamic object key enumeration.
+  // 缓存 prop 的键，以便将来的 props 更新可以使用数组迭代，而不是动态对象键枚举 ？？
+  // TODO: _propKeys ?
   const keys = vm.$options._propKeys = []
   const isRoot = !vm.$parent
   // root instance props should be converted
+  // 根实例 props 应该被转换
   if (!isRoot) {
     toggleObserving(false)
   }
+  // propsOptions 经过处理，是一个对象了，值包含所有 prop 的类型等信息
   for (const key in propsOptions) {
     keys.push(key)
+    // TODO: 
+    // 暂时就理解为从 props 对象中获取 value 如果没有 value 的话就拿 default 或者在其他时机从 propsData 中获取值
     const value = validateProp(key, propsOptions, propsData, vm)
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
@@ -104,11 +112,14 @@ function initProps(vm: Component, propsOptions: Object) {
         }
       })
     } else {
+      // 将每一个  prop 定义成响应式的，并挂载在 _props 这个 key 上面
       defineReactive(props, key, value)
     }
     // static props are already proxied on the component's prototype
     // during Vue.extend(). We only need to proxy props defined at
     // instantiation here.
+    // 在Vue.extend()期间，组件的原型上已经代理了静态支柱。我们只需要代理在实例化时定义的 props
+    // 将所有 props 的 key 都代理到 vm 实例上，后面就可以通过 this.xxx 来获取 this._props.xxx 了，这里的代理不同于上面的 defineReactive 将对象声明成响应式的。
     if (!(key in vm)) {
       proxy(vm, `_props`, key)
     }
@@ -127,7 +138,8 @@ function initData(vm: Component) {
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
-  // 通过上面的操作之后（mergeOptions 函数将用户输入的 data 变成一个函数，getData 函数从实例从又获取真实的 data）
+  // TODO: 我不记得 mergeOptions  操作了 data
+  // 通过上面的操作之后（mergeOptions 函数将用户输入的 data 变成一个函数，getData 函数从实例从又获取真实的 data） ？？？ 
   // 理论上说最后的结果应该是一个简单的对象了，但是如果有意外的话，在生产环境下需要报错， 比如用户的 data 函数 return 的是一个字符串之类的
   if (!isPlainObject(data)) {
     data = {}
@@ -170,8 +182,10 @@ function initData(vm: Component) {
       proxy(vm, `_data`, key)
     }
   }
-  // observe data
-  // 真正实现数据响应式的函数入口, 将 data 中的所有数据以递归的形式变成响应式的
+  // observe data data 对象上会添加一个 __ob__ 属性
+  // 真正实现数据响应式的函数入口, 将 data 中的所有数据以递归的形式变成响应式的。 
+  // observe 方法的作用就是给非 VNode 的对象类型数据添加一个 Observer
+  // Observer 是一个类，它的作用是给对象的属性添加 getter 和 setter，用于依赖收集和派发更新 （或者说监听数据变化的）
   observe(data, true /* asRootData */)
 }
 

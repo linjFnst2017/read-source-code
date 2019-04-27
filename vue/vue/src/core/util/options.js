@@ -28,7 +28,7 @@ import {
  * 选项覆盖策略是处理如何将父选项值和子选项值合并到最终值的函数
  */
 //  在 config 中一开始是一个空对象 Object.create(null)
-// TODO: 反正就是奇怪的合并选项的方式，可以自定义 https://vuejs.org/v2/api/#optionMergeStrategies
+// 反正就是奇怪的合并选项的方式，可以自定义 https://vuejs.org/v2/api/#optionMergeStrategies
 const strats = config.optionMergeStrategies
 
 /**
@@ -361,13 +361,16 @@ function normalizeProps(options: Object, vm: ?Component) {
 
 /**
  * Normalize all injections into Object-based format
+ * inject 的使用方式说白了就跟 props 是一样的，值有两种形式，一种是字符串数组，另一种就是对象的键值形式
  */
 function normalizeInject(options: Object, vm: ?Component) {
   const inject = options.inject
   if (!inject) return
+  // 将 normalized 跟 options.inject 指向同一个对象，后面就只操作 normalized
   const normalized = options.inject = {}
   if (Array.isArray(inject)) {
     for (let i = 0; i < inject.length; i++) {
+      // 每一个值都会变成包含一个 key 是 from 的值的对象
       normalized[inject[i]] = { from: inject[i] }
     }
   } else if (isPlainObject(inject)) {
@@ -401,6 +404,9 @@ function normalizeDirectives(options: Object) {
       if (typeof def === 'function') {
         dirs[key] = { bind: def, update: def }
       }
+      // TODO:
+      // 当然了也就是说 def 是一个对象的话就不做处理了。也就是说这里有一个问题是如果 def 是一个对象，但是并没有包含任何指令的钩子函数
+      // 这里既不会报错，也不会有任何执行。感觉这里在开发环境下应该提醒一下开发者。
     }
   }
 }
@@ -438,32 +444,35 @@ export function mergeOptions(
   }
 
   // 很多时候都会先声明一个 function child() {...} 之后，再给child挂载 一个 options
-  // TODO: 在哪里进行校验？ 如果没有任何配置的话
   // 这说明 Vue 初始化的时候， options 还可以是一个函数，但是需要包含 options 属性 ？
   // `child` 参数除了是普通的选项对象外，还可以是一个函数，如果是函数的话就取该函数的`options` 静态属性作为新的`child`
+  // 这里是应对 extends 的情况，parent = mergeOptions(parent, extendsFrom, vm) extendsFrom 参数的值是一个构造函数
+  // Cotr.options 
   if (typeof child === 'function') {
     child = child.options
   }
 
   // 规范化 props。 给 child 挂载上了一个 props 属性，值统一是对象。 $options.props
   normalizeProps(child, vm)
-  // TODO: 
-  // 规范化 inject （2.2.0 之后新增， 不过这个一般用于高阶组件，放后面看吧）
+  // 规范化 inject （2.2.0 之后新增， 不过这个一般用于高阶组件，放后面看吧）感觉跟 React 的 context 好像啊。。。
+  // provider/inject：简单的来说就是在父组件中通过provider来提供变量，然后在子组件中通过inject来注入变量
   normalizeInject(child, vm)
   // 规范化 directives 指令. 
   normalizeDirectives(child)
 
   // 处理 `extends` 选项
   // options.extends 属性是用于在没有调用 `Vue.extend` 时候继承某一个 Vue 组件。 
-  // 值应该是一个 vm , 同样继承的方式只要是将原始类型的 options merge 到子类型（也是 vm 实例）上去就行了
+  // 严谨地讲值是一个构造函数，这里的 extends 值是一个 import 的 Vue 类，而实际 export 的是这个类的构造函数。
+  // 同样继承的方式只要是将原始类型的 options merge 到子类型（也是 vm 实例）上去就行了
   const extendsFrom = child.extends
   if (extendsFrom) {
-    // TODO: 给 parent 的 options merge 干什么？
+    // 如果某个组件在 options 写了 extends 的话就主动继承，也就是去合并一下继承的
     parent = mergeOptions(parent, extendsFrom, vm)
   }
-  // 处理 `mixins` 选项。 值是一个对象数组， 对象的内容是
+  // 处理 `mixins` 选项。 值是一个对象数组， 对象的内容是 options 的部分（也就是需要混入的部分）
   if (child.mixins) {
     for (let i = 0, l = child.mixins.length; i < l; i++) {
+      // child.mixins[i] 值是一个对象，不同于上面的 extendsFrom ，这个对象其实就可以理解为一个 options， 所以直接进行 mergeOptions
       parent = mergeOptions(parent, child.mixins[i], vm)
     }
   }
@@ -472,7 +481,7 @@ export function mergeOptions(
   // Vue.options: Vue.options = { components: { KeepAlive, Transition, TransitionGroup }, directives:{ model, show }, filters: Object.create(null), _base: Vue }
   for (key in parent) {
     // `key` 就应该分别是：`components`、`directives`、`filters` 以及 `_base`
-    // 除了 `_base` 其他的字段都可以理解为是 `Vue` 提供的选项的名字
+    // 除了 `_base` 其他的字段都可以理解为是 `Vue` 提供的选项的名字。 _base === Vue 就是构造函数
     mergeField(key)
   }
   // child 值是 Vue.options
@@ -485,11 +494,12 @@ export function mergeOptions(
     }
   }
   function mergeField(key) {
-    // strats
+    // strats 各种合并函数
     const strat = strats[key] || defaultStrat
     // vm 是从 mergeOptions 函数中透传过来。 而 mergeOptions 函数中的第三个参数 vm 中在 _init 函数中执行的时候调用时传的 vm 也就是当前实例本身
     options[key] = strat(parent[key], child[key], vm, key)
   }
+  // return 是 mergeOptions 函数的返回
   return options
 }
 

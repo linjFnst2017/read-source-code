@@ -56,6 +56,7 @@ export function initMixin(Vue) {
       // 而实际初始化 Vue 是下面 initXXX 这些函数做的事情，vm.$options 也是在那些函数中被调用的
       // mergeOptions 简单可以理解为会返回最终初始化 Vue 的时候的参数， 最终的返回结果是经过合并的 options
       vm.$options = mergeOptions(
+        // vm.constructor === Vue
         resolveConstructorOptions(vm.constructor), // 根 Vue 实例，在这函数执行之后 return 的值是 Vue.options
         options || {}, // 根 Vue 实例的 options: 类似这样的对象，在 main.js 中 { el: '#app', data: { test: 1 } }
         vm
@@ -156,9 +157,11 @@ export function initInternalComponent(vm, options) {
 // 从函数的名称看， 这个函数的作用是 对外 resolve 参数（一个构造函数） 的 options
 export function resolveConstructorOptions(Ctor) {
   // core/global-api/index.js
+  // Vue 上全局挂载的 config
   // Vue.options = { components: { KeepAlive }, directives: Object.create(null), filters: Object.create(null), _base: Vue }
   let options = Ctor.options
   // 组件的 super 函数，`Ctor.super`，`super` 这是子类才有的属性, `super` 这个属性是与 `Vue.extend` 有关系的
+  // 有super属性,说明Ctor是Vue.extend构建的子
   if (Ctor.super) {
     // 递归调用，这里需要获取根 Vue 实例初始化的时候的 options
     const superOptions = resolveConstructorOptions(Ctor.super)
@@ -183,6 +186,7 @@ export function resolveConstructorOptions(Ctor) {
       }
     }
   }
+  // 如果是调用 new Vue 直接实例化的话就直接 return ， 事实上在 vue-cli 初始化的项目中，只有根 vm 是通过直接调用 Vue 构造函数初始化的，子组件都是通过 Vue.extends 的形式创建的。
   return options
 }
 

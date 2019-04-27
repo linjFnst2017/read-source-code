@@ -22,6 +22,7 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
 /**
  * In some cases we may want to disable observation inside a component's
  * update computation.
+ * 在某些情况下，我们可能希望禁用组件更新计算中的观察。
  */
 export let shouldObserve: boolean = true
 
@@ -63,6 +64,8 @@ export class Observer {
     //   }
     // }
     // 区分数据对象到底是数组还是一个纯对象, 对数组需要进行不一样的观察模式
+    // @Wonderful: vue 中将数组声明成响应式的办法
+    // TODO: es6 的 proxy 支持直接监听数组的改变么？ 如果支持的话， 数组就不用做特殊处理了。
     if (Array.isArray(value)) {
       // 数组实际也是一个对象，它的 __proto__ 指向了数组的原型链 arr.__proto__ === Array.prototype
       // 而数组的原生方法入 push pop 等都是挂载在原型链上的。
@@ -100,6 +103,7 @@ export class Observer {
 
   /**
    * Observe a list of Array items.
+   * 观察数组
    */
   observeArray(items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
@@ -165,11 +169,11 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
     !value._isVue
   ) {
     // 对象没有被观察过，
-    // Observer的作用就是遍历对象的所有属性将其进行双向绑定。
+    // Observer 的作用就是遍历对象的所有属性将其进行双向绑定 ？
     ob = new Observer(value)
   }
   if (asRootData && ob) {
-    /*如果是根数据则计数，后面Observer中的observe的asRootData非true*/
+    // 如果是根数据则计数，后面Observer中的observe的 asRootData 非true
     ob.vmCount++
   }
   return ob
@@ -210,7 +214,7 @@ export function defineReactive(
   }
   // shallow: true 浅观察， 也就是说不需要观察 child， childOb === undefined
   // 默认就是深度观测， val 属性如果是一个对象的话，就需要被继续观测， 但是这里 val 未必有值, 如果 val 未被定义，undefined isObject 函数判断之后不会继续执行下去
-  // 深度观察的话， observe 函数返回的是 __ob__ , 即一个 Observer 实例。
+  // 深度观察的话， observe 函数返回的是 __ob__ , 即一个 Observer 实例。这里是在递归调用 observe， 为每一个值也进行观察
   let childOb = !shallow && observe(val)
 
   // const data = {
@@ -224,6 +228,7 @@ export function defineReactive(
   // }
   // 属性 `a` 闭包引用的 `childOb` 实际上就是 `data.a.__ob__`。
   // 而属性`b` 闭包引用的`childOb` 是`undefined`，因为属性`b` 是基本类型值，并不是对象也不是数组。
+  // 为了在访问数据以及写数据的时候能自动执行一些逻辑：getter 做的事情是依赖收集，setter 做的事情是派发更新
   Object.defineProperty(obj, key, {
     // 可枚举
     enumerable: true,

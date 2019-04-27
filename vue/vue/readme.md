@@ -159,3 +159,7 @@ https://segmentfault.com/a/1190000012922342
 
 ### doc
 https://ustbhuangyi.github.io/vue-analysis/components/patch.html#createcomponent
+
+
+### 响应式原理
+ Vue.js 实现响应式的核心是利用了 ES5 的 Object.defineProperty，这也是为什么 Vue.js 不能兼容 IE8 及以下浏览器的原因
