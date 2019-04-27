@@ -7,10 +7,11 @@
  * @flow
  */
 
-import type {Dispatcher} from 'react-reconciler/src/ReactFiberHooks';
+import type { Dispatcher } from 'react-reconciler/src/ReactFiberHooks';
 
 /**
  * Keeps track of the current dispatcher.
+ * 跟踪当前 dispatcher
  */
 const ReactCurrentDispatcher = {
   /**

@@ -14,7 +14,7 @@ import ReactCurrentOwner from './ReactCurrentOwner';
 // 查找对象自身的属性
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-// 保留属性
+// 保留属性。 这几个属性不会出现在 React 的 this.props 对象中
 const RESERVED_PROPS = {
   key: true,
   ref: true,
@@ -116,12 +116,13 @@ function defineRefPropWarningGetter(props, displayName) {
 const ReactElement = function (type, key, ref, self, source, owner, props) {
   const element = {
     // This tag allows us to uniquely identify this as a React Element
-    // 这个标记允许我们唯一地将其标识为 React Element
+    // 这个标记允许我们唯一地将其标识为 React Element 类型的。在写 jsx 的时候所有的节点都是通过 createElement 进行创建的，那么它们的所有节点的 
+    // $$typeof 永远都是 REACT_ELEMENT_TYPE， React 渲染的时候经常会用到
     $$typeof: REACT_ELEMENT_TYPE,
 
     // Built-in properties that belong on the element
     // 属于 element 的内置属性
-    type: type,
+    type: type, // 原生组件、 class component or function component or 其他 React 提供的内置的组件
     key: key,
     ref: ref,
     props: props,
@@ -163,7 +164,10 @@ const ReactElement = function (type, key, ref, self, source, owner, props) {
       writable: false,
       value: source,
     });
+    // Object.freeze() 方法可以冻结一个对象。一个被冻结的对象再也不能被修改；冻结了一个对象则不能向这个对象添加新的属性，
+    // 不能删除已有属性，不能修改该对象已有属性的可枚举性、可配置性、可写性，以及不能修改已有属性的值。此外，冻结一个对象后该对象的原型也不能被修改
     if (Object.freeze) {
+      // 不能修改组件的 props 和组件本身
       Object.freeze(element.props);
       Object.freeze(element);
     }
@@ -328,6 +332,8 @@ export function createElement(type, config, children) {
   // 如果 elm 只有子节点或者文字作为内容，标签上没有任何属性的话，编译出来的结果是 config === null
   // config 不等于 null 说明标签上拥有属性
   if (config != null) {
+    // TODO: react ref and key
+    // 读取有没有合法的 ref 和 key
     if (hasValidRef(config)) {
       ref = config.ref;
     }
@@ -338,12 +344,13 @@ export function createElement(type, config, children) {
     self = config.__self === undefined ? null : config.__self;
     source = config.__source === undefined ? null : config.__source;
     // Remaining properties are added to a new props object
-    // 剩余的属性被添加到一个新的props对象中
+    // 剩余的属性被添加到一个新的 props 对象中. 处理 config 中剩下的的属性，判断是否属于内建的属性
     for (propName in config) {
       if (
         hasOwnProperty.call(config, propName) &&
         !RESERVED_PROPS.hasOwnProperty(propName)
       ) {
+        // 内建 props 不会被处理  
         props[propName] = config[propName];
       }
     }
@@ -369,14 +376,21 @@ export function createElement(type, config, children) {
         Object.freeze(childArray);
       }
     }
+    // 放置在 this.props.children 中能够读取子节点
     props.children = childArray;
   }
 
+  // 当然这里的前提是 type 是一个 Component
   // Resolve default props
+  // class Comp extends React.Component
+  // Comp.defaultProps = { value: 1}
+  // 设置一些默认值.  如果组件被使用的时候没有设置 value 的话，就会使用 defaultProps 设置的默认值，作为 this.props.value 拿到的值
   if (type && type.defaultProps) {
     const defaultProps = type.defaultProps;
     for (propName in defaultProps) {
       if (props[propName] === undefined) {
+        // 如果没有传某一个 propName 就在上面处理过的 props 上面扩展 defaultProps 的属性
+        // 当然如果 prop 传了 null 也是不需要处理成默认值的情况
         props[propName] = defaultProps[propName];
       }
     }

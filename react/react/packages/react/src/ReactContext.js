@@ -14,6 +14,11 @@ import type { ReactContext } from 'shared/ReactTypes';
 import warningWithoutStack from 'shared/warningWithoutStack';
 import warning from 'shared/warning';
 
+// @note: React 中组件与组件之间的沟通是通过 props 如果是父子组件关系，属性就可以通过 props 传递下去。但是如果存在父组件与最底层的子组件存在属性关联
+// 一层一层传递 props 就变得很冗余，传一些中间组件不使用的 props 是完全没有意义的事情。而且中间层级的组件也不一定是同一个开发者编码的。
+
+// context 属性是只要父组件提供了这个对象之后地下渲染的所有子组件都能够通过 context 对象来获取提供的内容，来达到跨越多层组件的功能。
+
 export function createContext<T>(
   defaultValue: T,
   calculateChangedBits: ?(a: T, b: T) => number,

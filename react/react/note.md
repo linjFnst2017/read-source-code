@@ -30,3 +30,10 @@ React.createElement("div", {id: 'app'}, null)
 ```
 
 jsx babel 当前的插件当前是通过判断标签的首字母是否是大写来选择编译成组件（变量）还是字符串的， 如果是字符串的话，react 会认为是一个原生的 dom 节点，如果找不到这个节点的话，react 就会报错，所以自定义的组件必须大写开头。
+
+
+### Context
+跨越多层组件实现传递信息的功能。
+有两个 api:
+- childContextType 老的 api React 17 废弃这个 api
+- createContext React 16 之后提供的
