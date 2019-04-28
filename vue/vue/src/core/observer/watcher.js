@@ -231,6 +231,7 @@ export default class Watcher {
       // 在 nextTick 后才会真正执行 watcher 的回调函数。而设置了 sync = true ，就可以在当前 Tick 中同步执行 watcher 的回调函数
       this.run()
     } else {
+      // 一般来说是执行到这里，因为 lazy 和 sync 默认都是不传的
       // 异步推送到观察者队列中，由调度者调用。
       queueWatcher(this)
     }
