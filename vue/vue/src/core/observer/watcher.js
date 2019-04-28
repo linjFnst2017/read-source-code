@@ -84,10 +84,11 @@ export default class Watcher {
     this.active = true
     this.dirty = this.lazy // for lazy watchers
 
-    // 用来实现避免收集重复依赖，移除无用依赖的功能
+    // 用来实现避免收集重复依赖，移除无用依赖的功能。this.deps 和 this.newDeps 表示 Watcher 实例持有的 Dep 实例的数组
+    // newDeps 表示新添加的 Dep 实例数组，而 deps 表示上一次添加的 Dep 实例数组。
     this.deps = []
     this.newDeps = []
-    // 用来实现避免收集重复依赖，移除无用依赖的功能
+    // 用来实现避免收集重复依赖，移除无用依赖的功能。this.depIds 和 this.newDepIds 分别代表 this.deps 和 this.newDeps 的 id Set
     this.depIds = new Set()
     this.newDepIds = new Set()
 
@@ -129,6 +130,7 @@ export default class Watcher {
     //  `Dep` 类拥有一个静态属性，即 `Dep.target` 属性，该属性的初始值为 `null`，其实 `pushTarget` 函数的作用就是用来为 `Dep.target` 属性赋值的，
     // `pushTarget` 函数会将接收到的参数赋值给`Dep.target` 属性， `Dep.target` 保存着一个观察者对象，其实这个观察者对象就是即将要收集的目标
     // 将自身 watcher 实例设置给 Dep.target，用以依赖收集。
+    // 每次 new Watcher 的时候构造函数一般都会执行 this.get() 会在这里进行依赖收集。  Dep.target 赋值为当前的渲染 watcher 并压栈。
     pushTarget(this)
     let value
     const vm = this.vm
@@ -138,6 +140,8 @@ export default class Watcher {
     // 通过获取 Dep.target 的值 push 到 Dep 实例中的 subs 数组中，而这个 Dep 实例在 getter 执行完了之后依然存在，还需要在 setter 函数中被 notify
     try {
       // 这个函数的执行就意味着对被观察目标的求值， 对被观察目标的求值才得以触发数据属性的 `get` 拦截器函数
+      // mountComponent 函数中 new Watcher 时传入的 getter 是 updateComponent 函数。 vm._update(vm._render(), hydrating)
+      // vm._render() 方法会生成 渲染 VNode，并且在这个过程中会对 vm 上的数据访问，这个时候就触发了数据对象的 getter。
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -153,7 +157,7 @@ export default class Watcher {
         // 递归每一个对象或者数组，触发它们的 getter，使得对象或数组的每一个成员都被依赖收集，形成一个“深（deep）”依赖关系
         traverse(value)
       }
-      // 清空当前这个临时存储的表达式（其实是 render 函数）
+      // 清空当前这个临时存储的表达式（其实是 render 函数） 额 其实不是，target 值应该是一个 watcher
       popTarget()
       this.cleanupDeps()
     }
@@ -172,6 +176,7 @@ export default class Watcher {
       this.newDepIds.add(id)
       this.newDeps.push(dep)
       if (!this.depIds.has(id)) {
+        // 把当前的 watcher 订阅到这个数据持有的 dep 的 subs 中，这个目的是为后续数据变化时候能通知到哪些 subs 做准备。
         dep.addSub(this)
       }
     }
@@ -184,6 +189,7 @@ export default class Watcher {
     // 移除所有观察者对象
     let i = this.deps.length
     while (i--) {
+      // 查看旧的依赖数组中有没有当前这次添加依赖时 已经不存在的依赖，有的话就把 dep 的需要通知的订阅者数组中（即 dep.subs）去掉当前这个 watcher， 简单理解就是不需要再通知这个订阅者了。
       const dep = this.deps[i]
       if (!this.newDepIds.has(dep.id)) {
         dep.removeSub(this)
@@ -192,10 +198,12 @@ export default class Watcher {
     let tmp = this.depIds
     this.depIds = this.newDepIds
     this.newDepIds = tmp
+    // clear() 方法用来清空一个 Set 对象中的所有元素。
     this.newDepIds.clear()
     tmp = this.deps
     this.deps = this.newDeps
     this.newDeps = tmp
+    // 数组的清空方式
     this.newDeps.length = 0
   }
 
