@@ -4,6 +4,7 @@ import config from '../config'
 import { warn } from './debug'
 import { inBrowser, inWeex } from './env'
 
+// 捕获错误
 export function handleError(err: Error, vm: any, info: string) {
   if (vm) {
     let cur = vm

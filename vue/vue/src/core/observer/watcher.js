@@ -74,12 +74,12 @@ export default class Watcher {
     // options。 例如 lifecycle.js 中的 mountComponent 函数，new Watcher 的时候传的 options 是一个包含 before 函数的对象
     if (options) {
       // 用来告诉当前观察者实例对象是否是深度观测
-      this.deep = !!options.deep
+      this.deep = !!options.deep // deep watcher 深度监听器。
       // 用来标识当前观察者实例对象是 **开发者定义的** 还是 **内部定义的**
-      this.user = !!options.user
+      this.user = !!options.user // user watcher 用户自定义的监听器，通过 Vue.$watch 或者 this.$watch 来调用，侦听属性适用于观测某个值的变化去完成一段复杂的业务逻辑。
       // 用来告诉观察者当数据变化时是否同步求值并执行回调
-      this.lazy = !!options.lazy
-      this.sync = !!options.sync
+      this.lazy = !!options.lazy // computed watcher 计算监听器的 lazy 是 true
+      this.sync = !!options.sync // sync watcher 同步监听器，可以直接在当前的 tick 就执行订阅者的 update 函数。
       // 可以理解为 `Watcher` 实例的钩子，当数据变化之后，触发更新之前，调用在创建渲染函数的观察者实例对象时传递的 `before` 选项
       this.before = options.before
     } else {
@@ -109,7 +109,7 @@ export default class Watcher {
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
-      // TODO: 看起来这里的场景应该是适用于 this.$watch 函数来监听的情况
+      // 这里的场景应该是适用于 this.$watch 函数来监听的情况
       // 通过 path =》 string 表达式来获取 this 中的值， `this.getter` 函数终将会是一个函数
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
@@ -226,8 +226,9 @@ export default class Watcher {
       // dirty 翻译为“已更新”。 只有当下次再访问这个计算属性的时候才会重新求值。
       this.dirty = true
     } else if (this.sync) {
-      // TODO: 
       // 同步则执行run直接渲染视图
+      // 当响应式数据发送变化后，触发了 watcher.update() ，只是把这个 watcher 推送到一个队列中，
+      // 在 nextTick 后才会真正执行 watcher 的回调函数。而设置了 sync = true ，就可以在当前 Tick 中同步执行 watcher 的回调函数
       this.run()
     } else {
       // 异步推送到观察者队列中，由调度者调用。

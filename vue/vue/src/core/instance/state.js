@@ -364,9 +364,13 @@ function initMethods(vm: Component, methods: Object) {
   }
 }
 
+// 侦听属性的初始化
 function initWatch(vm: Component, watch: Object) {
   for (const key in watch) {
+    // watch 对象中的处理器，可以是函数，也可以是一个对象
     const handler = watch[key]
+    //  Vue 是支持 watch 的同一个 key 对应多个 handler
+    // 判断为数组的是为了 mixin watch 的场景，当然其实开发者自定义成数组的形式也是可以顺序执行处理函数的。
     if (Array.isArray(handler)) {
       for (let i = 0; i < handler.length; i++) {
         createWatcher(vm, key, handler[i])
@@ -384,10 +388,12 @@ function createWatcher(
   handler: any,
   options?: Object
 ) {
+  // 普通对象需要包含 handler 函数
   if (isPlainObject(handler)) {
     options = handler
     handler = handler.handler
   }
+  // 如果是一个字符串的话，是调用 vm 上的函数的缩写。
   if (typeof handler === 'string') {
     handler = vm[handler]
   }
@@ -437,22 +443,31 @@ export function stateMixin(Vue) {
   // 侦听属性
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
-    cb: any,
+    cb: any, // handler 处理函数
     options?: Object
   ): Function {
     const vm: Component = this
-    // TODO: 这里的情况是否是 Vue 内部的侦听属性 ？
+    // 这里之所以要这么写是因为 $watch 这个 api 可以被开发者自行调用， cb 可以传函数也可以穿对象（需要包含 handler 函数），
+    // 如果是一个对象的话，就调用 createWatcher 函数，主要是处理一下 cb 的形式转化成函数形式， 最终还是返回来调用  $watch 
     if (isPlainObject(cb)) {
       return createWatcher(vm, expOrFn, cb, options)
     }
     options = options || {}
     // 用户自定义的侦听属性
     options.user = true
+    // 创建一个订阅者，表达式（string 为多， 通过 this.[expOrFn] 这样的形式来获取）触发 get 函数（我理解只能监听 data props 以及 computed 中的属性）
+    // 有依赖改变的话，就执行 cb 回调
     const watcher = new Watcher(vm, expOrFn, cb, options)
+    // immediate 立即执行。
     if (options.immediate) {
+      // 不等依赖改变的时候就立即执行回调
       cb.call(vm, watcher.value)
     }
+    // 返回的
     return function unwatchFn() {
+      // 删除当前订阅者的依赖信息。包括两个步骤： 
+      // 1. 删除声明当前订阅者的 vm 实例中的订阅者队列中的自身。 
+      // 2. 遍历自身依赖队列 deps 中每一个 dep 的订阅者队列，删除自身这个订阅者，意思是以后那个表达式中依赖的数据改变了之后不需要通知我了。
       watcher.teardown()
     }
   }
