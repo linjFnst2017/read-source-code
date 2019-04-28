@@ -40,10 +40,11 @@ methodsToPatch.forEach(function (method) {
     // 先需要执行缓存的旧的变异方法
     const result = original.apply(this, args)
     // 无论是数组还是对象，都将会被定义一个 __ob__ 属性， 并且 __ob__.dep 中收集了所有该对象(或数组)的依赖(观察者)。
-    // 数组新插入的元素需要重新进行observe才能响应式， __ob__ 值就是一个 Observer 实例
+    // 数组新插入的元素需要重新进行 observe 才能响应式， __ob__ 值就是一个 Observer 实例. 
+    // 说明数组本来是已经被观察了的。
     const ob = this.__ob__
     // 新增加的元素是非响应式的，所以我们需要获取到这些新元素，并将其变为响应式数据才行
-    // inserted 变量中所保存的就是新增的数组元素
+    // inserted 变量中所保存的就是新增的数组元素。 下面的操作结果都是一个数组。
     let inserted
     switch (method) {
       case 'push':
@@ -56,12 +57,22 @@ methodsToPatch.forEach(function (method) {
         inserted = args.slice(2)
         break
     }
-    // 数组值被观察， ob 是一个观察者，用于观察整个数组的所有成员的方法(observeArray) 和用于观察一个对象的所有属性的方法 (walk)
+    // 插入数组的新值被 observe 观察（声明成响应式）， ob 是一个观察者，用于观察整个数组的所有成员的方法(observeArray) 和用于观察一个对象的所有属性的方法 (walk)
     // 数组 inserted 有值的话，就说明对数组添加了新成员，新的成员的内容需要被观察。 args 在这里简单理解为就是参数组成的数组吧。
     if (inserted) ob.observeArray(inserted)
     // 观察者 ob 中的 dep 是一个记录依赖信息的容器
     // notify change 通知依赖改变了， 当调用数组变异方法时，必然修改了数组，所以这个时候需要将该数组的所有依赖(观察者)全部拿出来执行
+    // 这个 ob 是观察当前这个数组的，暂且就称之为 array,因此 ob 的 dep 容器中存储的是 get 了当前 array 以及 array 的成员的值， 因此这里 array 发生了改变
+    // （调用这些变异了的数组的方法之后）就通知一下订阅者，array 改变了。
     ob.dep.notify()
     return result
   })
 })
+
+
+// Vue 中数组不能被监听的两种情况：
+// 1. 直接通过下标修改数组成员的值。
+// 2. 直接通过 length 试图修改数组的长度。
+// 因为 Vue 没有办法通过 hack 上面两种情况。解决办法也是有的，通过调用变异过的方法就可以了：
+// 对于第一种情况，可以使用：Vue.set(example1.items, indexOfItem, newValue) ；
+// 而对于第二种情况，可以使用 vm.items.splice(newLength)

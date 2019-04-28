@@ -70,6 +70,7 @@ export class Observer {
       // 数组实际也是一个对象，它的 __proto__ 指向了数组的原型链 arr.__proto__ === Array.prototype
       // 而数组的原生方法入 push pop 等都是挂载在原型链上的。
       const augment = hasProto
+        // 大部分现代浏览器都会走到 protoAugment
         // hasProto 是用来检测当前环境是否支持 __proto__ 属性，这个属性仅在 ie11 以上才开始支持
         // ie 中不支持直接进行修改上级的属性 __proto__ 因为这不是标准方法，标准方法是 Object.getPrototypeOf()
         // 直接覆盖原型的方法来修改目标对象
@@ -96,7 +97,7 @@ export class Observer {
     const keys = Object.keys(obj)
     // walk方法会遍历对象的每一个属性进行defineReactive绑定
     for (let i = 0; i < keys.length; i++) {
-      // 定义响应式函数
+      // 定义响应式函数. 在 obj 上将所有的属性都声明成响应式。此时已经有 obj.__ob__  === Observer 实例
       defineReactive(obj, keys[i])
     }
   }
@@ -104,9 +105,12 @@ export class Observer {
   /**
    * Observe a list of Array items.
    * 观察数组
+   * items 是一个数组，它自身的 __ob__ 是在上一层循环的时候就被添加上了。而这里的 observeArray 最主要的工作是寻找 items 的成员中是否有对象或者数组
+   * 有的话就声明成响应式，否则的话几乎什么都不用做。
    */
   observeArray(items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
+      // 返回值是一个 __ob__。 
       observe(items[i])
     }
   }
@@ -147,6 +151,8 @@ function copyAugment(target: Object, src: Object, keys: Array<string>) {
 // Vue的响应式数据都会有一个__ob__的属性作为标记，里面存放了该属性的观察器，也就是Observer的实例，防止重复绑定。
 // 尝试创建一个Observer实例（__ob__），如果成功创建Observer实例则返回新的Observer实例，如果已有Observer实例则返回现有的Observer实例
 export function observe(value: any, asRootData: ?boolean): Observer | void {
+  // vnode 对象当然不能去观察，因为这里是观察跟渲染有关、或者是开发者主动 watch 的对象和数组
+  // number string boolean 等这些基本类型会直接就 return 了，简单说 Vue 的 observe 只会观察数组和对象
   if (!isObject(value) || value instanceof VNode) {
     // 不是一个对象(因为是 typeof 来判断的，这里包括数组)或者是 `VNode` 实例
     return
@@ -168,12 +174,14 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
     // 不是 vue 实例
     !value._isVue
   ) {
-    // 对象没有被观察过，
-    // Observer 的作用就是遍历对象的所有属性将其进行双向绑定 ？
+    // 对象没有被观察过
+    // Observer 的作用就是遍历对象的所有属性声明成响应式的，并且返回的结果是一个 __ob__ 对象。 
+    // TODO: 挂载 __ob__ 这个属性的意义是什么？ 仅仅是为了判断是否被观察过的没必要 ？
+    // 可以理解为只要对象中拥有 __ob__ 属性的话（包含 value dep 和 vmCount）这个对象就已经被声明为响应式的了。
     ob = new Observer(value)
   }
   if (asRootData && ob) {
-    // 如果是根数据则计数，后面Observer中的observe的 asRootData 非true
+    // 如果是根数据则计数，后面 Observer 中的observe的 asRootData 非true
     ob.vmCount++
   }
   return ob
@@ -215,6 +223,7 @@ export function defineReactive(
   // shallow: true 浅观察， 也就是说不需要观察 child， childOb === undefined
   // 默认就是深度观测， val 属性如果是一个对象的话，就需要被继续观测， 但是这里 val 未必有值, 如果 val 未被定义，undefined isObject 函数判断之后不会继续执行下去
   // 深度观察的话， observe 函数返回的是 __ob__ , 即一个 Observer 实例。这里是在递归调用 observe， 为每一个值也进行观察
+  // val 如果没有传值的话，observe(undefined) 会直接返回
   let childOb = !shallow && observe(val)
 
   // const data = {
@@ -244,6 +253,7 @@ export function defineReactive(
         // 每一个数据字段都通过闭包引用着属于自己的 `dep` 常量
         // 依赖收集
         dep.depend()
+        // Vue.set 的时候通过 ob.dep.notify() 能够通知到 watcher，从而让添加新的属性到对象也可以检测到变化。
         // 子对象的 __ob__ 被返回了，包含了包含了一个 Dep 实例，其实就是将同一个watcher观察者实例放进了两个depend中，一个是正在本身闭包中的depend，另一个是子元素的depend
         if (childOb) {
           // 而第二个”筐“里收集的依赖的触发时机是在使用 `$set` 或 `Vue.set` 给数据对象添加新属性时触发
@@ -297,6 +307,8 @@ export function defineReactive(
  * 在对象上设置属性。添加新属性，并且如果属性原本是不存在的，那就更改通知机制（也就是多加一个监听器）
  */
 // target 值可以为对象或者数组， key 表示新增的属性键名， val 表示新增的属性值
+// 换一句话说，能调用 Vue.set 函数的只能是 data 的某一个属性（值为对象或者数组），不能是某个 Vue 实例或者 $data。
+// 因为必须保证 target 是有 __ob__ 属性的，所有也不能是一个用户自定义的没有被观察的对象或者数组
 export function set(target, key, val) {
   // isUndef 检查是否是 undefined 或者 null
   // isPrimitive 检查是否是原始值
@@ -307,7 +319,7 @@ export function set(target, key, val) {
     warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target)}`)
   }
 
-  // 如果 set 函数的 target 的属性是一个对象的已经存在的属性或者是一个数组已存在的下标，就直接修改 target 的值即可（将会触发 target 的 set 函数）
+  // 如果 target 是数组且 key 是一个合法的下标，则之前通过 splice 去添加进数组然后返回
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     // Math.max(...) 返回一组数里的最大值， 直接修改数组的 length 属性会修改数组的长度（变大扩展）
     target.length = Math.max(target.length, key)
@@ -315,6 +327,7 @@ export function set(target, key, val) {
     target.splice(key, 1, val)
     return val
   }
+  // 如果是一个对象的已经存在的属性，并且这个属性是 hasOwn 的，直接修改值就可以。 因为本来就是响应式的属性。 （将会触发 target 的 set 函数）
   if (key in target && !(key in Object.prototype)) {
     target[key] = val
     return val
@@ -323,7 +336,7 @@ export function set(target, key, val) {
   // key 是 target 对象的新属性
   // __ob__ 响应式对象包含的一个属性，是一个 Observer 实例， http://hcysun.me/vue-design/art/7vue-reactive.html#observer-%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0
   const ob = target.__ob__
-  // TODO: 
+  // _isVue 表明是一个 Vue 实例，不能为 Vue 实例上新添加属性。并且只有根实例 $data 的 __ob__.vmCount 才不是 0
   if (target._isVue || (ob && ob.vmCount)) {
     process.env.NODE_ENV !== 'production' && warn(
       // 避免在运行时向 Vue 实例或其根 $data 添加反应性属性——在data选项中预先声明它
@@ -332,13 +345,15 @@ export function set(target, key, val) {
     )
     return val
   }
-  // TODO: 不是响应式对象了啊 ？？？
+  // __ob__ 不存在的话，说明 target 不是一个响应式的对象，则直接赋值并返回。
   if (!ob) {
     target[key] = val
     return val
   }
+  // （保证当前的 target 对象是一个响应式的对象）前提下，将新增加的属性声明响应式的
   defineReactive(ob.value, key, val)
-  // 通知值被修改了
+  // ob.dep 中存放了若干调用了 target 的属性的订阅者。手动通知值被修改了。
+  // 正式因为 target 只能是被观察的对象的某一个属性，所以作为一个  childObj 能被通知更新的前提是依赖被收集了，childObj 的依赖收集是在 get 中的。
   ob.dep.notify()
   return val
 }

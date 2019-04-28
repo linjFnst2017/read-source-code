@@ -54,10 +54,11 @@ export default class Watcher {
   ) {
     // 每一个观察者实例对象都有一个 `vm` 实例属性， 该属性指明了这个观察者是属于哪一个组件的
     this.vm = vm
-    //  `isRenderWatcher` 标识着是否是渲染函数的观察者
+    //  `isRenderWatcher` 标识着是否是渲染函数的订阅者
     if (isRenderWatcher) {
       // 当前观察者实例赋值给 `vm._watcher` 属性， 组件实例的 `_watcher` 属性的值引用着该组件的渲染函数观察者
-      // vm._watcher 是专门用来监听 vm 上数据变化然后重新渲染的，所以它是一个渲染相关的 watcher
+      // vm._watcher 是专门用来监听 vm 上数据变化然后重新渲染的，所以它是一个渲染相关的 watcher。 
+      // 而 _watchers 中存储的是所有跟这个 vm 相关的订阅者， 比如 vm.$watch 用户定义了侦听了某一个属性
       vm._watcher = this
     }
     // 组件实例的 `vm._watchers` 属性是在 `initState` 函数中初始化的，其初始值是一个空数组, 存放订阅者实例
@@ -113,7 +114,7 @@ export default class Watcher {
         )
       }
     }
-    // watcher 初始化的时候会进行的依赖收集，如果不是 lazy 的话，就主动执行 this.get() 函数， 会去主动调用 this.getter() 函数来调用被观察的对象
+    // watcher 初始化的时候会进行的依赖收集，如果不是 lazy 的话（计算属性传了一个 lazy = true），就主动执行 this.get() 函数， 会去主动调用 this.getter() 函数来调用被观察的对象
     // 触发被观察对象中的 getter 中的依赖收集
     this.value = this.lazy
       ? undefined
@@ -264,7 +265,7 @@ export default class Watcher {
   /**
    * Evaluate the value of the watcher.
    * This only gets called for lazy watchers.
-   * 获取观察者的值
+   * 获取观察者的值, evaluate: 求值
    */
   evaluate() {
     this.value = this.get()
@@ -273,7 +274,7 @@ export default class Watcher {
 
   /**
    * Depend on all deps collected by this watcher.
-   * 收集该watcher的所有deps依赖
+   * 收集该 watcher 的所有 deps 依赖
    */
   depend() {
     let i = this.deps.length
