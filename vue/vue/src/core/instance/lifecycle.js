@@ -154,7 +154,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
       vm._watcher.teardown()
     }
     let i = vm._watchers.length
-    // 全部监听器都拆卸调
+    // 全部订阅者都拆卸调
     while (i--) {
       vm._watchers[i].teardown()
     }

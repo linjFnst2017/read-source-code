@@ -47,7 +47,7 @@ export function proxy(target: Object, sourceKey: string, key: string) {
 
 
 export function initState(vm: Component) {
-  // 将用来存储所有该组件实例的 `watcher` 对象
+  // 将用来存储所有该组件实例的订阅者 watcher 对象
   vm._watchers = []
   const opts = vm.$options
   // 这里能够看出 created 生命钩子函数中 props methods 以及 data 中的数据是 props 先进行初始化，再是 data 最后才是 computed 和 watch
@@ -213,11 +213,13 @@ const computedWatcherOptions = { lazy: true }
 // 计算属性挂载
 function initComputed(vm: Component, computed: Object) {
   // $flow-disable-line
+  // 
   const watchers = vm._computedWatchers = Object.create(null)
   // computed properties are just getters during SSR
-  // 计算属性只是SSR期间的getter
+  // 计算属性只是 SSR 期间的 getter。 返回是否是 ssr 
   const isSSR = isServerRendering()
 
+  // 遍历获取到每一个 userDef
   for (const key in computed) {
     const userDef = computed[key]
     // userDef.get 这样的形式是通过在 computed 中定义一个包含 set 和 get 的对象来处理的
@@ -232,15 +234,18 @@ function initComputed(vm: Component, computed: Object) {
     // 不是 ssr 的话，需要存储计算属性
     if (!isSSR) {
       // create internal watcher for the computed property.
-      // TODO: 具体是如何做到观察的？
-      // 为计算属性创建 内部 watcher
-      // 只要 getter 中依赖的值（比如说 data 中的某一个属性）发生了变化， 就会重新执行 getter 从而更新 watchers 的属性
+      // 为计算属性创建 内部 watcher。 只要 getter 中依赖的值（比如说 data 中的某一个属性）发生了变化， 就会重新执行 getter 从而更新 watchers 的属性
+      // new Watcher 传的参数的作用简单说明：
+      // vm 是为了将该订阅者挂载到 vm 实例上面；第二个参数 getter 一般是一个表达式，在 getter 中使用到的 value （其实就是 vm 的 data 或者 props 或者 computed 中的被观察过的值呗）
+      // 变化时，重新执行以下表达式；第三个参数简单理解为 watcher 的钩子函数（但是不确切，比如 before 之类的函数）；第四个参数是定义 wachter 的属性；
+      // 第五个参数 bool 标注是否是跟 render 相关的 watcher， 如果是的话，还会在 vm._watcher 赋值当前这个 watcher
       watchers[key] = new Watcher(
         vm,
         getter || noop,
         noop,
         computedWatcherOptions
       )
+      // 为每一个 getter 创建一个 watcher，这个 watcher 和渲染 watcher 有一点很大的不同，它是一个 computed watcher，
     }
 
     // component-defined computed properties are already defined on the
@@ -248,9 +253,10 @@ function initComputed(vm: Component, computed: Object) {
     // at instantiation here.
     // 组件定义的计算属性已经在组件原型上定义。我们只需要定义在实例化时定义的计算属性。
     if (!(key in vm)) {
-      // vm 实例上还没有 key 计算属性， 就挂载一个
+      // vm 实例上还没有 key 计算属性， 就挂载一个。计算属性是直接挂载在 vm 实例上面的，跟 data 不一样不是通过代理的形式。props 上的值是先响应式挂载到了 vm._props 上，再通过 proxy 代理到 vm 上。
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
+      // 判断 key 被 data 还是 props 占用并在非生产环境下发出警告
       if (key in vm.$data) {
         warn(`The computed property "${key}" is already defined in data.`, vm)
       } else if (vm.$options.props && key in vm.$options.props) {
@@ -297,14 +303,19 @@ export function defineComputed(
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
+// web 平台，shouldCache === true 需要缓存。
 function createComputedGetter(key) {
+  // computedGetter 函数是赋值到 get 函数上去的，就是计算属性对应的 getter。 也就是 target 来进行调用的，this 指向 target， 也就是当前的 vm 实例
   return function computedGetter() {
+    // vm._computedWatchers[key] 每一个计算属性的都拥有一个订阅者（毕竟每一个属性都是一个表达式，常常需要重新计算的）
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
-      // TODO: dirty
+      // 最开始的时候， watcher.dirty === watcher.lazy ，需要注意的是，计算属性的 lazy 都是 true
       if (watcher.dirty) {
+        // 但是如果调用过 watcher.evaluate() 函数之后 dirty = false
         watcher.evaluate()
       }
+      // watcher.evaluate() 会执行 watcher.get() 也就是执行以下 new watcher 传入的表达式来收集依赖。 虽然跟 Dep.target 有关，但是应该马上就处理掉了，不会影响下面的？
       // TODO: 但是我感觉这里的 Dep.target 跟这里么什么关系？ 
       // 不过我的疑问是， 计算属性的依赖确实也是需要收集的，不知道是不是在这里
       if (Dep.target) {
@@ -361,6 +372,7 @@ function initWatch(vm: Component, watch: Object) {
   }
 }
 
+// 创建订阅者
 function createWatcher(
   vm: Component,
   expOrFn: string | Function,
@@ -416,16 +428,20 @@ export function stateMixin(Vue) {
   // 实例方法
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
+
+  // 侦听属性
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
     cb: any,
     options?: Object
   ): Function {
     const vm: Component = this
+    // TODO: 这里的情况是否是 Vue 内部的侦听属性 ？
     if (isPlainObject(cb)) {
       return createWatcher(vm, expOrFn, cb, options)
     }
     options = options || {}
+    // 用户自定义的侦听属性
     options.user = true
     const watcher = new Watcher(vm, expOrFn, cb, options)
     if (options.immediate) {
