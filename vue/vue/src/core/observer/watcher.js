@@ -209,6 +209,7 @@ export default class Watcher {
       // 同步则执行run直接渲染视图
       this.run()
     } else {
+      // 一般来说是执行到这里，因为 lazy 和 sync 默认都是不传的
       // 异步推送到观察者队列中，由调度者调用。
       queueWatcher(this)
     }

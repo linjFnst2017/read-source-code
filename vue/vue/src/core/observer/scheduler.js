@@ -129,6 +129,8 @@ function callActivatedHooks(queue) {
 /**
  * 将一个 watcher 推入 watcher 队列。
  * 具有重复id的 任务 将被跳过，除非在刷新队列时推送它。
+ * 引入了一个队列的概念, 是 Vue 在做派发更新的时候的一个优化的点，它并不会每次数据改变都触发 watcher 的回调，
+ * 而是把这些 watcher 先添加到一个队列里，然后在 nextTick 后执行 flushSchedulerQueue
  */
 export function queueWatcher(watcher) {
   // 获取watcher的id
@@ -156,6 +158,7 @@ export function queueWatcher(watcher) {
     }
     // queue the flush
     // waiting 默认 false
+    // waiting 保证对 nextTick(flushSchedulerQueue) 的调用逻辑只有一次
     if (!waiting) {
       waiting = true
 
@@ -163,6 +166,7 @@ export function queueWatcher(watcher) {
         flushSchedulerQueue()
         return
       }
+      // 对于 watcher 按照一定额规则进行排序之后在进行渲染，因为需要满足首先渲染父组件、再渲染子组件，不然父组件渲染完成之后 子组件又需要经历重新渲染
       nextTick(flushSchedulerQueue)
     }
   }
