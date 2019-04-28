@@ -33,6 +33,10 @@ export default class Dep {
     // 静态 target 对象。 依赖收集是收集到 target 上的，也就是当前自身 new 出来的一个 watcher 上
     // Dep.target 值是一个 watcher ，是 dep 实例的储存容器（数组）
     if (Dep.target) {
+      // 可以理解为当前依赖收集是哪一个订阅者的 getter 函数执行而触发的，Dep.target 的值就是哪一个订阅者
+      // 也就是说，一个订阅者被实例化或者主动执行 evaluate 函数的订阅者，首先会将 Object.defineProperty 函数闭包中的 dep 添加到
+      // 自身的 newDepIds 和 newDeps 中（如果已经有了那就不添加了），简单说就是在订阅者中记录依赖了哪一个值。紧接着，这个 dep 会将当前
+      // 的订阅者加入到订阅者队列 subs 中，用于之后 set 函数中通知依赖当前这个属性的所有订阅者。
       Dep.target.addDep(this)
     }
   }

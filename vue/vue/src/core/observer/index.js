@@ -294,7 +294,7 @@ export function defineReactive(
       }
       // 新的值需要重新进行observe，保证数据响应式。 这里不管有没有添加属性都执行 observe ，因为如果属性存在 __ob__ 即被观察着的话，反正直接返回的 __ob__ 的
       childOb = !shallow && observe(newVal)
-      // dep对象通知所有的观察者
+      // dep对象通知所有的观察者。 就是遍历当前依赖的订阅者队列中执行订阅者的 update 函数
       dep.notify()
     }
   })

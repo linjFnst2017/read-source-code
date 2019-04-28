@@ -310,14 +310,19 @@ function createComputedGetter(key) {
     // vm._computedWatchers[key] 每一个计算属性的都拥有一个订阅者（毕竟每一个属性都是一个表达式，常常需要重新计算的）
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
+      // 对于计算属性 lazy = true 在 new Watcher 的构造函数中不会去执行 this.get() 来计算 value 值，而是在
       // 最开始的时候， watcher.dirty === watcher.lazy ，需要注意的是，计算属性的 lazy 都是 true
       if (watcher.dirty) {
         // 但是如果调用过 watcher.evaluate() 函数之后 dirty = false
+        // 执行到 this.get() 函数的时候会将 this 赋值给 Dep.target, this 也就是这个 watcher. 并且接下来会继续执行 this.getter 函数
+        // 如果计算属性的表达式中有 this.data.xx 类似的值，触发 data 属性的 get 函数，属性将自身 Object.defineProperty 函数闭包中的 dep 依赖添加到当前的 watcher 中，完成依赖收集。
+        // 仔细想想有没有道理？ 每一个响应式的对象 Object.defineProperty 函数闭包中的 dep 需要被每一个订阅者都储存，这样
         watcher.evaluate()
       }
-      // watcher.evaluate() 会执行 watcher.get() 也就是执行以下 new watcher 传入的表达式来收集依赖。 虽然跟 Dep.target 有关，但是应该马上就处理掉了，不会影响下面的？
-      // TODO: 但是我感觉这里的 Dep.target 跟这里么什么关系？ 
-      // 不过我的疑问是， 计算属性的依赖确实也是需要收集的，不知道是不是在这里
+      // watcher.evaluate() 会执行 watcher.get() 也就是执行以下 new watcher 传入的表达式来收集依赖。
+      // 如果在 render 函数中使用了计算属性，那么此时的 target 值是渲染订阅者 watcher（即这个订阅者的表达式是 updateComponent 函数，跟视图渲染有管的）
+      // 那么就收集依赖；
+      // Dep.target 的值 computed watcher. 是一个计算属性依赖的值变化的时候，重新计算计算属性并缓存的订阅者。
       if (Dep.target) {
         watcher.depend()
       }

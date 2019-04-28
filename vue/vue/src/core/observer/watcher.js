@@ -21,6 +21,13 @@ let uid = 0
  * A watcher parses an expression, collects dependencies,
  * and fires callback when the expression value changes.
  * This is used for both the $watch() api and directives.
+ * 订阅者中的 this.get() 函数总共出现了三次，第一次是在构造函数中，this.lazy !== false 的情况下直接就执行；第二次是 evaluate 函数被订阅者主动调用；
+ * 第三次是订阅者的 run() 函数中。
+ * 其中第一次和第二次 this.get() 执行都是为了执行订阅者初始化时传入的表达式(expOrFn, 可能是 render 函数，也可能是计算属性表达式，或者其他都不一定)，从而触发响应式
+ * 属性定义好的 get 函数，达到依赖收集的目的。需要注意的是， Dep.target 的值每次都会是因执行表达式而触发当前这个响应式属性的 get 函数企图完成依赖收集的订阅者本身，
+ * 所以每次依赖收集的过程，是 dep 和 watcher 互相记录的过程：在订阅者的依赖队列中 (newDeps, newDepIds) 中加入当前的 dep ,在 dep 中的订阅者队列 (subs) 中加入
+ * 当前的 watcher 用于通知重新计算或者渲染。
+ * 订阅者的依赖队列中 (newDeps, newDepIds) 我理解是订阅的关系是会改变的，可能中间某个时刻就不订阅了，那就要把 dep 的订阅者队列中去掉改 watcher
  */
 export default class Watcher {
   vm: Component;
@@ -83,6 +90,7 @@ export default class Watcher {
     this.id = ++uid // uid for batching
     // 标识着该观察者实例对象是否是激活状态
     this.active = true
+    // 情况1： 计算属性 lazy = dirty = true 赋予 dirty 初始值为 true
     this.dirty = this.lazy // for lazy watchers
 
     // 用来实现避免收集重复依赖，移除无用依赖的功能。this.deps 和 this.newDeps 表示 Watcher 实例持有的 Dep 实例的数组
@@ -212,9 +220,13 @@ export default class Watcher {
    * 当依赖项发生更改时，将调用订阅者接口
    */
   update() {
+    // lazy 为 true 的情况是，计算属性没有被 render 函数使用过，也就是没有触发计算属性通过 Object.defineProperty 定义的 set 函数（主动执行 evaluate 函数）
+    // 那么此时的 lazy 还是 true ，执行过的话就是 lazy false 了。
     if (this.lazy) {
+      // dirty 翻译为“已更新”。 只有当下次再访问这个计算属性的时候才会重新求值。
       this.dirty = true
     } else if (this.sync) {
+      // TODO: 
       // 同步则执行run直接渲染视图
       this.run()
     } else {
