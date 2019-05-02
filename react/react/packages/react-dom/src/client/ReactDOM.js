@@ -549,9 +549,11 @@ function legacyRenderSubtreeIntoContainer(
 
   // TODO: Without `any` type, Flow says "Property cannot be accessed on any
   // member of intersection type." Whyyyyyy.
+  // _reactRootContainer 第一次渲染的时候， dom 节点上肯定不存在这个属性
   let root: Root = (container._reactRootContainer: any);
+  // 首次渲染逻辑
   if (!root) {
-    // Initial mount
+    // Initial mount。 挂载 _reactRootContainer 属性
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       forceHydrate,
@@ -610,6 +612,7 @@ function createPortal(
   return createPortalImpl(children, container, null, key);
 }
 
+// 定义了一个 ReactDOM 对象，里面的 render 方法就是实际渲染用的
 const ReactDOM: Object = {
   createPortal,
 
@@ -669,8 +672,11 @@ const ReactDOM: Object = {
     );
   },
 
+  // 实际的渲染方法
   render(
+    // 比如最常见的 <App />
     element: React$Element<any>,
+    // 挂载的 dom 节点
     container: DOMContainer,
     callback: ?Function,
   ) {
