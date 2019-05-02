@@ -13,7 +13,7 @@ import {
   REACT_PORTAL_TYPE,
 } from 'shared/ReactSymbols';
 
-import {isValidElement, cloneAndReplaceKey} from './ReactElement';
+import { isValidElement, cloneAndReplaceKey } from './ReactElement';
 import ReactDebugCurrentFrame from './ReactDebugCurrentFrame';
 
 const SEPARATOR = '.';
@@ -31,7 +31,7 @@ function escape(key) {
     '=': '=0',
     ':': '=2',
   };
-  const escapedString = ('' + key).replace(escapeRegex, function(match) {
+  const escapedString = ('' + key).replace(escapeRegex, function (match) {
     return escaperLookup[match];
   });
 
@@ -165,8 +165,8 @@ function traverseAllChildrenImpl(
           warning(
             didWarnAboutMaps,
             'Using Maps as children is unsupported and will likely yield ' +
-              'unexpected results. Convert it to a sequence/iterable of keyed ' +
-              'ReactElements instead.',
+            'unexpected results. Convert it to a sequence/iterable of keyed ' +
+            'ReactElements instead.',
           );
           didWarnAboutMaps = true;
         }
@@ -255,7 +255,7 @@ function getComponentKey(component, index) {
 }
 
 function forEachSingleChild(bookKeeping, child, name) {
-  const {func, context} = bookKeeping;
+  const { func, context } = bookKeeping;
   func.call(context, child, bookKeeping.count++);
 }
 
@@ -286,7 +286,7 @@ function forEachChildren(children, forEachFunc, forEachContext) {
 }
 
 function mapSingleChildIntoContext(bookKeeping, child, childKey) {
-  const {result, keyPrefix, func, context} = bookKeeping;
+  const { result, keyPrefix, func, context } = bookKeeping;
 
   let mappedChild = func.call(context, child, bookKeeping.count++);
   if (Array.isArray(mappedChild)) {
@@ -298,10 +298,10 @@ function mapSingleChildIntoContext(bookKeeping, child, childKey) {
         // Keep both the (mapped) and old keys if they differ, just as
         // traverseAllChildren used to do for objects as children
         keyPrefix +
-          (mappedChild.key && (!child || child.key !== mappedChild.key)
-            ? escapeUserProvidedKey(mappedChild.key) + '/'
-            : '') +
-          childKey,
+        (mappedChild.key && (!child || child.key !== mappedChild.key)
+          ? escapeUserProvidedKey(mappedChild.key) + '/'
+          : '') +
+        childKey,
       );
     }
     result.push(mappedChild);
@@ -335,6 +335,7 @@ function mapIntoWithKeyPrefixInternal(children, array, prefix, func, context) {
  * @param {function(*, int)} func The map function.
  * @param {*} context Context for mapFunction.
  * @return {object} Object containing the ordered map of results.
+ * React.Children.map 函数最终返回的是扁平化被展开的一维数组。
  */
 function mapChildren(children, func, context) {
   if (children == null) {

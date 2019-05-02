@@ -14,6 +14,7 @@ import warning from 'shared/warning';
 import ReactCurrentDispatcher from './ReactCurrentDispatcher';
 
 function resolveDispatcher() {
+  // ReactCurrentDispatcher 是一个全局的类，current 是 react-dom 进行设置的
   const dispatcher = ReactCurrentDispatcher.current;
   invariant(
     dispatcher !== null,
@@ -135,3 +136,29 @@ export function useDebugValue(value: any, formatterFn: ?(value: any) => any) {
     return dispatcher.useDebugValue(value, formatterFn);
   }
 }
+
+// // hooks demo
+// // 简单说 hooks 就是让 functional component 有很多 class component 拥有的行为，包括内置的状态，以及“生命周期函数”
+// import React, { useState, useEffect } from 'react';
+// // 函数式组件没有 this 。 hooks 给与了 functional component 一些只有在 class component 才有的能力。
+// // 但是 hooks 的出现并不是为了让 functional component 替代 class component ，而是为了能够拆分组件内部的逻辑，提出出来给更多的组件进行复用。
+// // 
+// // useState 函数给了一个默认值，返回值是一个数组，第一个参数被赋予了默认值，第二个参数是改变第一个参数值的方法
+// export default () => {
+//   const [name, setName] = useState('yiliang')
+//   // useEffect 给与了 functional component 生命周期方法，每一次组件内容更新时都会调用 useEffect 传入的回调函数
+//   // useEffect 不区分 mounted 和 updated， mounted 的时候也是执行 useEffect 中的回调函数
+//   useEffect(() => {
+//     console.log('component updated')
+
+//     // 每次执行之后都会清除上一次的状态
+//     return () => {
+//       console.log('unbind')
+//     }
+//     // 如果这里传入一个空数组的话，就只有在组件销毁的时候执行一次，updated 的时候就不执行了。
+//   }, [])
+//   return (
+//     <p>my name is {name}</p>
+//     <input type="text" value={name} onChange={e => setName(e.target.value)} />
+//   )
+// }

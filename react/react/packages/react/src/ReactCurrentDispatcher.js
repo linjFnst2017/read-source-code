@@ -17,7 +17,8 @@ const ReactCurrentDispatcher = {
   /**
    * @internal
    * @type {ReactComponent}
-   */
+  */
+  // 当前正在渲染的节点实例
   current: (null: null | Dispatcher),
 };
 

@@ -425,6 +425,7 @@ export function createElement(type, config, children) {
  * See https://reactjs.org/docs/react-api.html#createfactory
  */
 export function createFactory(type) {
+  // 绑定一个节点之后返回，比如需要创建很多 p 标签，createFactory 先创建一个 p 标签的 factory ，之后创建 p 标签时就不再需要传 type 了。。
   const factory = createElement.bind(null, type);
   // Expose the type on the factory and the prototype so that it can be
   // easily accessed on elements. E.g. `<Foo />.type === Foo`.
@@ -452,6 +453,7 @@ export function cloneAndReplaceKey(oldElement, newKey) {
 /**
  * Clone and return a new ReactElement using element as the starting point.
  * See https://reactjs.org/docs/react-api.html#cloneelement
+ * 整体的过程跟 createElement 差不多，只不过是传入了一个 element ，将 props 之类的属性都复制出了一份
  */
 export function cloneElement(element, config, children) {
   invariant(
@@ -463,9 +465,11 @@ export function cloneElement(element, config, children) {
   let propName;
 
   // Original props are copied
+  // 复制 props 内容
   const props = Object.assign({}, element.props);
 
   // Reserved names are extracted
+  // 保留 key 和 ref
   let key = element.key;
   let ref = element.ref;
   // Self is preserved since the owner is preserved.
