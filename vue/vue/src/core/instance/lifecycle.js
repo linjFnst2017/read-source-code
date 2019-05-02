@@ -67,7 +67,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
     // $el 是获取之前（当前）渲染的 dom 节点和 _vnode 节点 （也就是一个真实的节点，一个虚拟节点）
     // $el 在执行这个函数的时候应该是 undefined 吧， 后来在 mountComponent 函数中 $el 被赋值为 el 挂载的节点
     const prevEl = vm.$el
-    // TODO: _vnode 最早是什么时候挂载的. 感觉上应该是还没更新 dom 对应的 vnode， 也就是旧的 vnode 节点，接下来需要跟传参 vnode 进行 diff 之后才能 patch
+    // 是还没更新 dom 对应的 vnode， 也就是旧的 vnode 节点，接下来需要跟传参 vnode 进行 diff 之后才能 patch
     const prevVnode = vm._vnode
     // 这个 `activeInstance` 作用就是保持当前上下文的 Vue 实例，它是在 `lifecycle` 模块的全局变量
     // 当前的 `vm` 赋值给 `activeInstance`，同时通过 `const prevActiveInstance = activeInstance` 用 `prevActiveInstance` 保留上一次的 `activeInstance`
@@ -310,6 +310,7 @@ export function mountComponent(
   return vm
 }
 
+// 更新 child 组件
 export function updateChildComponent(
   vm: Component,
   propsData: ?Object,
@@ -324,29 +325,35 @@ export function updateChildComponent(
 
   // determine whether component has slot children
   // we need to do this before overwriting $options._renderChildren
+  // 重写 $options._renderChildren 之前需要确组件是否有 slots 子节点
   const hasChildren = !!(
-    renderChildren ||               // has new static slots
-    vm.$options._renderChildren ||  // has old static slots
-    parentVnode.data.scopedSlots || // has new scoped slots
-    vm.$scopedSlots !== emptyObject // has old scoped slots
+    renderChildren ||               // has new static slots 新的静态插槽
+    vm.$options._renderChildren ||  // has old static slots 旧的静态插槽
+    parentVnode.data.scopedSlots || // has new scoped slots 新的范围插槽
+    vm.$scopedSlots !== emptyObject // has old scoped slots 旧的范围插槽
   )
 
   // 在 options 参数上挂载一个”私有的“ 父虚拟节点， 后面蛮多地方要用的
   vm.$options._parentVnode = parentVnode
+  // 占位符 vm.$vnode 的更新。 不通过重新渲染，直接更新实例的占位符节点（父节点）。
   vm.$vnode = parentVnode // update vm's placeholder node without re-render
 
+  // _vnode 当前的 vm 实例渲染出的虚拟节点
   if (vm._vnode) { // update child tree's parent
     vm._vnode.parent = parentVnode
   }
+  // TODO:
+  // slot 的更新
   vm.$options._renderChildren = renderChildren
 
   // update $attrs and $listeners hash
   // these are also reactive so they may trigger child update if the child
   // used them during render
   vm.$attrs = parentVnode.data.attrs || emptyObject
+  // listeners 的更新
   vm.$listeners = listeners || emptyObject
 
-  // update props
+  // update props. props 的更新
   if (propsData && vm.$options.props) {
     toggleObserving(false)
     const props = vm._props
