@@ -366,9 +366,12 @@ function ReactRoot(
   isConcurrent: boolean,
   hydrate: boolean,
 ) {
+  // 创建一个容器，实际去调用 createFiberRoot 函数创建 FiberRoot
   const root = createContainer(container, isConcurrent, hydrate);
+  // TODO: 内部的根？
   this._internalRoot = root;
 }
+
 ReactRoot.prototype.render = function (
   children: ReactNodeList,
   callback: ?() => mixed,
@@ -491,6 +494,7 @@ setBatchingImplementation(
 
 let warnedAboutHydrateAPI = false;
 
+// 在 dom 容器中创建 root 节点
 function legacyCreateRootFromDOMContainer(
   container: DOMContainer,
   forceHydrate: boolean,
@@ -498,6 +502,7 @@ function legacyCreateRootFromDOMContainer(
   const shouldHydrate =
     forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
   // First clear any existing content.
+  // 首先清除所有现有内容
   if (!shouldHydrate) {
     let warned = false;
     let rootSibling;
@@ -533,13 +538,16 @@ function legacyCreateRootFromDOMContainer(
   }
   // Legacy roots are not async by default.
   const isConcurrent = false;
+  // 创建一个 ReactRoot 实例
   return new ReactRoot(container, isConcurrent, shouldHydrate);
 }
 
+// 翻译：（将遗留的）渲染子树呈现到容器中
 function legacyRenderSubtreeIntoContainer(
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
   container: DOMContainer,
+  // TODO: 强制粘合？ 
   forceHydrate: boolean,
   callback: ?Function,
 ) {
@@ -553,19 +561,23 @@ function legacyRenderSubtreeIntoContainer(
   let root: Root = (container._reactRootContainer: any);
   // 首次渲染逻辑
   if (!root) {
-    // Initial mount。 挂载 _reactRootContainer 属性
+    // Initial mount。 给父容器的 dom 节点，挂载 _reactRootContainer 属性， 这个属性标志着当前这个 dom 节点是 react 根组件的容器节点
+    // 在 dom 容器中创建 root 节点
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       forceHydrate,
     );
     if (typeof callback === 'function') {
+      // 原始 callback ，callback 被重写，先保存下来最后调用。
       const originalCallback = callback;
       callback = function () {
+        // _internalRoot 属性是 legacyCreateRootFromDOMContainer 函数最终创建的 FiberRoot 之后实例。 root._internalRoot 值就是一个 FiberRoot 实例。
         const instance = getPublicRootInstance(root._internalRoot);
         originalCallback.call(instance);
       };
     }
     // Initial mount should not be batched.
+    // 初次挂载不应该批处理，应该尽可能快处理完成
     unbatchedUpdates(() => {
       if (parentComponent != null) {
         root.legacy_renderSubtreeIntoContainer(
@@ -673,6 +685,17 @@ const ReactDOM: Object = {
   },
 
   // 实际的渲染方法
+  // DEMO:
+  // element 通常是 jsx 编译之后的结果， React.createElement 函数返回的结果
+  // container 这个参数值是 element 挂载的容器节点， 是一个真实的 dom 节点，通常会以 getElementById 的这种形式给出
+  // callback 挂载节点之后执行的回调，不过一般都不传
+  // ReactDOM.render(
+  //   <div>
+  //     <input type="text" value={value} />
+  //     <button>{buttonName}</button>
+  //   </div>,
+  //   document.getElementById("container")
+  // )
   render(
     // 比如最常见的 <App />
     element: React$Element<any>,
