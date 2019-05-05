@@ -29,6 +29,7 @@ import invariant from 'shared/invariant';
 import warningWithoutStack from 'shared/warningWithoutStack';
 import ReactSharedInternals from 'shared/ReactSharedInternals';
 
+// TODO:
 import { getPublicInstance } from './ReactFiberHostConfig';
 import {
   findCurrentUnmaskedContext,
@@ -272,11 +273,14 @@ function findHostInstanceWithWarning(
   return findHostInstance(component);
 }
 
+// 创建容器
 export function createContainer(
+  // 实际 dom 节点
   containerInfo: Container,
   isConcurrent: boolean,
   hydrate: boolean,
 ): OpaqueRoot {
+  // 创建 FiberRoot
   return createFiberRoot(containerInfo, isConcurrent, hydrate);
 }
 
@@ -318,11 +322,15 @@ export function getPublicRootInstance(
   container: OpaqueRoot,
 ): React$Component<any, any> | PublicInstance | null {
   // current 值是一个未初始化的 Fiber, 即是一个创建 FiberNode 节点的函数， 等待执行。
+  // uninitializedFiber 是一个 FiberNode， 作为一个容器 container
   const containerFiber = container.current;
+  // 父容器此时 child 应该为空。
   if (!containerFiber.child) {
     return null;
   }
+  // containerFiber.child 应该也是一个 FiberNode 类型
   switch (containerFiber.child.tag) {
+    // 主机组件
     case HostComponent:
       return getPublicInstance(containerFiber.child.stateNode);
     default:

@@ -89,6 +89,9 @@ export type FiberRoot = {
   ...ProfilingOnlyFiberRootProperties,
 };
 
+
+// FiberRootNode 没有 child 的
+// FiberNode 是有 child 的
 function FiberRootNode(containerInfo, hydrate) {
   this.current = null;
   this.containerInfo = containerInfo;

@@ -368,7 +368,7 @@ function ReactRoot(
 ) {
   // 创建一个容器，实际去调用 createFiberRoot 函数创建 FiberRoot
   const root = createContainer(container, isConcurrent, hydrate);
-  // TODO: 内部的根？
+  // TODO: 内部的根
   this._internalRoot = root;
 }
 
@@ -471,8 +471,10 @@ function getReactRootElementInContainer(container: any) {
   }
 
   if (container.nodeType === DOCUMENT_NODE) {
+    // 返回 dom 中的 root 节点，即 <html></html>
     return container.documentElement;
   } else {
+    // 获取指定元素节点下的第一个子节点
     return container.firstChild;
   }
 }
@@ -497,9 +499,12 @@ let warnedAboutHydrateAPI = false;
 // 在 dom 容器中创建 root 节点
 function legacyCreateRootFromDOMContainer(
   container: DOMContainer,
+  // 是否复用子节点（强制 ？）
   forceHydrate: boolean,
 ): Root {
+  // 是否复用子节点 ？
   const shouldHydrate =
+    // 启发式 ？
     forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
   // First clear any existing content.
   // 首先清除所有现有内容
@@ -537,8 +542,9 @@ function legacyCreateRootFromDOMContainer(
     }
   }
   // Legacy roots are not async by default.
+  // 默认情况下，遗留根不是异步的。 Concurrent 并发。
   const isConcurrent = false;
-  // 创建一个 ReactRoot 实例
+  // 创建一个 ReactRoot 实例。 第一个参数是容器的真实 dom 节点。
   return new ReactRoot(container, isConcurrent, shouldHydrate);
 }
 
@@ -557,14 +563,15 @@ function legacyRenderSubtreeIntoContainer(
 
   // TODO: Without `any` type, Flow says "Property cannot be accessed on any
   // member of intersection type." Whyyyyyy.
-  // _reactRootContainer 第一次渲染的时候， dom 节点上肯定不存在这个属性
+  // _reactRootContainer 第一次渲染的时候， dom 节点上肯定不存在这个属性。
   let root: Root = (container._reactRootContainer: any);
-  // 首次渲染逻辑
+  // 首次渲染逻辑。 
   if (!root) {
     // Initial mount。 给父容器的 dom 节点，挂载 _reactRootContainer 属性， 这个属性标志着当前这个 dom 节点是 react 根组件的容器节点
     // 在 dom 容器中创建 root 节点
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
+      // 第一个调用 render 的时候 forceHydrate 传值为 false
       forceHydrate,
     );
     if (typeof callback === 'function') {
@@ -590,6 +597,7 @@ function legacyRenderSubtreeIntoContainer(
       }
     });
   } else {
+    // 跟上面的内容一样，扩展 callback 函数的内容，保证原 callback 逻辑的执行。
     if (typeof callback === 'function') {
       const originalCallback = callback;
       callback = function () {
@@ -608,6 +616,7 @@ function legacyRenderSubtreeIntoContainer(
       root.render(children, callback);
     }
   }
+  // 获取公共的根实例。_internalRoot 属性上挂载的是一个 FiberNode
   return getPublicRootInstance(root._internalRoot);
 }
 
