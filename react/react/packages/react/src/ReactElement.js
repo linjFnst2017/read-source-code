@@ -329,8 +329,9 @@ export function createElement(type, config, children) {
   let self = null;
   let source = null;
 
+  // props属性里面包含的就是我们给组件传的各种属性。编译完之后，组件上的属性都在 config 这个对象里。
   // 如果 elm 只有子节点或者文字作为内容，标签上没有任何属性的话，编译出来的结果是 config === null
-  // config 不等于 null 说明标签上拥有属性
+  // config 不等于 null 说明标签上拥有属性。
   if (config != null) {
     // TODO: react ref and key
     // 读取有没有合法的 ref 和 key
@@ -363,6 +364,7 @@ export function createElement(type, config, children) {
   // 从这里看出 props.children 只有一个子节点的时候是一个 class component 或者 function component
   // 而如果有多个子节点的时候，就是一个数组
   if (childrenLength === 1) {
+    // props有children属性, 描述子组件, 同样是元素。
     props.children = children;
   } else if (childrenLength > 1) {
     // 创建数组的形式好诡异。。 new Array(n) 与 Array(n) 的差别在哪里？
@@ -409,6 +411,8 @@ export function createElement(type, config, children) {
       }
     }
   }
+  // createElement 函数最终返回的内容是调用了 ReactElement 函数返回的一个对象。最明显的特征是，这个对象包含一个属性 $$typeof 值为 REACT_ELEMENT_TYPE
+  // 并且通过 React.createElement 函数创建的所有 React 组件，$$typeof 属性值都是 REACT_ELEMENT_TYPE
   return ReactElement(
     type,
     key,

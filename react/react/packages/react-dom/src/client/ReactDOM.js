@@ -548,12 +548,14 @@ function legacyCreateRootFromDOMContainer(
   return new ReactRoot(container, isConcurrent, shouldHydrate);
 }
 
-// 翻译：（将遗留的）渲染子树呈现到容器中
+// 渲染子树呈现到容器中。
+// 之所以带上了legacy，想必是16版本的更新使得这个方法是暂时的做法，很有可能之后会废除。但是在16之前的确是这么调用的，除了名字发生了改变。
 function legacyRenderSubtreeIntoContainer(
+  // 父组件，非必须。React 组件编译后的代码，调用 ReactDOM.render 函数后，渲染子树是没有父节点的，因为本身才刚开始渲染根组件
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
   container: DOMContainer,
-  // TODO: 强制粘合？ 
+  // 服务端渲染 forceHydrate = true ， 客户端渲染 forceHydrate = false
   forceHydrate: boolean,
   callback: ?Function,
 ) {
@@ -567,7 +569,8 @@ function legacyRenderSubtreeIntoContainer(
   let root: Root = (container._reactRootContainer: any);
   // 首次渲染逻辑。 
   if (!root) {
-    // Initial mount。 给父容器的 dom 节点，挂载 _reactRootContainer 属性， 这个属性标志着当前这个 dom 节点是 react 根组件的容器节点
+    // Initial mount。 在第一次渲染根组件的时候调用的方法比较特殊：
+    // 给父容器的 dom 节点，挂载 _reactRootContainer 属性， 这个属性标志着当前这个 dom 节点是 react 根组件的容器节点
     // 在 dom 容器中创建 root 节点
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
@@ -688,12 +691,14 @@ const ReactDOM: Object = {
       null,
       element,
       container,
+      // true 时表明了是服务端渲染
       true,
       callback,
     );
   },
 
-  // 实际的渲染方法
+  // 实际的渲染方法。 
+  // React 组件通过 React.createElement 函数创建出来的元素被当作参数和指定的 DOM container 一起传进ReactDOM.render 函数中
   // DEMO:
   // element 通常是 jsx 编译之后的结果， React.createElement 函数返回的结果
   // container 这个参数值是 element 挂载的容器节点， 是一个真实的 dom 节点，通常会以 getElementById 的这种形式给出
@@ -706,7 +711,7 @@ const ReactDOM: Object = {
   //   document.getElementById("container")
   // )
   render(
-    // 比如最常见的 <App />
+    // 比如最常见的 <App /> 不过对于 html 原生组件 element 的值仅仅是一个字符串，例如 'div'
     element: React$Element<any>,
     // 挂载的 dom 节点
     container: DOMContainer,
@@ -725,10 +730,13 @@ const ReactDOM: Object = {
         enableStableConcurrentModeAPIs ? 'createRoot' : 'unstable_createRoot',
       );
     }
+
     return legacyRenderSubtreeIntoContainer(
       null,
+      // 原生节点（字符串） 或者 ReactElement 节点
       element,
       container,
+      // true 时表明了是服务端渲染, false 是客户端渲染
       false,
       callback,
     );
