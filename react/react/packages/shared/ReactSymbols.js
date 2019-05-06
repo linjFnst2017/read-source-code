@@ -9,9 +9,11 @@
 
 // The Symbol used to tag the ReactElement-like types. If there is no native Symbol
 // nor polyfill, then a plain number is used for performance.
+
 // 用于标记 类 ReactElement 类型的符号。如果不支持原生的 Symbol 或 polyfill，则使用普通数字用作性能测试
 // Symbol.for(key) 方法会根据给定的键 key，来从运行时的 symbol 注册表中找到对应的 symbol，如果找到了，则返回它，
 // 否则，新建一个与该键关联的 symbol，并放入全局 symbol 注册表中
+// 根据不同的节点类型，给常量设置具体的值。据说使用 Symbol 或者具体的 0x （代表 16 进制） 能让 React 更快查找
 const hasSymbol = typeof Symbol === 'function' && Symbol.for;
 
 export const REACT_ELEMENT_TYPE = hasSymbol

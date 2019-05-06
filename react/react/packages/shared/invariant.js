@@ -19,6 +19,7 @@
 
 export default function invariant(condition, format, a, b, c, d, e, f) {
   throw new Error(
+    // React 内部错误： 变异方法在编译时会被取代，目前没有运行时的版本。
     'Internal React error: invariant() is meant to be replaced at compile ' +
     'time. There is no runtime version.',
   );
