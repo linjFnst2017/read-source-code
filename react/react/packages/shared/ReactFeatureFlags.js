@@ -54,6 +54,8 @@ export const disableInputAttributeSyncing = false;
 
 // These APIs will no longer be "unstable" in the upcoming 16.7 release,
 // Control this behavior with a flag to support 16.6 minor releases in the meanwhile.
+// 在即将发布的 16.7版本中，这些api将不再是“不稳定的”
+// 同时通过一个 flag 在 16.6 版本就支持的标志控制此行为。
 export const enableStableConcurrentModeAPIs = false;
 
 export const warnAboutShorthandPropertyCollision = false;

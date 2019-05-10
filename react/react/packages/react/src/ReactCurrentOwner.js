@@ -7,13 +7,15 @@
  * @flow
  */
 
-import type {Fiber} from 'react-reconciler/src/ReactFiber';
+import type { Fiber } from 'react-reconciler/src/ReactFiber';
 
 /**
  * Keeps track of the current owner.
  *
  * The current owner is the component who should own any components that are
  * currently being constructed.
+ * TODO:
+ * 当前所有者是应该拥有当前正在构建的任何组件的组件。(完全没听懂是什么意思。。。是说任何当前正在构建组件的最浅一级的父组件？)
  */
 const ReactCurrentOwner = {
   /**

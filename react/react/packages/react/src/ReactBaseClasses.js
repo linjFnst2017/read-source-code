@@ -113,6 +113,8 @@ if (__DEV__) {
       'https://github.com/facebook/react/issues/3236).',
     ],
   };
+  // 如果用户在开发环境下使用了即将废弃的 api， 给出警告信息。
+  // Object.defineProperty 数据劫持
   const defineDeprecationWarning = function (methodName, info) {
     Object.defineProperty(Component.prototype, methodName, {
       get: function () {
@@ -149,9 +151,16 @@ function PureComponent(props, context, updater) {
   this.updater = updater || ReactNoopUpdateQueue;
 }
 
+// ComponentDummy 构造函数的意义，我觉得是为了修改原型链上的 constructor 指向 PureComponent function. 如果直接通过 
+// PureComponent.prototype = Component.prototype;
+// PureComponent.constructor = function() {...} 
+// 会将 Component 的 constructor 也被修改， 因为两个原型链指向的都是同一个 function Component() {...} 是一个引用属性
+// 而通过一个临时的 ComponentDummy 构造函数，并通过返回了一个实例（属性都一模一样，但是属于两个不同的引用），修改 constructor 就不会造成影响？
 const pureComponentPrototype = (PureComponent.prototype = new ComponentDummy());
 pureComponentPrototype.constructor = PureComponent;
+// TODO:
 // Avoid an extra prototype jump for these methods.
+// 避免这些方法的额外原型跳转。 虽然这里使用了 Object.assign ，但是我理解这里目前而言两个 prototype 上内容都是一样的吧？
 Object.assign(pureComponentPrototype, Component.prototype);
 // Component 与 PureComponent 几乎没有任何区别，唯一的区别就是这里的标志位。 继承 PureComponent 的组件都带上了这个 isPureReactComponent 属性
 // React-dom 会来判断这个组件是不是 PureComponent 根据 props 是否更新来判断这个组件是否需要更新。

@@ -118,6 +118,8 @@ const React = {
 // don't modify the React object to avoid deopts.
 // Also let's not expose their names in stable builds.
 
+// 有些api添加了特性标志,确保开放源码的稳定构建不会修改React对象以避免deopt, 另外，不要在稳定的构建中公开它们的名称
+// 目前 16.8 版本的 React 中, enableStableConcurrentModeAPIs 值都是 false , 所以其中某一些 api 和属性已经没有了。
 if (enableStableConcurrentModeAPIs) {
   React.ConcurrentMode = REACT_CONCURRENT_MODE_TYPE;
   React.unstable_ConcurrentMode = undefined;

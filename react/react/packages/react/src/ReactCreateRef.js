@@ -10,13 +10,14 @@ import type { RefObject } from 'shared/ReactTypes';
 
 // TODO: objRef 对象是如何挂载，如何存储 ？
 // an immutable object with a single mutable value
-// 一个具有单个可变值的不可变对象
+// 一个具有单个可变值的不可变对象。属性（只要没有设置不可修改、配置）值都可以改变，但是不能删除属性，修改属性的配置
 // React 中可以通过 ref 方便得获取一个节点实例
 export function createRef(): RefObject {
   const refObject = {
     current: null,
   };
   if (__DEV__) {
+    // 
     Object.seal(refObject);
   }
   return refObject;
