@@ -9,10 +9,10 @@
 
 import warning from 'shared/warning';
 
-import type {ReactEventComponentInstance} from 'shared/ReactTypes';
-import {REACT_EVENT_TARGET_TOUCH_HIT} from 'shared/ReactSymbols';
+import type { ReactEventComponentInstance } from 'shared/ReactTypes';
+import { REACT_EVENT_TARGET_TOUCH_HIT } from 'shared/ReactSymbols';
 
-import {enableEventAPI} from 'shared/ReactFeatureFlags';
+import { enableEventAPI } from 'shared/ReactFeatureFlags';
 
 type EventTargetChildElement = {
   type: string,
@@ -29,22 +29,22 @@ type EventTargetChildElement = {
 export type Type = string;
 export type Props = Object;
 export type Container = {|
-  children: Array<Instance | TextInstance>,
-  createNodeMock: Function,
-  tag: 'CONTAINER',
+  children: Array < Instance | TextInstance >,
+    createNodeMock: Function,
+      tag: 'CONTAINER',
 |};
 export type Instance = {|
   type: string,
-  props: Object,
-  isHidden: boolean,
-  children: Array<Instance | TextInstance>,
-  rootContainerInstance: Container,
-  tag: 'INSTANCE',
+    props: Object,
+      isHidden: boolean,
+        children: Array < Instance | TextInstance >,
+          rootContainerInstance: Container,
+            tag: 'INSTANCE',
 |};
 export type TextInstance = {|
   text: string,
-  isHidden: boolean,
-  tag: 'TEXT',
+    isHidden: boolean,
+      tag: 'TEXT',
 |};
 export type HydratableInstance = Instance | TextInstance;
 export type PublicInstance = Instance | TextInstance;
@@ -88,9 +88,9 @@ export function appendChild(
     warning(
       Array.isArray(parentInstance.children),
       'An invalid container has been provided. ' +
-        'This may indicate that another renderer is being used in addition to the test renderer. ' +
-        '(For example, ReactDOM.createPortal inside of a ReactTestRenderer tree.) ' +
-        'This is not supported.',
+      'This may indicate that another renderer is being used in addition to the test renderer. ' +
+      '(For example, ReactDOM.createPortal inside of a ReactTestRenderer tree.) ' +
+      'This is not supported.',
     );
   }
   const index = parentInstance.children.indexOf(child);
@@ -141,7 +141,7 @@ export function getChildHostContextForEventComponent(
   if (__DEV__ && enableEventAPI) {
     warning(
       parentHostContext !== EVENT_TARGET_CONTEXT &&
-        parentHostContext !== EVENT_TOUCH_HIT_TARGET_CONTEXT,
+      parentHostContext !== EVENT_TOUCH_HIT_TARGET_CONTEXT,
       'validateDOMNesting: React event targets must not have event components as children.',
     );
     return EVENT_COMPONENT_CONTEXT;
@@ -158,7 +158,7 @@ export function getChildHostContextForEventTarget(
       warning(
         parentHostContext !== EVENT_COMPONENT_CONTEXT,
         'validateDOMNesting: <TouchHitTarget> cannot not be a direct child of an event component. ' +
-          'Ensure <TouchHitTarget> is a direct child of a DOM element.',
+        'Ensure <TouchHitTarget> is a direct child of a DOM element.',
       );
       return EVENT_TOUCH_HIT_TARGET_CONTEXT;
     }
@@ -242,13 +242,13 @@ export function createTextInstance(
     warning(
       hostContext !== EVENT_COMPONENT_CONTEXT,
       'validateDOMNesting: React event components cannot have text DOM nodes as children. ' +
-        'Wrap the child text "%s" in an element.',
+      'Wrap the child text "%s" in an element.',
       text,
     );
     warning(
       hostContext !== EVENT_TARGET_CONTEXT,
       'validateDOMNesting: React event targets cannot have text DOM nodes as children. ' +
-        'Wrap the child text "%s" in an element.',
+      'Wrap the child text "%s" in an element.',
       text,
     );
   }
@@ -351,7 +351,7 @@ export function getEventTargetChildElement(
 ): null | EventTargetChildElement {
   if (enableEventAPI) {
     if (type === REACT_EVENT_TARGET_TOUCH_HIT) {
-      const {bottom, left, right, top} = props;
+      const { bottom, left, right, top } = props;
 
       if (!bottom && !left && !right && !top) {
         return null;

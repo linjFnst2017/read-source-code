@@ -7,17 +7,17 @@
  * @flow
  */
 
-import type {Fiber} from './ReactFiber';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
-import type {TimeoutHandle, NoTimeout} from './ReactFiberHostConfig';
-import type {Thenable} from './ReactFiberScheduler';
-import type {Interaction} from 'scheduler/src/Tracing';
+import type { Fiber } from './ReactFiber';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
+import type { TimeoutHandle, NoTimeout } from './ReactFiberHostConfig';
+import type { Thenable } from './ReactFiberScheduler';
+import type { Interaction } from 'scheduler/src/Tracing';
 
-import {noTimeout} from './ReactFiberHostConfig';
-import {createHostRootFiber} from './ReactFiber';
-import {NoWork} from './ReactFiberExpirationTime';
-import {enableSchedulerTracing} from 'shared/ReactFeatureFlags';
-import {unstable_getThreadID} from 'scheduler/tracing';
+import { noTimeout } from './ReactFiberHostConfig';
+import { createHostRootFiber } from './ReactFiber';
+import { NoWork } from './ReactFiberExpirationTime';
+import { enableSchedulerTracing } from 'shared/ReactFeatureFlags';
+import { unstable_getThreadID } from 'scheduler/tracing';
 
 // TODO: This should be lifted into the renderer.
 export type Batch = {
@@ -32,41 +32,41 @@ export type PendingInteractionMap = Map<ExpirationTime, Set<Interaction>>;
 type BaseFiberRootProperties = {|
   // Any additional information from the host associated with this root.
   containerInfo: any,
-  // Used only by persistent updates.
-  pendingChildren: any,
-  // The currently active root fiber. This is the mutable root of the tree.
-  current: Fiber,
+    // Used only by persistent updates.
+    pendingChildren: any,
+      // The currently active root fiber. This is the mutable root of the tree.
+      current: Fiber,
 
-  pingCache:
+        pingCache:
     | WeakMap<Thenable, Set<ExpirationTime>>
     | Map<Thenable, Set<ExpirationTime>>
     | null,
 
-  pendingCommitExpirationTime: ExpirationTime,
-  // A finished work-in-progress HostRoot that's ready to be committed.
-  finishedWork: Fiber | null,
-  // Timeout handle returned by setTimeout. Used to cancel a pending timeout, if
-  // it's superseded by a new one.
-  timeoutHandle: TimeoutHandle | NoTimeout,
-  // Top context object, used by renderSubtreeIntoContainer
-  context: Object | null,
-  pendingContext: Object | null,
-  // Determines if we should attempt to hydrate on the initial mount
-  +hydrate: boolean,
-  // List of top-level batches. This list indicates whether a commit should be
-  // deferred. Also contains completion callbacks.
-  // TODO: Lift this into the renderer
-  firstBatch: Batch | null,
-  // Node returned by Scheduler.scheduleCallback
-  callbackNode: *,
-  // Expiration of the callback associated with this root
-  callbackExpirationTime: ExpirationTime,
-  // The earliest pending expiration time that exists in the tree
-  firstPendingTime: ExpirationTime,
-  // The latest pending expiration time that exists in the tree
-  lastPendingTime: ExpirationTime,
-  // The time at which a suspended component pinged the root to render again
-  pingTime: ExpirationTime,
+    pendingCommitExpirationTime: ExpirationTime,
+    // A finished work-in-progress HostRoot that's ready to be committed.
+    finishedWork: Fiber | null,
+    // Timeout handle returned by setTimeout. Used to cancel a pending timeout, if
+    // it's superseded by a new one.
+    timeoutHandle: TimeoutHandle | NoTimeout,
+    // Top context object, used by renderSubtreeIntoContainer
+    context: Object | null,
+    pendingContext: Object | null,
+    // Determines if we should attempt to hydrate on the initial mount
+    +hydrate: boolean,
+    // List of top-level batches. This list indicates whether a commit should be
+    // deferred. Also contains completion callbacks.
+    // TODO: Lift this into the renderer
+    firstBatch: Batch | null,
+    // Node returned by Scheduler.scheduleCallback
+    callbackNode: *,
+    // Expiration of the callback associated with this root
+    callbackExpirationTime: ExpirationTime,
+    // The earliest pending expiration time that exists in the tree
+    firstPendingTime: ExpirationTime,
+    // The latest pending expiration time that exists in the tree
+    lastPendingTime: ExpirationTime,
+    // The time at which a suspended component pinged the root to render again
+    pingTime: ExpirationTime,
 |};
 
 // The following attributes are only used by interaction tracing builds.
@@ -75,8 +75,8 @@ type BaseFiberRootProperties = {|
 // Note that these attributes are only defined when the enableSchedulerTracing flag is enabled.
 type ProfilingOnlyFiberRootProperties = {|
   interactionThreadID: number,
-  memoizedInteractions: Set<Interaction>,
-  pendingInteractionMap: PendingInteractionMap,
+    memoizedInteractions: Set < Interaction >,
+      pendingInteractionMap: PendingInteractionMap,
 |};
 
 // Exported FiberRoot type includes all properties,
@@ -89,6 +89,9 @@ export type FiberRoot = {
   ...ProfilingOnlyFiberRootProperties,
 };
 
+
+// FiberRootNode 没有 child 的
+// FiberNode 是有 child 的
 function FiberRootNode(containerInfo, hydrate) {
   this.current = null;
   this.containerInfo = containerInfo;
@@ -123,8 +126,11 @@ export function createFiberRoot(
 
   // Cyclic construction. This cheats the type system right now because
   // stateNode is any.
+  // 循环结构。这就欺骗了类型系统，因为stateNode是any。
+  // 未初始化的 Fiber 结构。值是一个 createFiber 函数，该函数用于创建一个 FiberNode 节点
   const uninitializedFiber = createHostRootFiber(isConcurrent);
   root.current = uninitializedFiber;
+  // TODO:
   uninitializedFiber.stateNode = root;
 
   return root;

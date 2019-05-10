@@ -7,14 +7,14 @@
  * @flow
  */
 
-import type {Fiber} from './ReactFiber';
-import type {FiberRoot} from './ReactFiberRoot';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
+import type { Fiber } from './ReactFiber';
+import type { FiberRoot } from './ReactFiberRoot';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
 import type {
   ReactPriorityLevel,
-  SchedulerCallback,
+    SchedulerCallback,
 } from './SchedulerWithReactIntegration';
-import type {Interaction} from 'scheduler/src/Tracing';
+import type { Interaction } from 'scheduler/src/Tracing';
 
 import {
   warnAboutDeprecatedLifecycles,
@@ -44,7 +44,7 @@ import {
   flushImmediateQueue,
 } from './SchedulerWithReactIntegration';
 
-import {__interactionsRef, __subscriberRef} from 'scheduler/tracing';
+import { __interactionsRef, __subscriberRef } from 'scheduler/tracing';
 
 import {
   prepareForCommit,
@@ -54,8 +54,8 @@ import {
   noTimeout,
 } from './ReactFiberHostConfig';
 
-import {createWorkInProgress, assignFiberPropertiesInDEV} from './ReactFiber';
-import {NoContext, ConcurrentMode, ProfileMode} from './ReactTypeOfMode';
+import { createWorkInProgress, assignFiberPropertiesInDEV } from './ReactFiber';
+import { NoContext, ConcurrentMode, ProfileMode } from './ReactTypeOfMode';
 import {
   HostRoot,
   ClassComponent,
@@ -92,8 +92,8 @@ import {
   inferPriorityFromExpirationTime,
   LOW_PRIORITY_EXPIRATION,
 } from './ReactFiberExpirationTime';
-import {beginWork as originalBeginWork} from './ReactFiberBeginWork';
-import {completeWork} from './ReactFiberCompleteWork';
+import { beginWork as originalBeginWork } from './ReactFiberBeginWork';
+import { completeWork } from './ReactFiberCompleteWork';
 import {
   throwException,
   unwindWork,
@@ -112,11 +112,11 @@ import {
   commitAttachRef,
   commitResetTextContent,
 } from './ReactFiberCommitWork';
-import {enqueueUpdate} from './ReactUpdateQueue';
+import { enqueueUpdate } from './ReactUpdateQueue';
 // TODO: Ahaha Andrew is bad at spellling
-import {resetContextDependences as resetContextDependencies} from './ReactFiberNewContext';
-import {resetHooks, ContextOnlyDispatcher} from './ReactFiberHooks';
-import {createCapturedValue} from './ReactCapturedValue';
+import { resetContextDependences as resetContextDependencies } from './ReactFiberNewContext';
+import { resetHooks, ContextOnlyDispatcher } from './ReactFiberHooks';
+import { createCapturedValue } from './ReactCapturedValue';
 
 import {
   recordCommitTime,
@@ -158,7 +158,7 @@ import {
   hasCaughtError,
   clearCaughtError,
 } from 'shared/ReactErrorUtils';
-import {onCommitRoot} from './ReactFiberDevToolsHook';
+import { onCommitRoot } from './ReactFiberDevToolsHook';
 
 const ceil = Math.ceil;
 
@@ -214,7 +214,7 @@ let pendingPassiveEffectsExpirationTime: ExpirationTime = NoWork;
 let rootsWithPendingDiscreteUpdates: Map<
   FiberRoot,
   ExpirationTime,
-> | null = null;
+  > | null = null;
 
 // Use these to prevent an infinite loop of nested updates
 const NESTED_UPDATE_LIMIT = 50;
@@ -456,7 +456,7 @@ function scheduleCallbackForRoot(
     const options =
       expirationTime === Sync
         ? null
-        : {timeout: expirationTimeToMs(expirationTime)};
+        : { timeout: expirationTimeToMs(expirationTime) };
     root.callbackNode = scheduleCallback(
       priorityLevel,
       runRootCallback.bind(
@@ -511,7 +511,7 @@ export function flushRoot(root: FiberRoot, expirationTime: ExpirationTime) {
     invariant(
       false,
       'work.commit(): Cannot commit while already rendering. This likely ' +
-        'means you attempted to commit from inside a lifecycle method.',
+      'means you attempted to commit from inside a lifecycle method.',
     );
   }
   scheduleCallback(
@@ -631,7 +631,7 @@ export function flushSync<A, R>(fn: A => R, a: A): R {
     invariant(
       false,
       'flushSync was called from inside a lifecycle method. It cannot be ' +
-        'called when React is already rendering.',
+      'called when React is already rendering.',
     );
   }
   const prevWorkPhase = workPhase;
@@ -765,7 +765,7 @@ function renderRoot(
           if (enableSchedulerTracing) {
             __interactionsRef.current = ((prevInteractions: any): Set<
               Interaction,
-            >);
+              >);
           }
           return renderRoot.bind(null, root, currentTime);
         }
@@ -1803,7 +1803,7 @@ export function resolveRetryThenable(boundaryFiber: Fiber, thenable: Thenable) {
         invariant(
           false,
           'Pinged unknown suspense boundary type. ' +
-            'This is probably a bug in React.',
+          'This is probably a bug in React.',
         );
     }
   } else {
@@ -1881,9 +1881,9 @@ function checkForNestedUpdates() {
     invariant(
       false,
       'Maximum update depth exceeded. This can happen when a component ' +
-        'repeatedly calls setState inside componentWillUpdate or ' +
-        'componentDidUpdate. React limits the number of nested updates to ' +
-        'prevent infinite loops.',
+      'repeatedly calls setState inside componentWillUpdate or ' +
+      'componentDidUpdate. React limits the number of nested updates to ' +
+      'prevent infinite loops.',
     );
   }
 
@@ -1893,9 +1893,9 @@ function checkForNestedUpdates() {
       warning(
         false,
         'Maximum update depth exceeded. This can happen when a component ' +
-          "calls setState inside useEffect, but useEffect either doesn't " +
-          'have a dependency array, or one of the dependencies changes on ' +
-          'every render.',
+        "calls setState inside useEffect, but useEffect either doesn't " +
+        'have a dependency array, or one of the dependencies changes on ' +
+        'every render.',
       );
     }
   }
@@ -1938,6 +1938,7 @@ function checkForInterruption(
   }
 }
 
+// 是否警告未安装组件的状态更新
 let didWarnStateUpdateForUnmountedComponent: Set<string> | null = null;
 function warnAboutUpdateOnUnmountedFiberInDEV(fiber) {
   if (__DEV__) {
@@ -1967,8 +1968,8 @@ function warnAboutUpdateOnUnmountedFiberInDEV(fiber) {
     warningWithoutStack(
       false,
       "Can't perform a React state update on an unmounted component. This " +
-        'is a no-op, but it indicates a memory leak in your application. To ' +
-        'fix, cancel all subscriptions and asynchronous tasks in %s.%s',
+      'is a no-op, but it indicates a memory leak in your application. To ' +
+      'fix, cancel all subscriptions and asynchronous tasks in %s.%s',
       tag === ClassComponent
         ? 'the componentWillUnmount method'
         : 'a useEffect cleanup function',
@@ -2067,8 +2068,8 @@ function warnAboutInvalidUpdatesOnClassComponentsInDEV(fiber) {
           warningWithoutStack(
             false,
             'Cannot update during an existing state transition (such as ' +
-              'within `render`). Render methods should be a pure function of ' +
-              'props and state.',
+            'within `render`). Render methods should be a pure function of ' +
+            'props and state.',
           );
           didWarnAboutUpdateInRender = true;
           break;
@@ -2086,16 +2087,16 @@ function warnIfNotCurrentlyActingUpdatesInDEV(fiber: Fiber): void {
       warningWithoutStack(
         false,
         'An update to %s inside a test was not wrapped in act(...).\n\n' +
-          'When testing, code that causes React state updates should be ' +
-          'wrapped into act(...):\n\n' +
-          'act(() => {\n' +
-          '  /* fire events that update state */\n' +
-          '});\n' +
-          '/* assert on the output */\n\n' +
-          "This ensures that you're testing the behavior the user would see " +
-          'in the browser.' +
-          ' Learn more at https://fb.me/react-wrap-tests-with-act' +
-          '%s',
+        'When testing, code that causes React state updates should be ' +
+        'wrapped into act(...):\n\n' +
+        'act(() => {\n' +
+        '  /* fire events that update state */\n' +
+        '});\n' +
+        '/* assert on the output */\n\n' +
+        "This ensures that you're testing the behavior the user would see " +
+        'in the browser.' +
+        ' Learn more at https://fb.me/react-wrap-tests-with-act' +
+        '%s',
         getComponentName(fiber.type),
         getStackByFiberInDevAndProd(fiber),
       );

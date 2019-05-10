@@ -99,6 +99,7 @@ const React = {
   // 只有 Suspense 组件中的所有异步组件都加载完成了之后，才会去掉 fallback。 
   Suspense: REACT_SUSPENSE_TYPE,
 
+  // JSX 中描述的 React 组件最终会被 Babel 转移成 React.createElement 函数，不同的组件只是对应的 createElement 的传参不同
   createElement: __DEV__ ? createElementWithValidation : createElement,
   cloneElement: __DEV__ ? cloneElementWithValidation : cloneElement,
   // 使用 jsx 的开发者几乎不会用到，因为不会去使用 是对 createElement 这个 api。 createElement 函数的一层封装，

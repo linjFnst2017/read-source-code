@@ -366,9 +366,12 @@ function ReactRoot(
   isConcurrent: boolean,
   hydrate: boolean,
 ) {
+  // 创建一个容器，实际去调用 createFiberRoot 函数创建 FiberRoot
   const root = createContainer(container, isConcurrent, hydrate);
+  // TODO: 内部的根
   this._internalRoot = root;
 }
+
 ReactRoot.prototype.render = function (
   children: ReactNodeList,
   callback: ?() => mixed,
@@ -468,8 +471,10 @@ function getReactRootElementInContainer(container: any) {
   }
 
   if (container.nodeType === DOCUMENT_NODE) {
+    // 返回 dom 中的 root 节点，即 <html></html>
     return container.documentElement;
   } else {
+    // 获取指定元素节点下的第一个子节点
     return container.firstChild;
   }
 }
@@ -491,13 +496,18 @@ setBatchingImplementation(
 
 let warnedAboutHydrateAPI = false;
 
+// 在 dom 容器中创建 root 节点
 function legacyCreateRootFromDOMContainer(
   container: DOMContainer,
+  // 是否复用子节点（强制 ？）
   forceHydrate: boolean,
 ): Root {
+  // 是否复用子节点 ？
   const shouldHydrate =
+    // 启发式 ？
     forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
   // First clear any existing content.
+  // 首先清除所有现有内容
   if (!shouldHydrate) {
     let warned = false;
     let rootSibling;
@@ -532,14 +542,20 @@ function legacyCreateRootFromDOMContainer(
     }
   }
   // Legacy roots are not async by default.
+  // 默认情况下，遗留根不是异步的。 Concurrent 并发。
   const isConcurrent = false;
+  // 创建一个 ReactRoot 实例。 第一个参数是容器的真实 dom 节点。
   return new ReactRoot(container, isConcurrent, shouldHydrate);
 }
 
+// 渲染子树呈现到容器中。
+// 之所以带上了legacy，想必是16版本的更新使得这个方法是暂时的做法，很有可能之后会废除。但是在16之前的确是这么调用的，除了名字发生了改变。
 function legacyRenderSubtreeIntoContainer(
+  // 父组件，非必须。React 组件编译后的代码，调用 ReactDOM.render 函数后，渲染子树是没有父节点的，因为本身才刚开始渲染根组件
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
   container: DOMContainer,
+  // 服务端渲染 forceHydrate = true ， 客户端渲染 forceHydrate = false
   forceHydrate: boolean,
   callback: ?Function,
 ) {
@@ -549,37 +565,44 @@ function legacyRenderSubtreeIntoContainer(
 
   // TODO: Without `any` type, Flow says "Property cannot be accessed on any
   // member of intersection type." Whyyyyyy.
-  // _reactRootContainer 第一次渲染的时候， dom 节点上肯定不存在这个属性
+  // _reactRootContainer 第一次渲染的时候， dom 节点上肯定不存在这个属性。
   let root: Root = (container._reactRootContainer: any);
-  // 首次渲染逻辑
+  // 首次渲染逻辑。 
   if (!root) {
-    // Initial mount。 挂载 _reactRootContainer 属性
+    // Initial mount。 在第一次渲染根组件的时候调用的方法比较特殊：
+    // 给父容器的 dom 节点，挂载 _reactRootContainer 属性， 这个属性标志着当前这个 dom 节点是 react 根组件的容器节点
+    // 在 dom 容器中创建 root 节点
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
+      // 第一个调用 render 的时候 forceHydrate 传值为 false
       forceHydrate,
     );
     if (typeof callback === 'function') {
+      // 原始 callback ，callback 被重写，先保存下来最后调用。
       const originalCallback = callback;
       callback = function () {
+        // _internalRoot 属性是 legacyCreateRootFromDOMContainer 函数最终创建的 FiberRoot 之后实例。 root._internalRoot 值就是一个 FiberRoot 实例。
         const instance = getPublicRootInstance(root._internalRoot);
         originalCallback.call(instance);
       };
     }
     // Initial mount should not be batched.
     // 除此挂载不应该被批处理。 因为除此使用，需要尽快完成
+    // 初次挂载不应该批处理，应该尽可能快处理完成
     unbatchedUpdates(() => {
       if (parentComponent != null) {
-        // 遗留的 API 将来应该会删除
-        root.legacy_renderSubtreeIntoContainer(
-          parentComponent,
-          children,
-          callback,
-        );
+      // 遗留的 API 将来应该会删除
+      root.legacy_renderSubtreeIntoContainer(
+        parentComponent,
+        children,
+        callback,
+      );
       } else {
         root.render(children, callback);
       }
     });
   } else {
+    // 跟上面的内容一样，扩展 callback 函数的内容，保证原 callback 逻辑的执行。
     if (typeof callback === 'function') {
       const originalCallback = callback;
       callback = function () {
@@ -599,6 +622,7 @@ function legacyRenderSubtreeIntoContainer(
       root.render(children, callback);
     }
   }
+  // 获取公共的根实例。_internalRoot 属性上挂载的是一个 FiberNode
   return getPublicRootInstance(root._internalRoot);
 }
 
@@ -671,120 +695,139 @@ const ReactDOM: Object = {
       null,
       element,
       container,
+      // true 时表明了是服务端渲染
       true,
       callback,
     );
   },
 
   // 实际的渲染方法。 
+  // React 组件通过 React.createElement 函数创建出来的元素被当作参数和指定的 DOM container 一起传进ReactDOM.render 函数中
+  // DEMO:
+  // element 通常是 jsx 编译之后的结果， React.createElement 函数返回的结果
+  // container 这个参数值是 element 挂载的容器节点， 是一个真实的 dom 节点，通常会以 getElementById 的这种形式给出
+  // callback 挂载节点之后执行的回调，不过一般都不传
+  // ReactDOM.render(
+  //   <div>
+  //     <input type="text" value={value} />
+  //     <button>{buttonName}</button>
+  //   </div>,
+  //   document.getElementById("container")
+  // )
   render(
-    // 比如最常见的 <App />
-    element: React$Element<any>,
-    // 挂载的 dom 节点。 
-    container: DOMContainer,
-    callback: ?Function,
-  ) {
-    invariant(
+// 比如最常见的 <App /> 不过对于 html 原生组件 element 的值仅仅是一个字符串，例如 'div'
+  ement: React$Element<any>,
+   挂载的 dom 节点。 
+  ntainer: DOMContainer,
+  llback: ?Function,
+  
+invariant(
       isValidContainer(container),
       'Target container is not a DOM element.',
-    );
-    if (__DEV__) {
-      warningWithoutStack(
-        !container._reactHasBeenPassedToCreateRootDEV,
-        'You are calling ReactDOM.render() on a container that was previously ' +
+  );
+  if (__DEV__) {
+    warningWithoutStack(
+      !container._reactHasBeenPassedToCreateRootDEV,
+      'You are calling ReactDOM.render() on a container that was previously ' +
         'passed to ReactDOM.%s(). This is not supported. ' +
-        'Did you mean to call root.render(element)?',
-        enableStableConcurrentModeAPIs ? 'createRoot' : 'unstable_createRoot',
-      );
-    }
-    // 直接翻译是： 将遗留的渲染子树呈现到容器中
-    return legacyRenderSubtreeIntoContainer(
-      null,
-      element,
-      container,
-      false,
+      'Did you mean to call root.render(element)?',
+      enableStableConcurrentModeAPIs ? 'createRoot' : 'unstable_createRoot',
+      
+      
+      HEAD
+      接翻译是： 将遗留的渲染子树呈现到容器中
+    =
+  
+>>>>>>> 9044bab2ffe54246bb13106b2b5ded2481060b8e
+  return legacyRenderSubtreeIntoContainer(
+    null,
+       原生节点（字符串） 或者 ReactElement 节点
+      ement,
+      ntainer,
+        rue 时表明了是服务端渲染, false 是客户端渲染
+        e,
+        back,
+      
+    
+
+    able_renderSubtreeIntoContainer(
+    rentComponent: React$Component<any, any>,
+      ent: React$Element<any>,
+        nerNode: DOMContainer,
+      back: ?Function,
+    
+    variant(
+    isValidContainer(containerNode),
+    'Target container is not a DOM element.',
+  );
+    variant(
+      rentComponent != null && hasInstance(parentComponent),
+      arentComponent must be a valid React Component',
+    );
+      rn legacyRenderSubtreeIntoContainer(
+      rentComponent,
+        ent,
+        ainerNode,
+        e,
       callback,
-    );
-  },
-
-  unstable_renderSubtreeIntoContainer(
-    parentComponent: React$Component<any, any>,
-    element: React$Element<any>,
-    containerNode: DOMContainer,
-    callback: ?Function,
-  ) {
-    invariant(
-      isValidContainer(containerNode),
-      'Target container is not a DOM element.',
-    );
-    invariant(
-      parentComponent != null && hasInstance(parentComponent),
-      'parentComponent must be a valid React Component',
-    );
-    return legacyRenderSubtreeIntoContainer(
-      parentComponent,
-      element,
-      containerNode,
-      false,
-      callback,
-    );
-  },
-
-  unmountComponentAtNode(container: DOMContainer) {
-    invariant(
-      isValidContainer(container),
-      'unmountComponentAtNode(...): Target container is not a DOM element.',
-    );
-
-    if (__DEV__) {
-      warningWithoutStack(
+      
+        
+        
+        omponentAtNode(container: DOMContainer) {
+        ant(
+          dContainer(container),
+          ntComponentAtNode(...): Target container is not a DOM element.',
+          
+          
+      __DEV__) {
+    warningWithoutStack(
         !container._reactHasBeenPassedToCreateRootDEV,
-        'You are calling ReactDOM.unmountComponentAtNode() on a container that was previously ' +
-        'passed to ReactDOM.%s(). This is not supported. Did you mean to call root.unmount()?',
-        enableStableConcurrentModeAPIs ? 'createRoot' : 'unstable_createRoot',
+      'You are calling ReactDOM.unmountComponentAtNode() on a container that was previously ' +
+      'passed to ReactDOM.%s(). This is not supported. Did you mean to call root.unmount()?',
+      enableStableConcurrentModeAPIs ? 'createRoot' : 'unstable_createRoot',
+      );
+  }
+
+  if (container._reactRootContainer) {
+    if (__DEV__) {
+      const rootEl = getReactRootElementInContainer(container);
+      const renderedByDifferentReact = rootEl && !getInstanceFromNode(rootEl);
+      warningWithoutStack(
+        !renderedByDifferentReact,
+        "unmountComponentAtNode(): The node you're attempting to unmount " +
+        'was rendered by another copy of React.',
       );
     }
-
-    if (container._reactRootContainer) {
-      if (__DEV__) {
-        const rootEl = getReactRootElementInContainer(container);
-        const renderedByDifferentReact = rootEl && !getInstanceFromNode(rootEl);
-        warningWithoutStack(
-          !renderedByDifferentReact,
-          "unmountComponentAtNode(): The node you're attempting to unmount " +
-          'was rendered by another copy of React.',
-        );
-      }
-
-      // Unmount should not be batched.
-      unbatchedUpdates(() => {
+  
+    // Unmount should not be batched.
+    unbatchedUpdates(() => {
         legacyRenderSubtreeIntoContainer(null, null, container, false, () => {
-          container._reactRootContainer = null;
+        container._reactRootContainer = null;
         });
       });
       // If you call unmountComponentAtNode twice in quick succession, you'll
-      // get `true` twice. That's probably fine?
+        // get `true` twice. That's probably fine?
       return true;
-    } else {
-      if (__DEV__) {
+        } else {
+            if (__DEV__) {
         const rootEl = getReactRootElementInContainer(container);
-        const hasNonRootReactChild = !!(rootEl && getInstanceFromNode(rootEl));
-
-        // Check if the container itself is a React root node.
-        const isContainerReactRoot =
-          container.nodeType === ELEMENT_NODE &&
-          isValidContainer(container.parentNode) &&
-          !!container.parentNode._reactRootContainer;
-
-        warningWithoutStack(
-          !hasNonRootReactChild,
-          "unmountComponentAtNode(): The node you're attempting to unmount " +
-          'was rendered by React and is not a top-level container. %s',
-          isContainerReactRoot
-            ? 'You may have accidentally passed in a React root node instead ' +
-            'of its container.'
-            : 'Instead, have the parent component update its state and ' +
-            'rerender in order to remove this component.',
+                const hasNonRootReactChild = !!(rootEl && getInstanceFromNode(rootEl));
+  
+      // Check if the container itself is a React root node.
+      const isContainerReactRoot =
+        container.nodeType === ELEMENT_NODE &&
+        isValidContainer(container.parentNode) &&
+        !!container.parentNode._reactRootContainer;
+    
+      warningWithoutStack(
+        !hasNonRootReactChild,
+        "unmountComponentAtNode(): The node you're attempting to unmount " +
+        'was rendered by React and is not a top-level container. %s',
+        isContainerReactRoot
+          ? 'You may have accidentally passed in a React root node instead ' +
+          'of its container.'
+          : 'Instead, have the parent component update its state and ' +
+          'rerender in order to remove this component.',
         );
       }
 

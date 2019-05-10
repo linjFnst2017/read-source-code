@@ -12,14 +12,15 @@
  * same logic and follow the same code paths.
  */
 
-let warningWithoutStack = () => {};
+// 警告没有堆栈
+let warningWithoutStack = () => { };
 
 if (__DEV__) {
-  warningWithoutStack = function(condition, format, ...args) {
+  warningWithoutStack = function (condition, format, ...args) {
     if (format === undefined) {
       throw new Error(
         '`warningWithoutStack(condition, format, ...args)` requires a warning ' +
-          'message argument',
+        'message argument',
       );
     }
     if (args.length > 8) {
@@ -47,7 +48,7 @@ if (__DEV__) {
       const message =
         'Warning: ' + format.replace(/%s/g, () => args[argIndex++]);
       throw new Error(message);
-    } catch (x) {}
+    } catch (x) { }
   };
 }
 
