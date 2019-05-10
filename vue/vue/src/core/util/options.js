@@ -461,8 +461,8 @@ export function mergeOptions(
   normalizeDirectives(child)
 
   // 处理 `extends` 选项
-  // options.extends 属性是用于在没有调用 `Vue.extend` 时候继承某一个 Vue 组件。 
-  // 严谨地讲值是一个构造函数，这里的 extends 值是一个 import 的 Vue 类，而实际 export 的是这个类的构造函数。
+  // options.extends 属性是用于在没有调用 `Vue.extends` 时候继承某一个 Vue 组件。 
+  // 严谨地讲值是一个构造函数，这里的 extends 值是一个 import 的 Vue 类，实际 export 的是这个类的构造函数。
   // 同样继承的方式只要是将原始类型的 options merge 到子类型（也是 vm 实例）上去就行了
   const extendsFrom = child.extends
   if (extendsFrom) {
@@ -484,7 +484,9 @@ export function mergeOptions(
     // 除了 `_base` 其他的字段都可以理解为是 `Vue` 提供的选项的名字。 _base === Vue 就是构造函数
     mergeField(key)
   }
-  // child 值是 Vue.options
+  // child 值是 Vue.options. 理论上包含 data props methods watch render template 等值
+  // TODO: 但是实际继承的过程中， template 貌似并没有继承，data 似乎也没有
+  // 实际上是合并策略搞得鬼，默认状态是只要子项不是 undefined 就用子项属性，否则就用父项
   for (key in child) {
     // hasOwn: Object.prototype.hasOwnProperty 作用是用来判断一个属性是否是对象自身的属性(不包括原型上的)
     if (!hasOwn(parent, key)) {
