@@ -566,8 +566,10 @@ function legacyRenderSubtreeIntoContainer(
       };
     }
     // Initial mount should not be batched.
+    // 除此挂载不应该被批处理。 因为除此使用，需要尽快完成
     unbatchedUpdates(() => {
       if (parentComponent != null) {
+        // 遗留的 API 将来应该会删除
         root.legacy_renderSubtreeIntoContainer(
           parentComponent,
           children,
@@ -593,6 +595,7 @@ function legacyRenderSubtreeIntoContainer(
         callback,
       );
     } else {
+      // 也就是说这里 ReactDOM.render 函数被调用的时候 parentComponent 为 null
       root.render(children, callback);
     }
   }
@@ -612,6 +615,7 @@ function createPortal(
   return createPortalImpl(children, container, null, key);
 }
 
+// ReactDOM.render 函数定义
 // 定义了一个 ReactDOM 对象，里面的 render 方法就是实际渲染用的
 const ReactDOM: Object = {
   createPortal,
@@ -672,11 +676,11 @@ const ReactDOM: Object = {
     );
   },
 
-  // 实际的渲染方法
+  // 实际的渲染方法。 
   render(
     // 比如最常见的 <App />
     element: React$Element<any>,
-    // 挂载的 dom 节点
+    // 挂载的 dom 节点。 
     container: DOMContainer,
     callback: ?Function,
   ) {
@@ -693,6 +697,7 @@ const ReactDOM: Object = {
         enableStableConcurrentModeAPIs ? 'createRoot' : 'unstable_createRoot',
       );
     }
+    // 直接翻译是： 将遗留的渲染子树呈现到容器中
     return legacyRenderSubtreeIntoContainer(
       null,
       element,
