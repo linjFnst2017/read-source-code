@@ -7,8 +7,8 @@
  * @flow
  */
 
-import type {ReactNativeBaseComponentViewConfig} from './ReactNativeTypes';
-import type {ReactEventComponentInstance} from 'shared/ReactTypes';
+import type { ReactNativeBaseComponentViewConfig } from './ReactNativeTypes';
+import type { ReactEventComponentInstance } from 'shared/ReactTypes';
 
 import invariant from 'shared/invariant';
 
@@ -16,8 +16,8 @@ import invariant from 'shared/invariant';
 import UIManager from 'UIManager';
 import deepFreezeAndThrowOnMutationInDev from 'deepFreezeAndThrowOnMutationInDev';
 
-import {get as getViewConfigForType} from 'ReactNativeViewConfigRegistry';
-import {create, diff} from './ReactNativeAttributePayload';
+import { get as getViewConfigForType } from 'ReactNativeViewConfigRegistry';
+import { create, diff } from './ReactNativeAttributePayload';
 import {
   precacheFiberNode,
   uncacheFiberNode,
@@ -143,7 +143,7 @@ export function createTextInstance(
     tag, // reactTag
     'RCTRawText', // viewName
     rootContainerInstance, // rootTag
-    {text: text}, // props
+    { text: text }, // props
   );
 
   precacheFiberNode(internalInstanceHandle, tag);
@@ -183,7 +183,7 @@ export function finalizeInitialChildren(
 export function getRootHostContext(
   rootContainerInstance: Container,
 ): HostContext {
-  return {isInAParentText: false};
+  return { isInAParentText: false };
 }
 
 export function getChildHostContext(
@@ -200,7 +200,7 @@ export function getChildHostContext(
     type === 'RCTVirtualText';
 
   if (prevIsInAParentText !== isInAParentText) {
-    return {isInAParentText};
+    return { isInAParentText };
   } else {
     return parentHostContext;
   }
@@ -323,7 +323,7 @@ export function commitTextUpdate(
   UIManager.updateView(
     textInstance, // reactTag
     'RCTRawText', // viewName
-    {text: newText}, // props
+    { text: newText }, // props
   );
 }
 
@@ -458,7 +458,7 @@ export function resetTextContent(instance: Instance): void {
 export function hideInstance(instance: Instance): void {
   const viewConfig = instance.viewConfig;
   const updatePayload = create(
-    {style: {display: 'none'}},
+    { style: { display: 'none' } },
     viewConfig.validAttributes,
   );
   UIManager.updateView(
@@ -475,7 +475,7 @@ export function hideTextInstance(textInstance: TextInstance): void {
 export function unhideInstance(instance: Instance, props: Props): void {
   const viewConfig = instance.viewConfig;
   const updatePayload = diff(
-    {...props, style: [props.style, {display: 'none'}]},
+    { ...props, style: [props.style, { display: 'none' }] },
     props,
     viewConfig.validAttributes,
   );

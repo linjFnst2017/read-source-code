@@ -29,7 +29,7 @@ import invariant from 'shared/invariant';
 import warningWithoutStack from 'shared/warningWithoutStack';
 import ReactSharedInternals from 'shared/ReactSharedInternals';
 
-// TODO:
+// TODO: 实际这个 ReactFiberHostConfig 文件中并没有 getPublicInstance 函数
 import { getPublicInstance } from './ReactFiberHostConfig';
 import {
   findCurrentUnmaskedContext,

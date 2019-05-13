@@ -1,34 +1,25 @@
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * @flow
- */
-
-import type {Fiber} from './ReactFiber';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
+import type { Fiber } from './ReactFiber';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
 
 import React from 'react';
-import {Update, Snapshot} from 'shared/ReactSideEffectTags';
+import { Update, Snapshot } from 'shared/ReactSideEffectTags';
 import {
   debugRenderPhaseSideEffects,
   debugRenderPhaseSideEffectsForStrictMode,
   warnAboutDeprecatedLifecycles,
 } from 'shared/ReactFeatureFlags';
 import ReactStrictModeWarnings from './ReactStrictModeWarnings';
-import {isMounted} from 'react-reconciler/reflection';
-import {get as getInstance, set as setInstance} from 'shared/ReactInstanceMap';
+import { isMounted } from 'react-reconciler/reflection';
+import { get as getInstance, set as setInstance } from 'shared/ReactInstanceMap';
 import shallowEqual from 'shared/shallowEqual';
 import getComponentName from 'shared/getComponentName';
 import invariant from 'shared/invariant';
 import warningWithoutStack from 'shared/warningWithoutStack';
-import {REACT_CONTEXT_TYPE, REACT_PROVIDER_TYPE} from 'shared/ReactSymbols';
+import { REACT_CONTEXT_TYPE, REACT_PROVIDER_TYPE } from 'shared/ReactSymbols';
 
-import {startPhaseTimer, stopPhaseTimer} from './ReactDebugFiberPerf';
-import {resolveDefaultProps} from './ReactFiberLazyComponent';
-import {StrictMode} from './ReactTypeOfMode';
+import { startPhaseTimer, stopPhaseTimer } from './ReactDebugFiberPerf';
+import { resolveDefaultProps } from './ReactFiberLazyComponent';
+import { StrictMode } from './ReactTypeOfMode';
 
 import {
   enqueueUpdate,
@@ -39,7 +30,7 @@ import {
   ReplaceState,
   ForceUpdate,
 } from './ReactUpdateQueue';
-import {NoWork} from './ReactFiberExpirationTime';
+import { NoWork } from './ReactFiberExpirationTime';
 import {
   cacheContext,
   getMaskedContext,
@@ -47,7 +38,7 @@ import {
   hasContextChanged,
   emptyContextObject,
 } from './ReactFiberContext';
-import {readContext} from './ReactFiberNewContext';
+import { readContext } from './ReactFiberNewContext';
 import {
   requestCurrentTime,
   computeExpirationForFiber,
@@ -85,24 +76,25 @@ if (__DEV__) {
 
   const didWarnOnInvalidCallback = new Set();
 
-  warnOnInvalidCallback = function(callback: mixed, callerName: string) {
-    if (callback === null || typeof callback === 'function') {
-      return;
-    }
-    const key = `${callerName}_${(callback: any)}`;
-    if (!didWarnOnInvalidCallback.has(key)) {
-      didWarnOnInvalidCallback.add(key);
-      warningWithoutStack(
-        false,
-        '%s(...): Expected the last optional `callback` argument to be a ' +
-          'function. Instead received: %s.',
-        callerName,
-        callback,
-      );
-    }
+  warnOnInvalidCallback = function (callback: mixed, callerName: string) {
+    // 不注释，下面的代码都不能看了。。。
+    // if (callback === null || typeof callback === 'function') {
+    //   return;
+    // }
+    // const key = `${callerName}_${(callback: any)}`;
+    // if (!didWarnOnInvalidCallback.has(key)) {
+    //   didWarnOnInvalidCallback.add(key);
+    //   warningWithoutStack(
+    //     false,
+    //     '%s(...): Expected the last optional `callback` argument to be a ' +
+    //     'function. Instead received: %s.',
+    //     callerName,
+    //     callback,
+    //   );
+    // }
   };
 
-  warnOnUndefinedDerivedState = function(type, partialState) {
+  warnOnUndefinedDerivedState = function (type, partialState) {
     if (partialState === undefined) {
       const componentName = getComponentName(type) || 'Component';
       if (!didWarnAboutUndefinedDerivedState.has(componentName)) {
@@ -110,7 +102,7 @@ if (__DEV__) {
         warningWithoutStack(
           false,
           '%s.getDerivedStateFromProps(): A valid state object (or null) must be returned. ' +
-            'You have returned undefined.',
+          'You have returned undefined.',
           componentName,
         );
       }
@@ -124,15 +116,15 @@ if (__DEV__) {
   // exception.
   Object.defineProperty(fakeInternalInstance, '_processChildContext', {
     enumerable: false,
-    value: function() {
+    value: function () {
       invariant(
         false,
         '_processChildContext is not available in React 16+. This likely ' +
-          'means you have multiple copies of React and are attempting to nest ' +
-          'a React 15 tree inside a React 16 tree using ' +
-          "unstable_renderSubtreeIntoContainer, which isn't supported. Try " +
-          'to make sure you have only one copy of React (and ideally, switch ' +
-          'to ReactDOM.createPortal).',
+        'means you have multiple copies of React and are attempting to nest ' +
+        'a React 15 tree inside a React 16 tree using ' +
+        "unstable_renderSubtreeIntoContainer, which isn't supported. Try " +
+        'to make sure you have only one copy of React (and ideally, switch ' +
+        'to ReactDOM.createPortal).',
       );
     },
   });
@@ -181,8 +173,10 @@ export function applyDerivedStateFromProps(
 const classComponentUpdater = {
   isMounted,
   enqueueSetState(inst, payload, callback) {
+    // 从全局拿到 React 组件实例对应的 fiber
     const fiber = getInstance(inst);
     const currentTime = requestCurrentTime();
+    // 计算fiber的优先级
     const expirationTime = computeExpirationForFiber(currentTime, fiber);
 
     const update = createUpdate(expirationTime);
@@ -195,7 +189,9 @@ const classComponentUpdater = {
     }
 
     flushPassiveEffects();
+    // 向队列中推入需要更新的 fiber
     enqueueUpdate(fiber, update);
+    // 触发调度器调度一次新的更新
     scheduleWork(fiber, expirationTime);
   },
   enqueueReplaceState(inst, payload, callback) {
@@ -262,7 +258,7 @@ function checkShouldComponentUpdate(
       warningWithoutStack(
         shouldUpdate !== undefined,
         '%s.shouldComponentUpdate(): Returned undefined instead of a ' +
-          'boolean value. Make sure to return true or false.',
+        'boolean value. Make sure to return true or false.',
         getComponentName(ctor) || 'Component',
       );
     }
@@ -290,14 +286,14 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
         warningWithoutStack(
           false,
           '%s(...): No `render` method found on the returned component ' +
-            'instance: did you accidentally return an object from the constructor?',
+          'instance: did you accidentally return an object from the constructor?',
           name,
         );
       } else {
         warningWithoutStack(
           false,
           '%s(...): No `render` method found on the returned component ' +
-            'instance: you may have forgotten to define `render`.',
+          'instance: you may have forgotten to define `render`.',
           name,
         );
       }
@@ -310,8 +306,8 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     warningWithoutStack(
       noGetInitialStateOnES6,
       'getInitialState was defined on %s, a plain JavaScript class. ' +
-        'This is only supported for classes created using React.createClass. ' +
-        'Did you mean to define a state property instead?',
+      'This is only supported for classes created using React.createClass. ' +
+      'Did you mean to define a state property instead?',
       name,
     );
     const noGetDefaultPropsOnES6 =
@@ -320,29 +316,29 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     warningWithoutStack(
       noGetDefaultPropsOnES6,
       'getDefaultProps was defined on %s, a plain JavaScript class. ' +
-        'This is only supported for classes created using React.createClass. ' +
-        'Use a static property to define defaultProps instead.',
+      'This is only supported for classes created using React.createClass. ' +
+      'Use a static property to define defaultProps instead.',
       name,
     );
     const noInstancePropTypes = !instance.propTypes;
     warningWithoutStack(
       noInstancePropTypes,
       'propTypes was defined as an instance property on %s. Use a static ' +
-        'property to define propTypes instead.',
+      'property to define propTypes instead.',
       name,
     );
     const noInstanceContextType = !instance.contextType;
     warningWithoutStack(
       noInstanceContextType,
       'contextType was defined as an instance property on %s. Use a static ' +
-        'property to define contextType instead.',
+      'property to define contextType instead.',
       name,
     );
     const noInstanceContextTypes = !instance.contextTypes;
     warningWithoutStack(
       noInstanceContextTypes,
       'contextTypes was defined as an instance property on %s. Use a static ' +
-        'property to define contextTypes instead.',
+      'property to define contextTypes instead.',
       name,
     );
 
@@ -355,7 +351,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
       warningWithoutStack(
         false,
         '%s declares both contextTypes and contextType static properties. ' +
-          'The legacy contextTypes property will be ignored.',
+        'The legacy contextTypes property will be ignored.',
         name,
       );
     }
@@ -365,9 +361,9 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     warningWithoutStack(
       noComponentShouldUpdate,
       '%s has a method called ' +
-        'componentShouldUpdate(). Did you mean shouldComponentUpdate()? ' +
-        'The name is phrased as a question because the function is ' +
-        'expected to return a value.',
+      'componentShouldUpdate(). Did you mean shouldComponentUpdate()? ' +
+      'The name is phrased as a question because the function is ' +
+      'expected to return a value.',
       name,
     );
     if (
@@ -378,8 +374,8 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
       warningWithoutStack(
         false,
         '%s has a method called shouldComponentUpdate(). ' +
-          'shouldComponentUpdate should not be used when extending React.PureComponent. ' +
-          'Please extend React.Component if shouldComponentUpdate is used.',
+        'shouldComponentUpdate should not be used when extending React.PureComponent. ' +
+        'Please extend React.Component if shouldComponentUpdate is used.',
         getComponentName(ctor) || 'A pure component',
       );
     }
@@ -388,8 +384,8 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     warningWithoutStack(
       noComponentDidUnmount,
       '%s has a method called ' +
-        'componentDidUnmount(). But there is no such lifecycle method. ' +
-        'Did you mean componentWillUnmount()?',
+      'componentDidUnmount(). But there is no such lifecycle method. ' +
+      'Did you mean componentWillUnmount()?',
       name,
     );
     const noComponentDidReceiveProps =
@@ -397,10 +393,10 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     warningWithoutStack(
       noComponentDidReceiveProps,
       '%s has a method called ' +
-        'componentDidReceiveProps(). But there is no such lifecycle method. ' +
-        'If you meant to update the state in response to changing props, ' +
-        'use componentWillReceiveProps(). If you meant to fetch data or ' +
-        'run side-effects or mutations after React has updated the UI, use componentDidUpdate().',
+      'componentDidReceiveProps(). But there is no such lifecycle method. ' +
+      'If you meant to update the state in response to changing props, ' +
+      'use componentWillReceiveProps(). If you meant to fetch data or ' +
+      'run side-effects or mutations after React has updated the UI, use componentDidUpdate().',
       name,
     );
     const noComponentWillRecieveProps =
@@ -408,7 +404,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     warningWithoutStack(
       noComponentWillRecieveProps,
       '%s has a method called ' +
-        'componentWillRecieveProps(). Did you mean componentWillReceiveProps()?',
+      'componentWillRecieveProps(). Did you mean componentWillReceiveProps()?',
       name,
     );
     const noUnsafeComponentWillRecieveProps =
@@ -416,14 +412,14 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     warningWithoutStack(
       noUnsafeComponentWillRecieveProps,
       '%s has a method called ' +
-        'UNSAFE_componentWillRecieveProps(). Did you mean UNSAFE_componentWillReceiveProps()?',
+      'UNSAFE_componentWillRecieveProps(). Did you mean UNSAFE_componentWillReceiveProps()?',
       name,
     );
     const hasMutatedProps = instance.props !== newProps;
     warningWithoutStack(
       instance.props === undefined || !hasMutatedProps,
       '%s(...): When calling super() in `%s`, make sure to pass ' +
-        "up the same props that your component's constructor was passed.",
+      "up the same props that your component's constructor was passed.",
       name,
       name,
     );
@@ -431,7 +427,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     warningWithoutStack(
       noInstanceDefaultProps,
       'Setting defaultProps as an instance property on %s is not supported and will be ignored.' +
-        ' Instead, define defaultProps as a static property on %s.',
+      ' Instead, define defaultProps as a static property on %s.',
       name,
       name,
     );
@@ -445,7 +441,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
       warningWithoutStack(
         false,
         '%s: getSnapshotBeforeUpdate() should be used with componentDidUpdate(). ' +
-          'This component defines getSnapshotBeforeUpdate() only.',
+        'This component defines getSnapshotBeforeUpdate() only.',
         getComponentName(ctor),
       );
     }
@@ -455,7 +451,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     warningWithoutStack(
       noInstanceGetDerivedStateFromProps,
       '%s: getDerivedStateFromProps() is defined as an instance method ' +
-        'and will be ignored. Instead, declare it as a static method.',
+      'and will be ignored. Instead, declare it as a static method.',
       name,
     );
     const noInstanceGetDerivedStateFromCatch =
@@ -463,7 +459,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     warningWithoutStack(
       noInstanceGetDerivedStateFromCatch,
       '%s: getDerivedStateFromError() is defined as an instance method ' +
-        'and will be ignored. Instead, declare it as a static method.',
+      'and will be ignored. Instead, declare it as a static method.',
       name,
     );
     const noStaticGetSnapshotBeforeUpdate =
@@ -471,7 +467,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
     warningWithoutStack(
       noStaticGetSnapshotBeforeUpdate,
       '%s: getSnapshotBeforeUpdate() is defined as a static method ' +
-        'and will be ignored. Instead, declare it as an instance method.',
+      'and will be ignored. Instead, declare it as an instance method.',
       name,
     );
     const state = instance.state;
@@ -486,7 +482,7 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
       warningWithoutStack(
         typeof ctor.childContextTypes === 'object',
         '%s.getChildContext(): childContextTypes must be defined in order to ' +
-          'use getChildContext().',
+        'use getChildContext().',
         name,
       );
     }
@@ -494,6 +490,8 @@ function checkClassInstance(workInProgress: Fiber, ctor: any, newProps: any) {
 }
 
 function adoptClassInstance(workInProgress: Fiber, instance: any): void {
+  // this.updater 属性
+  // setState调用了 this.updater.enqueueSetState。updater是renderer在渲染的时候注入的对象，这个对象由 reconciler 提供
   instance.updater = classComponentUpdater;
   workInProgress.stateNode = instance;
   // The instance needs access to the fiber so that it can schedule updates
@@ -549,7 +547,7 @@ function constructClassInstance(
         warningWithoutStack(
           false,
           '%s defines an invalid contextType. ' +
-            'contextType should point to the Context object returned by React.createContext().%s',
+          'contextType should point to the Context object returned by React.createContext().%s',
           getComponentName(ctor) || 'Component',
           addendum,
         );
@@ -595,9 +593,9 @@ function constructClassInstance(
         warningWithoutStack(
           false,
           '`%s` uses `getDerivedStateFromProps` but its initial state is ' +
-            '%s. This is not recommended. Instead, define the initial state by ' +
-            'assigning an object to `this.state` in the constructor of `%s`. ' +
-            'This ensures that `getDerivedStateFromProps` arguments have a consistent shape.',
+          '%s. This is not recommended. Instead, define the initial state by ' +
+          'assigning an object to `this.state` in the constructor of `%s`. ' +
+          'This ensures that `getDerivedStateFromProps` arguments have a consistent shape.',
           componentName,
           instance.state === null ? 'null' : 'undefined',
           componentName,
@@ -656,9 +654,9 @@ function constructClassInstance(
           warningWithoutStack(
             false,
             'Unsafe legacy lifecycles will not be called for components using new component APIs.\n\n' +
-              '%s uses %s but also contains the following legacy lifecycles:%s%s%s\n\n' +
-              'The above lifecycles should be removed. Learn more about this warning here:\n' +
-              'https://fb.me/react-async-component-lifecycle-hooks',
+            '%s uses %s but also contains the following legacy lifecycles:%s%s%s\n\n' +
+            'The above lifecycles should be removed. Learn more about this warning here:\n' +
+            'https://fb.me/react-async-component-lifecycle-hooks',
             componentName,
             newApiName,
             foundWillMountName !== null ? `\n  ${foundWillMountName}` : '',
@@ -699,8 +697,8 @@ function callComponentWillMount(workInProgress, instance) {
       warningWithoutStack(
         false,
         '%s.componentWillMount(): Assigning directly to this.state is ' +
-          "deprecated (except inside a component's " +
-          'constructor). Use setState instead.',
+        "deprecated (except inside a component's " +
+        'constructor). Use setState instead.',
         getComponentName(workInProgress.type) || 'Component',
       );
     }
@@ -733,8 +731,8 @@ function callComponentWillReceiveProps(
         warningWithoutStack(
           false,
           '%s.componentWillReceiveProps(): Assigning directly to ' +
-            "this.state is deprecated (except inside a component's " +
-            'constructor). Use setState instead.',
+          "this.state is deprecated (except inside a component's " +
+          'constructor). Use setState instead.',
           componentName,
         );
       }
@@ -775,8 +773,8 @@ function mountClassInstance(
         warningWithoutStack(
           false,
           '%s: It is not recommended to assign props directly to state ' +
-            "because updates to props won't be reflected in state. " +
-            'In most cases, it is better to use props directly.',
+          "because updates to props won't be reflected in state. " +
+          'In most cases, it is better to use props directly.',
           componentName,
         );
       }
@@ -998,6 +996,8 @@ function resumeMountClassInstance(
   return shouldUpdate;
 }
 
+// 函数中，如果新老 prop 不一直，会调用 componentWillReceiveProps 声明周期方法。 然后会调用 checkShouldComponentUpdate， 其返回值就是 shouldUpdate 函数
+// shouldUpdate 就是调用实例方法 shouldComponentUpdates 得到的值。 如果实例没有定义这个方法，那 shouldUpdate 默认为 true
 // Invokes the update life-cycles and returns false if it shouldn't rerender.
 function updateClassInstance(
   current: Fiber,

@@ -622,7 +622,8 @@ function legacyRenderSubtreeIntoContainer(
       root.render(children, callback);
     }
   }
-  // 获取公共的根实例。_internalRoot 属性上挂载的是一个 FiberNode
+  // 获取公共的根实例。_internalRoot 属性上挂载的是一个 FiberNode， 值中包含一个 current 属性。
+  // TODO: react 有一种对象是包含 current 属性的。
   return getPublicRootInstance(root._internalRoot);
 }
 

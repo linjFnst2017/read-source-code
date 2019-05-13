@@ -252,6 +252,7 @@ export function requestCurrentTime() {
   return currentEventTime;
 }
 
+// 计算 fiber 的优先级 （浮出水面的有效时间）
 export function computeExpirationForFiber(
   currentTime: ExpirationTime,
   fiber: Fiber,
@@ -967,6 +968,7 @@ function workLoop() {
   }
 }
 
+// React 的实务风格，一个“work”会被分解为begin和complete两个阶段来完成
 function performUnitOfWork(unitOfWork: Fiber): Fiber | null {
   // The current, flushed, state of this fiber is the alternate. Ideally
   // nothing should rely on this, but relying on it here means that we don't
@@ -982,12 +984,14 @@ function performUnitOfWork(unitOfWork: Fiber): Fiber | null {
     next = beginWork(current, unitOfWork, renderExpirationTime);
     stopProfilerTimerIfRunningAndRecordDelta(unitOfWork, true);
   } else {
+    // 开始事务。 是一个入口函数
     next = beginWork(current, unitOfWork, renderExpirationTime);
   }
 
   resetCurrentDebugFiberInDEV();
   unitOfWork.memoizedProps = unitOfWork.pendingProps;
   if (next === null) {
+    // 完成事务
     // If this doesn't spawn new work, complete the current work.
     next = completeUnitOfWork(unitOfWork);
   }
@@ -996,6 +1000,9 @@ function performUnitOfWork(unitOfWork: Fiber): Fiber | null {
   return next;
 }
 
+// completeUnitOfWork是complete阶段的入口
+// complete阶段的作用就是在一个节点diff完成之后，对它进行一些收尾工作，主要是更新props和调用生命周期方法等等。
+// completeUnitOfWork主要的逻辑是调用completeWork完成收尾，然后将当前子树的effect list插入到HostRoot的effect list中。
 function completeUnitOfWork(unitOfWork: Fiber): Fiber | null {
   // Attempt to complete the current unit of work, then move to the next
   // sibling. If there are no more siblings, return to the parent fiber.
@@ -1196,6 +1203,8 @@ function resetChildExpirationTime(completedWork: Fiber) {
   completedWork.childExpirationTime = newChildExpirationTime;
 }
 
+// reconciliation阶段结束之后，我们需要将effect list更新到UI中。这就是 commit 节点的工作。
+// commit这个阶段有点像Git的commit概念。在缓冲区中的代码改动只有在commit之后才会被添加到Git的Object store中。
 function commitRoot(root, expirationTime) {
   runWithPriority(
     ImmediatePriority,
@@ -1213,6 +1222,7 @@ function commitRoot(root, expirationTime) {
   return null;
 }
 
+// 之前是叫 commitAllWork 函数
 function commitRootImpl(root, expirationTime) {
   flushPassiveEffects();
   flushRenderPhaseStrictModeWarningsInDEV();
@@ -1260,6 +1270,9 @@ function commitRootImpl(root, expirationTime) {
   // Get the list of effects.
   let firstEffect;
   if (finishedWork.effectTag > PerformedWork) {
+    // fiber 的 effect list 只包括它的子树中的 effects ，而 当前的这个函数（之前的 commitAllWork）是以一个 host tree 为单位的
+    // 所有需要将 hosy 节点的 effect 也加入到 effect list 链表中。
+
     // A fiber's effect list consists only of its children, not itself. So if
     // the root has an effect, we need to add it to the end of the list. The
     // resulting list is the set that would belong to the root's parent, if it
@@ -1295,8 +1308,22 @@ function commitRootImpl(root, expirationTime) {
     // state of the host tree right before we mutate it. This is where
     // getSnapshotBeforeUpdate is called.
     startCommitSnapshotEffectsTimer();
+
+    // prepareForCommit 函数是 renderer 初始化 reconciler 时传入的，在 ReactDom 中这个函数主要做一些 dom 事件相关的设置
     prepareForCommit(root.containerInfo);
     nextEffect = firstEffect;
+
+    // commit 自身也分为两个阶段，第一个是 commitBeforeMutationEffects 。 这一个阶段会遍历当前 fiber 树的 effect list， 对 fiber 的插入、更新、删除
+    // 以及 ref 的删除做处理。具体来说，这个阶段用一个 while 循环遍历 effect list 链表，对于每一个 effect 我们将用 switch 语句根据不同的
+    // effectTag 做不同的处理。
+    // 比如对于 Detection 这个 effectTag， 就会调用 commitDetection 做处理，commitDetection 会递归将子节点从
+    // fiber 树上移除（设置 return 和 child 为 null）， 对节点上存在的 ref 做 detach， 调用实例方法 ComponentWillUnMount 生命周期钩子
+    // 最后调用 renderer 传入的平台相关的 removeChild 和 removeChildFromContainer 更新 UI。
+    // 插入操作的 effectTag 叫 Placement ， commitPlacement 函数的主要调用 insertBefore ， insetInContainerBefore ， appendChild 
+    // 和 appendChildToContainer 这几个 render 注入平台相关方法将节点插入实际的视图中。
+    // Update 这个 effect 则调用了 commitWork 函数，这个函数调用了注入的 commitUpdate 对节点进行更新，我们对节点 props 的更新，
+    // 比如样式和事件绑定这些，就会体现在 UI 中了。
+
     do {
       if (__DEV__) {
         invokeGuardedCallback(null, commitBeforeMutationEffects, null);
@@ -1324,6 +1351,12 @@ function commitRootImpl(root, expirationTime) {
       recordCommitTime();
     }
 
+    // 第二阶段再次遍历 effect list， 依次在每一个 effect list 上调用 commitAllLifeCycles 。如果 effect 发生在 class Component 上，
+    // 就调用实例的 ComponentDidMount 和 ComponentDidUpdate 钩子函数。
+    // 这个函数还对 HostComponent 调用了 commitMount 方法。 HostComponent 可以理解为组件内的 dom 节点，这里对 HostComponent 
+    // 调用钩子函数主要是给 renderer 一个在节点渲染之后做一些操作的机会，比如 input 的 auto-foucs 。 这个和 vue 的虚拟节点中的 insert 钩子类似。
+    // 只不过 vue 中 vnode 节点的钩子通过自定义指令的形式提供给了用户。
+
     // The next phase is the mutation phase, where we mutate the host tree.
     startCommitHostEffectsTimer();
     nextEffect = firstEffect;
@@ -1347,6 +1380,7 @@ function commitRootImpl(root, expirationTime) {
       }
     } while (nextEffect !== null);
     stopCommitHostEffectsTimer();
+
     resetAfterCommit(root.containerInfo);
 
     // The work-in-progress tree is now the current tree. This must come after
@@ -1978,6 +2012,7 @@ function warnAboutUpdateOnUnmountedFiberInDEV(fiber) {
   }
 }
 
+// 根据fiber节点不同的tag，调用对应的update方法。可以说是一个入口函数。
 let beginWork;
 if (__DEV__ && replayFailedUnitOfWorkWithInvokeGuardedCallback) {
   let dummyFiber = null;

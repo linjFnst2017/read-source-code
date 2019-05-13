@@ -7,18 +7,18 @@
  * @flow
  */
 
-import type {Fiber} from './ReactFiber';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
-import type {FiberRoot} from './ReactFiberRoot';
+import type { Fiber } from './ReactFiber';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
+import type { FiberRoot } from './ReactFiberRoot';
 import type {
   Instance,
-  Type,
-  Props,
-  Container,
-  ChildSet,
+    Type,
+    Props,
+    Container,
+    ChildSet,
 } from './ReactFiberHostConfig';
-import type {ReactEventComponentInstance} from 'shared/ReactTypes';
-import type {SuspenseState} from './ReactFiberSuspenseComponent';
+import type { ReactEventComponentInstance } from 'shared/ReactTypes';
+import type { SuspenseState } from './ReactFiberSuspenseComponent';
 
 import {
   IndeterminateComponent,
@@ -43,7 +43,7 @@ import {
   EventComponent,
   EventTarget,
 } from 'shared/ReactWorkTags';
-import {ConcurrentMode, NoContext} from './ReactTypeOfMode';
+import { ConcurrentMode, NoContext } from './ReactTypeOfMode';
 import {
   Placement,
   Ref,
@@ -83,7 +83,7 @@ import {
   popContext as popLegacyContext,
   popTopLevelContextObject as popTopLevelLegacyContextObject,
 } from './ReactFiberContext';
-import {popProvider} from './ReactFiberNewContext';
+import { popProvider } from './ReactFiberNewContext';
 import {
   prepareToHydrateHostInstance,
   prepareToHydrateHostTextInstance,
@@ -94,7 +94,7 @@ import {
   enableSuspenseServerRenderer,
   enableEventAPI,
 } from 'shared/ReactFeatureFlags';
-import {markRenderEventTime, renderDidSuspend} from './ReactFiberScheduler';
+import { markRenderEventTime, renderDidSuspend } from './ReactFiberScheduler';
 
 function markUpdate(workInProgress: Fiber) {
   // Tag the fiber with an update effect. This turns a Placement into
@@ -113,7 +113,7 @@ let updateHostText;
 if (supportsMutation) {
   // Mutation mode
 
-  appendAllChildren = function(
+  appendAllChildren = function (
     parent: Instance,
     workInProgress: Fiber,
     needsVisibilityToggle: boolean,
@@ -148,10 +148,10 @@ if (supportsMutation) {
     }
   };
 
-  updateHostContainer = function(workInProgress: Fiber) {
+  updateHostContainer = function (workInProgress: Fiber) {
     // Noop
   };
-  updateHostComponent = function(
+  updateHostComponent = function (
     current: Fiber,
     workInProgress: Fiber,
     type: Type,
@@ -192,7 +192,7 @@ if (supportsMutation) {
       markUpdate(workInProgress);
     }
   };
-  updateHostText = function(
+  updateHostText = function (
     current: Fiber,
     workInProgress: Fiber,
     oldText: string,
@@ -206,7 +206,7 @@ if (supportsMutation) {
 } else if (supportsPersistence) {
   // Persistent host tree mode
 
-  appendAllChildren = function(
+  appendAllChildren = function (
     parent: Instance,
     workInProgress: Fiber,
     needsVisibilityToggle: boolean,
@@ -291,7 +291,7 @@ if (supportsMutation) {
   };
 
   // An unfortunate fork of appendAllChildren because we have two different parent types.
-  const appendAllChildrenToContainer = function(
+  const appendAllChildrenToContainer = function (
     containerChildSet: ChildSet,
     workInProgress: Fiber,
     needsVisibilityToggle: boolean,
@@ -374,7 +374,7 @@ if (supportsMutation) {
       node = node.sibling;
     }
   };
-  updateHostContainer = function(workInProgress: Fiber) {
+  updateHostContainer = function (workInProgress: Fiber) {
     const portalOrRoot: {
       containerInfo: Container,
       pendingChildren: ChildSet,
@@ -394,7 +394,7 @@ if (supportsMutation) {
       finalizeContainerChildren(container, newChildSet);
     }
   };
-  updateHostComponent = function(
+  updateHostComponent = function (
     current: Fiber,
     workInProgress: Fiber,
     type: Type,
@@ -463,7 +463,7 @@ if (supportsMutation) {
       appendAllChildren(newInstance, workInProgress, false, false);
     }
   };
-  updateHostText = function(
+  updateHostText = function (
     current: Fiber,
     workInProgress: Fiber,
     oldText: string,
@@ -486,10 +486,10 @@ if (supportsMutation) {
   };
 } else {
   // No host operations
-  updateHostContainer = function(workInProgress: Fiber) {
+  updateHostContainer = function (workInProgress: Fiber) {
     // Noop
   };
-  updateHostComponent = function(
+  updateHostComponent = function (
     current: Fiber,
     workInProgress: Fiber,
     type: Type,
@@ -498,7 +498,7 @@ if (supportsMutation) {
   ) {
     // Noop
   };
-  updateHostText = function(
+  updateHostText = function (
     current: Fiber,
     workInProgress: Fiber,
     oldText: string,
@@ -508,6 +508,10 @@ if (supportsMutation) {
   };
 }
 
+// complete阶段主要工作都是在completeWork中完成的
+// completeWork主要是完成reconciliation阶段的扫尾工作，重点是对HostComponent的props进行diff，并标记更新。reconciliation阶段主要负责产出effect list。
+// reconcile的过程相当于是一个纯函数，输入是fiber节点，输出一个effect list。side - effects是在commit阶段被应用到UI中的，这样就将side-effects从reconciliation中隔离开了。
+// 因为纯函数的可预测性，让我们可以随时中断reconciliation阶段的执行，而不用担心side - effects给让组件状态和实际UI产生不一致。
 function completeWork(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -570,7 +574,7 @@ function completeWork(
           invariant(
             workInProgress.stateNode !== null,
             'We must have new props for new mounts. This error is likely ' +
-              'caused by a bug in React. Please file an issue.',
+            'caused by a bug in React. Please file an issue.',
           );
           // This can happen when we abort work.
           break;
@@ -643,7 +647,7 @@ function completeWork(
           invariant(
             workInProgress.stateNode !== null,
             'We must have new props for new mounts. This error is likely ' +
-              'caused by a bug in React. Please file an issue.',
+            'caused by a bug in React. Please file an issue.',
           );
           // This can happen when we abort work.
         }
@@ -783,7 +787,7 @@ function completeWork(
           invariant(
             wasHydrated,
             'A dehydrated suspense component was completed without a hydrated node. ' +
-              'This is probably a bug in React.',
+            'This is probably a bug in React.',
           );
           skipPastDehydratedSuspenseInstance(workInProgress);
         } else if ((workInProgress.effectTag & DidCapture) === NoEffect) {
@@ -854,11 +858,11 @@ function completeWork(
       invariant(
         false,
         'Unknown unit of work tag. This error is likely caused by a bug in ' +
-          'React. Please file an issue.',
+        'React. Please file an issue.',
       );
   }
 
   return null;
 }
 
-export {completeWork};
+export { completeWork };
