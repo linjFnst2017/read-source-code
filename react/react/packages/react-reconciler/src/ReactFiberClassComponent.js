@@ -172,6 +172,7 @@ export function applyDerivedStateFromProps(
 
 const classComponentUpdater = {
   isMounted,
+  // setState 调用 updater.enqueueSetState
   enqueueSetState(inst, payload, callback) {
     // 从全局拿到 React 组件实例对应的 fiber
     const fiber = getInstance(inst);
@@ -214,12 +215,14 @@ const classComponentUpdater = {
     enqueueUpdate(fiber, update);
     scheduleWork(fiber, expirationTime);
   },
+  // forceUpdate 调用 updater.enqueueForceUpdate
   enqueueForceUpdate(inst, callback) {
     const fiber = getInstance(inst);
     const currentTime = requestCurrentTime();
     const expirationTime = computeExpirationForFiber(currentTime, fiber);
 
     const update = createUpdate(expirationTime);
+    // 跟 enqueueSetState 唯一不同的是 update.tag
     update.tag = ForceUpdate;
 
     if (callback !== undefined && callback !== null) {
@@ -230,7 +233,9 @@ const classComponentUpdater = {
     }
 
     flushPassiveEffects();
+    // 在当前节点对应的 Fiber 对象上创建了 Update
     enqueueUpdate(fiber, update);
+    // 创建完 Update 之后，进就如scheduleWork调度阶段
     scheduleWork(fiber, expirationTime);
   },
 };

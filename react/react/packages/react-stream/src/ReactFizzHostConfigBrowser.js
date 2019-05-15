@@ -18,13 +18,13 @@ export function flushBuffered(destination: Destination) {
   // transform streams. https://github.com/whatwg/streams/issues/960
 }
 
-export function beginWriting(destination: Destination) {}
+export function beginWriting(destination: Destination) { }
 
 export function writeChunk(destination: Destination, buffer: Uint8Array) {
   destination.enqueue(buffer);
 }
 
-export function completeWriting(destination: Destination) {}
+export function completeWriting(destination: Destination) { }
 
 export function close(destination: Destination) {
   destination.close();

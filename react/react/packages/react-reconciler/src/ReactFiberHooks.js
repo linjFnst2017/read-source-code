@@ -7,16 +7,16 @@
  * @flow
  */
 
-import type {ReactContext} from 'shared/ReactTypes';
-import type {SideEffectTag} from 'shared/ReactSideEffectTags';
-import type {Fiber} from './ReactFiber';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
-import type {HookEffectTag} from './ReactHookEffectTags';
+import type { ReactContext } from 'shared/ReactTypes';
+import type { SideEffectTag } from 'shared/ReactSideEffectTags';
+import type { Fiber } from './ReactFiber';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
+import type { HookEffectTag } from './ReactHookEffectTags';
 
 import ReactSharedInternals from 'shared/ReactSharedInternals';
 
-import {NoWork} from './ReactFiberExpirationTime';
-import {readContext} from './ReactFiberNewContext';
+import { NoWork } from './ReactFiberExpirationTime';
+import { readContext } from './ReactFiberNewContext';
 import {
   Update as UpdateEffect,
   Passive as PassiveEffect,
@@ -41,9 +41,9 @@ import invariant from 'shared/invariant';
 import warning from 'shared/warning';
 import getComponentName from 'shared/getComponentName';
 import is from 'shared/objectIs';
-import {markWorkInProgressReceivedUpdate} from './ReactFiberBeginWork';
+import { markWorkInProgressReceivedUpdate } from './ReactFiberBeginWork';
 
-const {ReactCurrentDispatcher} = ReactSharedInternals;
+const { ReactCurrentDispatcher } = ReactSharedInternals;
 
 export type Dispatcher = {
   readContext<T>(
@@ -60,7 +60,7 @@ export type Dispatcher = {
     context: ReactContext<T>,
     observedBits: void | number | boolean,
   ): T,
-  useRef<T>(initialValue: T): {current: T},
+  useRef<T>(initialValue: T): { current: T },
   useEffect(
     create: () => (() => void) | void,
     deps: Array<mixed> | void | null,
@@ -72,7 +72,7 @@ export type Dispatcher = {
   useCallback<T>(callback: T, deps: Array<mixed> | void | null): T,
   useMemo<T>(nextCreate: () => T, deps: Array<mixed> | void | null): T,
   useImperativeHandle<T>(
-    ref: {current: T | null} | ((inst: T | null) => mixed) | null | void,
+    ref: { current: T | null } | ((inst: T | null) => mixed) | null | void,
     create: () => T,
     deps: Array<mixed> | void | null,
   ): void,
@@ -90,8 +90,8 @@ type Update<S, A> = {
 type UpdateQueue<S, A> = {
   last: Update<S, A> | null,
   dispatch: (A => mixed) | null,
-  lastRenderedReducer: ((S, A) => S) | null,
-  lastRenderedState: S | null,
+    lastRenderedReducer: ((S, A) => S) | null,
+      lastRenderedState: S | null,
 };
 
 export type HookType =
@@ -171,7 +171,7 @@ let didScheduleRenderPhaseUpdate: boolean = false;
 let renderPhaseUpdates: Map<
   UpdateQueue<any, any>,
   Update<any, any>,
-> | null = null;
+  > | null = null;
 // Counter to prevent infinite loops.
 let numberOfReRenders: number = 0;
 const RE_RENDER_LIMIT = 25;
@@ -218,7 +218,7 @@ function checkDepsAreArrayDev(deps: mixed) {
       warning(
         false,
         '%s received a final argument that is not an array (instead, received `%s`). When ' +
-          'specified, the final argument must be an array.',
+        'specified, the final argument must be an array.',
         currentHookNameInDev,
         typeof deps,
       );
@@ -262,12 +262,12 @@ function warnOnHookMismatchInDev(currentHookName: HookType) {
         warning(
           false,
           'React has detected a change in the order of Hooks called by %s. ' +
-            'This will lead to bugs and errors if not fixed. ' +
-            'For more information, read the Rules of Hooks: https://fb.me/rules-of-hooks\n\n' +
-            '   Previous render            Next render\n' +
-            '   ------------------------------------------------------\n' +
-            '%s' +
-            '   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n',
+          'This will lead to bugs and errors if not fixed. ' +
+          'For more information, read the Rules of Hooks: https://fb.me/rules-of-hooks\n\n' +
+          '   Previous render            Next render\n' +
+          '   ------------------------------------------------------\n' +
+          '%s' +
+          '   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n',
           componentName,
           table,
         );
@@ -280,11 +280,11 @@ function throwInvalidHookError() {
   invariant(
     false,
     'Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for' +
-      ' one of the following reasons:\n' +
-      '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
-      '2. You might be breaking the Rules of Hooks\n' +
-      '3. You might have more than one copy of React in the same app\n' +
-      'See https://fb.me/react-invalid-hook-call for tips about how to debug and fix this problem.',
+    ' one of the following reasons:\n' +
+    '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
+    '2. You might be breaking the Rules of Hooks\n' +
+    '3. You might have more than one copy of React in the same app\n' +
+    'See https://fb.me/react-invalid-hook-call for tips about how to debug and fix this problem.',
   );
 }
 
@@ -297,8 +297,8 @@ function areHookInputsEqual(
       warning(
         false,
         '%s received a final argument during this render, but not during ' +
-          'the previous render. Even though the final argument is optional, ' +
-          'its type cannot change between renders.',
+        'the previous render. Even though the final argument is optional, ' +
+        'its type cannot change between renders.',
         currentHookNameInDev,
       );
     }
@@ -312,9 +312,9 @@ function areHookInputsEqual(
       warning(
         false,
         'The final argument passed to %s changed size between renders. The ' +
-          'order and size of this array must remain constant.\n\n' +
-          'Previous: %s\n' +
-          'Incoming: %s',
+        'order and size of this array must remain constant.\n\n' +
+        'Previous: %s\n' +
+        'Incoming: %s',
         currentHookNameInDev,
         `[${prevDeps.join(', ')}]`,
         `[${nextDeps.join(', ')}]`,
@@ -330,6 +330,7 @@ function areHookInputsEqual(
   return true;
 }
 
+// 
 export function renderWithHooks(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -338,6 +339,8 @@ export function renderWithHooks(
   refOrContext: any,
   nextRenderExpirationTime: ExpirationTime,
 ): any {
+  // 初始化一些模块内的全局变量。
+  // 渲染的优先级时间（下潜时间， 或者理解为 Fiber 时间片）
   renderExpirationTime = nextRenderExpirationTime;
   currentlyRenderingFiber = workInProgress;
   nextCurrentHook = current !== null ? current.memoizedState : null;
@@ -383,6 +386,8 @@ export function renderWithHooks(
       ReactCurrentDispatcher.current = HooksDispatcherOnMountInDEV;
     }
   } else {
+    // 为 ReactCurrentDispatcher 赋值，注意前面的 hooks 在 React.js 的源码中都只是定义
+    // 实际调用的还是 Dispatcher.current.xxx 方法，就是在这里赋值了一个 dispatcher
     ReactCurrentDispatcher.current =
       nextCurrentHook === null
         ? HooksDispatcherOnMount
@@ -391,6 +396,8 @@ export function renderWithHooks(
 
   let children = Component(props, refOrContext);
 
+  // 16.8.6 代码中将之前的 hooks 的定义方法（prepareToUseHooks 和 finishHooks 柔和在一起）
+  // prepareToUseHooks 函数原本做的工作就是初始化闭包内的全局变量，这一部分工作在当前函数的最开始部分
   if (didScheduleRenderPhaseUpdate) {
     do {
       didScheduleRenderPhaseUpdate = false;
@@ -414,6 +421,9 @@ export function renderWithHooks(
         : HooksDispatcherOnUpdate;
 
       children = Component(props, refOrContext);
+
+      // 这个循环是因为Hooks提供了我们一个功能：如果在一次更新中（也就是调用FunctionalComponent的过程中）
+      // 如果直接调用了类似setState的Hooks API产生了新的更新，则会在当前的渲染周期中直接执行更新。
     } while (didScheduleRenderPhaseUpdate);
 
     renderPhaseUpdates = null;
@@ -426,6 +436,9 @@ export function renderWithHooks(
 
   const renderedWork: Fiber = (currentlyRenderingFiber: any);
 
+  // 设置 renderedWork.updateQueue. 类似于HostComponent和ClassComponent
+  // 本来FunctionalComponent在commit阶段是完全没有更新的，但是现在Hooks给了他产生side effect的能力，
+  // 所以这就是记录这些side effect的queue。
   renderedWork.memoizedState = firstWorkInProgressHook;
   renderedWork.expirationTime = remainingExpirationTime;
   renderedWork.updateQueue = (componentUpdateQueue: any);
@@ -435,6 +448,8 @@ export function renderWithHooks(
     renderedWork._debugHookTypes = hookTypesDev;
   }
 
+  // TODO: 
+  // 下面的部分全部都是初始化全局变量 ？？？ 但是似乎没看出来用处在哪里，其实都是局部使用的，没有涉及到被 return 出去的 children
   // This check uses currentHook so that it works the same in DEV and prod bundles.
   // hookTypesDev could catch more cases (e.g. context) but only in DEV bundles.
   const didRenderTooFewHooks =
@@ -467,7 +482,7 @@ export function renderWithHooks(
   invariant(
     !didRenderTooFewHooks,
     'Rendered fewer hooks than expected. This may be caused by an accidental ' +
-      'early return statement.',
+    'early return statement.',
   );
 
   return children;
@@ -529,11 +544,14 @@ function mountWorkInProgressHook(): Hook {
     next: null,
   };
 
+  // TODO: hook 为什么需要搞一个队列的概念出来啊？
   if (workInProgressHook === null) {
     // This is the first hook in the list
+    // 这是队列中的第一个 hook
     firstWorkInProgressHook = workInProgressHook = hook;
   } else {
     // Append to the end of the list
+    // 添加在队列的最后
     workInProgressHook = workInProgressHook.next = hook;
   }
   return workInProgressHook;
@@ -765,13 +783,24 @@ function updateReducer<S, I, A>(
   return [hook.memoizedState, dispatch];
 }
 
+// TODO: 
+// 其中一种 (mount 时期 ？) useState 实际指定的代码块
+// const [count, setCount] = useState(0);
+// 通过传递一个初始值，最终返回的值是一个数组，包含一个“记忆性质的值” => 大概就是初始值， 和一个 dispatcher
+// 这个 dispatcher 的作用可以被用来修改这个“初始值”。
 function mountState<S>(
   initialState: (() => S) | S,
 ): [S, Dispatch<BasicStateAction<S>>] {
+  // TODO:
+  // 初始化一个 hook 对象，第一个 hook 里面的值反正都是 null ; 唯一不同的是， 非第一个 hook 的话，会当前的正在工作中
+  // 的 hook 的 next 属性执行准备初始化出来的 这个 hook
   const hook = mountWorkInProgressHook();
+  // 根据这里判断 useState 函数的参数可以是一个函数(执行之后返回一个值), 这种情况是为了防止多个 hook 之间因为引用类型的值
+  // 而操作了同一份数据，通过一个 function return 一份初始值能够保证多个 functional Component 的 hooks 之间互不影响
   if (typeof initialState === 'function') {
     initialState = initialState();
   }
+  // memoized 记忆性质的？ 哇。。。 英语渣渣直接查 youdao 翻译真的难受
   hook.memoizedState = hook.baseState = initialState;
   const queue = (hook.queue = {
     last: null,
@@ -779,14 +808,16 @@ function mountState<S>(
     lastRenderedReducer: basicStateReducer,
     lastRenderedState: (initialState: any),
   });
+  // 这里的 flow 看的有点懵, 去除一下类型应该是：
+  // const dispatch = queue.dispatch = dispatchAction.bind(null,currentlyRenderingFiber, queue)
   const dispatch: Dispatch<
     BasicStateAction<S>,
-  > = (queue.dispatch = (dispatchAction.bind(
-    null,
-    // Flow doesn't know this is non-null, but we do.
-    ((currentlyRenderingFiber: any): Fiber),
-    queue,
-  ): any));
+    > = (queue.dispatch = (dispatchAction.bind(
+      null,
+      // Flow doesn't know this is non-null, but we do.
+      ((currentlyRenderingFiber: any): Fiber),
+      queue,
+    ): any));
   return [hook.memoizedState, dispatch];
 }
 
@@ -822,9 +853,9 @@ function pushEffect(tag, create, destroy, deps) {
   return effect;
 }
 
-function mountRef<T>(initialValue: T): {current: T} {
+function mountRef<T>(initialValue: T): { current: T } {
   const hook = mountWorkInProgressHook();
-  const ref = {current: initialValue};
+  const ref = { current: initialValue };
   if (__DEV__) {
     Object.seal(ref);
   }
@@ -832,7 +863,7 @@ function mountRef<T>(initialValue: T): {current: T} {
   return ref;
 }
 
-function updateRef<T>(initialValue: T): {current: T} {
+function updateRef<T>(initialValue: T): { current: T } {
   const hook = updateWorkInProgressHook();
   return hook.memoizedState;
 }
@@ -915,7 +946,7 @@ function updateLayoutEffect(
 
 function imperativeHandleEffect<T>(
   create: () => T,
-  ref: {current: T | null} | ((inst: T | null) => mixed) | null | void,
+  ref: { current: T | null } | ((inst: T | null) => mixed) | null | void,
 ) {
   if (typeof ref === 'function') {
     const refCallback = ref;
@@ -930,7 +961,7 @@ function imperativeHandleEffect<T>(
       warning(
         refObject.hasOwnProperty('current'),
         'Expected useImperativeHandle() first argument to either be a ' +
-          'ref callback or React.createRef() object. Instead received: %s.',
+        'ref callback or React.createRef() object. Instead received: %s.',
         'an object with keys {' + Object.keys(refObject).join(', ') + '}',
       );
     }
@@ -943,7 +974,7 @@ function imperativeHandleEffect<T>(
 }
 
 function mountImperativeHandle<T>(
-  ref: {current: T | null} | ((inst: T | null) => mixed) | null | void,
+  ref: { current: T | null } | ((inst: T | null) => mixed) | null | void,
   create: () => T,
   deps: Array<mixed> | void | null,
 ): void {
@@ -951,7 +982,7 @@ function mountImperativeHandle<T>(
     warning(
       typeof create === 'function',
       'Expected useImperativeHandle() second argument to be a function ' +
-        'that creates a handle. Instead received: %s.',
+      'that creates a handle. Instead received: %s.',
       create !== null ? typeof create : 'null',
     );
   }
@@ -969,7 +1000,7 @@ function mountImperativeHandle<T>(
 }
 
 function updateImperativeHandle<T>(
-  ref: {current: T | null} | ((inst: T | null) => mixed) | null | void,
+  ref: { current: T | null } | ((inst: T | null) => mixed) | null | void,
   create: () => T,
   deps: Array<mixed> | void | null,
 ): void {
@@ -977,7 +1008,7 @@ function updateImperativeHandle<T>(
     warning(
       typeof create === 'function',
       'Expected useImperativeHandle() second argument to be a function ' +
-        'that creates a handle. Instead received: %s.',
+      'that creates a handle. Instead received: %s.',
       create !== null ? typeof create : 'null',
     );
   }
@@ -1057,6 +1088,7 @@ function updateMemo<T>(
   return nextValue;
 }
 
+// useState 函数执行 return 的结果里第二个参数 dispatcher 
 function dispatchAction<S, A>(
   fiber: Fiber,
   queue: UpdateQueue<S, A>,
@@ -1065,15 +1097,15 @@ function dispatchAction<S, A>(
   invariant(
     numberOfReRenders < RE_RENDER_LIMIT,
     'Too many re-renders. React limits the number of renders to prevent ' +
-      'an infinite loop.',
+    'an infinite loop.',
   );
 
   if (__DEV__) {
     warning(
       arguments.length <= 3,
       "State updates from the useState() and useReducer() Hooks don't support the " +
-        'second callback argument. To execute a side effect after ' +
-        'rendering, declare it in the component body with useEffect().',
+      'second callback argument. To execute a side effect after ' +
+      'rendering, declare it in the component body with useEffect().',
     );
   }
 
@@ -1202,6 +1234,7 @@ export const ContextOnlyDispatcher: Dispatcher = {
   useDebugValue: throwInvalidHookError,
 };
 
+// 其中一种情况的 dispatcher. 看这个对象其中定义的 hooks 相关的函数
 const HooksDispatcherOnMount: Dispatcher = {
   readContext,
 
@@ -1243,9 +1276,9 @@ if (__DEV__) {
     warning(
       false,
       'Context can only be read while React is rendering. ' +
-        'In classes, you can read it in the render method or getDerivedStateFromProps. ' +
-        'In function components, you can read it directly in the function body, but not ' +
-        'inside Hooks like useReducer() or useMemo().',
+      'In classes, you can read it in the render method or getDerivedStateFromProps. ' +
+      'In function components, you can read it directly in the function body, but not ' +
+      'inside Hooks like useReducer() or useMemo().',
     );
   };
 
@@ -1253,9 +1286,9 @@ if (__DEV__) {
     warning(
       false,
       'Do not call Hooks inside useEffect(...), useMemo(...), or other built-in Hooks. ' +
-        'You can only call Hooks at the top level of your React function. ' +
-        'For more information, see ' +
-        'https://fb.me/rules-of-hooks',
+      'You can only call Hooks at the top level of your React function. ' +
+      'For more information, see ' +
+      'https://fb.me/rules-of-hooks',
     );
   };
 
@@ -1291,7 +1324,7 @@ if (__DEV__) {
       return mountEffect(create, deps);
     },
     useImperativeHandle<T>(
-      ref: {current: T | null} | ((inst: T | null) => mixed) | null | void,
+      ref: { current: T | null } | ((inst: T | null) => mixed) | null | void,
       create: () => T,
       deps: Array<mixed> | void | null,
     ): void {
@@ -1336,7 +1369,7 @@ if (__DEV__) {
         ReactCurrentDispatcher.current = prevDispatcher;
       }
     },
-    useRef<T>(initialValue: T): {current: T} {
+    useRef<T>(initialValue: T): { current: T } {
       currentHookNameInDev = 'useRef';
       mountHookTypesDev();
       return mountRef(initialValue);
@@ -1391,7 +1424,7 @@ if (__DEV__) {
       return mountEffect(create, deps);
     },
     useImperativeHandle<T>(
-      ref: {current: T | null} | ((inst: T | null) => mixed) | null | void,
+      ref: { current: T | null } | ((inst: T | null) => mixed) | null | void,
       create: () => T,
       deps: Array<mixed> | void | null,
     ): void {
@@ -1433,7 +1466,7 @@ if (__DEV__) {
         ReactCurrentDispatcher.current = prevDispatcher;
       }
     },
-    useRef<T>(initialValue: T): {current: T} {
+    useRef<T>(initialValue: T): { current: T } {
       currentHookNameInDev = 'useRef';
       updateHookTypesDev();
       return mountRef(initialValue);
@@ -1488,7 +1521,7 @@ if (__DEV__) {
       return updateEffect(create, deps);
     },
     useImperativeHandle<T>(
-      ref: {current: T | null} | ((inst: T | null) => mixed) | null | void,
+      ref: { current: T | null } | ((inst: T | null) => mixed) | null | void,
       create: () => T,
       deps: Array<mixed> | void | null,
     ): void {
@@ -1530,7 +1563,7 @@ if (__DEV__) {
         ReactCurrentDispatcher.current = prevDispatcher;
       }
     },
-    useRef<T>(initialValue: T): {current: T} {
+    useRef<T>(initialValue: T): { current: T } {
       currentHookNameInDev = 'useRef';
       updateHookTypesDev();
       return updateRef(initialValue);
@@ -1589,7 +1622,7 @@ if (__DEV__) {
       return mountEffect(create, deps);
     },
     useImperativeHandle<T>(
-      ref: {current: T | null} | ((inst: T | null) => mixed) | null | void,
+      ref: { current: T | null } | ((inst: T | null) => mixed) | null | void,
       create: () => T,
       deps: Array<mixed> | void | null,
     ): void {
@@ -1635,7 +1668,7 @@ if (__DEV__) {
         ReactCurrentDispatcher.current = prevDispatcher;
       }
     },
-    useRef<T>(initialValue: T): {current: T} {
+    useRef<T>(initialValue: T): { current: T } {
       currentHookNameInDev = 'useRef';
       warnInvalidHookAccess();
       mountHookTypesDev();
@@ -1697,7 +1730,7 @@ if (__DEV__) {
       return updateEffect(create, deps);
     },
     useImperativeHandle<T>(
-      ref: {current: T | null} | ((inst: T | null) => mixed) | null | void,
+      ref: { current: T | null } | ((inst: T | null) => mixed) | null | void,
       create: () => T,
       deps: Array<mixed> | void | null,
     ): void {
@@ -1743,7 +1776,7 @@ if (__DEV__) {
         ReactCurrentDispatcher.current = prevDispatcher;
       }
     },
-    useRef<T>(initialValue: T): {current: T} {
+    useRef<T>(initialValue: T): { current: T } {
       currentHookNameInDev = 'useRef';
       warnInvalidHookAccess();
       updateHookTypesDev();

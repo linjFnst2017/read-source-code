@@ -299,6 +299,7 @@ export function computeExpirationForFiber(
   return expirationTime;
 }
 
+// lastUniqueAsyncExpiration 在createBatch中有调用，但是没发现createBatch在哪里被调用，所以，目前没发现什么作用。
 let lastUniqueAsyncExpiration = NoWork;
 export function computeUniqueAsyncExpiration(): ExpirationTime {
   const currentTime = requestCurrentTime();

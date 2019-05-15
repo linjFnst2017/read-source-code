@@ -21,6 +21,7 @@ import type { SideEffectTag } from 'shared/ReactSideEffectTags';
 import type { ExpirationTime } from './ReactFiberExpirationTime';
 import type { UpdateQueue } from './ReactUpdateQueue';
 import type { ContextDependencyList } from './ReactFiberNewContext';
+// hooks 类型定义
 import type { HookType } from './ReactFiberHooks';
 
 import invariant from 'shared/invariant';

@@ -567,6 +567,8 @@ function markRef(current: Fiber | null, workInProgress: Fiber) {
   }
 }
 
+// Hooks只有FunctionalComponent被更新的时候才会被调用
+// FunctionalComponent的更新过程：
 function updateFunctionComponent(
   current,
   workInProgress,
@@ -595,6 +597,8 @@ function updateFunctionComponent(
   const context = getMaskedContext(workInProgress, unmaskedContext);
 
   let nextChildren;
+  // 步骤 1 
+  // 第一个是读取新的Context API的，因为在Hooks中有读取Context的操作
   prepareToReadContext(workInProgress, renderExpirationTime);
   if (__DEV__) {
     ReactCurrentOwner.current = workInProgress;
@@ -626,6 +630,7 @@ function updateFunctionComponent(
     }
     setCurrentPhase(null);
   } else {
+    // 步骤 2 ，这个方法来自ReactFiberHooks.js
     nextChildren = renderWithHooks(
       current,
       workInProgress,
@@ -647,6 +652,7 @@ function updateFunctionComponent(
 
   // React DevTools reads this flag.
   workInProgress.effectTag |= PerformedWork;
+  // 步骤 3
   reconcileChildren(
     current,
     workInProgress,

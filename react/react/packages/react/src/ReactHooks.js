@@ -28,6 +28,7 @@ function resolveDispatcher() {
   return dispatcher;
 }
 
+// 只管定义，不管实现
 export function useContext<T>(
   Context: ReactContext<T>,
   unstable_observedBits: number | boolean | void,
@@ -67,9 +68,11 @@ export function useContext<T>(
       }
     }
   }
+  // 调用了ReactCurrentOwner.current.xxx对应的方法。
   return dispatcher.useContext(Context, unstable_observedBits);
 }
 
+// useState 不过就是个语法糖 ， 本质上是 dispatcher 的 useState 函数。（这个版本中 useState 已经不是通过 useReducer 实现了）
 export function useState<S>(initialState: (() => S) | S) {
   const dispatcher = resolveDispatcher();
   return dispatcher.useState(initialState);

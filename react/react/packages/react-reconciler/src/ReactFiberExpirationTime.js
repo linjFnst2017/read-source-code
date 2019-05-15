@@ -7,7 +7,7 @@
  * @flow
  */
 
-import type {ReactPriorityLevel} from './SchedulerWithReactIntegration';
+import type { ReactPriorityLevel } from './SchedulerWithReactIntegration';
 
 import MAX_SIGNED_31_BIT_INT from './maxSigned31BitInt';
 
@@ -127,3 +127,8 @@ export function inferPriorityFromExpirationTime(
   // Assume anything lower has idle priority
   return IdlePriority;
 }
+
+
+// React 中有两种类型的ExpirationTime，一个是Interactive的，另一种是普通的异步。
+// Interactive的比如说是由事件触发的，那么他的响应优先级会比较高因为涉及到交互。
+// https://react.jokcy.me/book/update/expiration-time.html

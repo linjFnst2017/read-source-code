@@ -7,6 +7,7 @@
  * @flow
  */
 
+// 仅仅只是获取类型定义
 import type { Dispatcher } from 'react-reconciler/src/ReactFiberHooks';
 
 /**
