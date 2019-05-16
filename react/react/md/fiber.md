@@ -1,3 +1,7 @@
+### 写在前面
+
+Fiber 架构是在 React 16 之后引入的一个全新的架构，旨在解决异步渲染的问题。新的架构使得异步渲染成为可能，但是需要注意的是，只是可能。React 没有在 16 发布的时候就立刻开启异步渲染，也就是说 react 16 发布之后依然使用的还是同步渲染机制， 只是这个异步渲染机制没有立刻被采用。所有的 react 16 一系列的新功能都是基于 Fiber 架构的。
+
 ### fiber
 
 fiber 结构改变了之前 react 组件的渲染机制，新的架构使原来同步渲染的组件现在可以异步化， 可中途中断渲染，执行更高优先级的任务，释放浏览器主进程。
@@ -76,3 +80,61 @@ react16 以前的组件渲染方式存在一个问题，如果这是一个很大
 #### performUnitOfWork
 React 16保持了之前版本的事务风格，一个“work”会被分解为begin和complete两个阶段来完成。
 
+### Fiber 具体是做什么的
+Fiber 以 render 函数为界，分成了 render phase 和 commit phase。 第一阶段是 render phase ， Fiber 会找出需要更新哪些 dom，在这个阶段是可以被打断的；但是到了第二阶段 commit phase ，开始操作 dom，是不能被打断的。
+
+第一阶段render phase包括以下生命周期函数:
+- componentWillMount
+- componentWillReceiveProps
+- shouldComponentUpdate
+- componentWillUpdate
+
+第二阶段Commit phase包含以下生命周期函数:
+- componentDidMount
+- componentDidUpdate
+- componentWillUnMount
+
+比如说一个低优先级的任务 A 正在执行，此时已经调用了某一个组件的 componentWillUpdate 函数，接下来发现自己的时间分片已经用完了，于是冒出水面，看看有没有紧急任务，如果此时有一个紧急任务 B ，接下来 React Fiber 就会先去执行这个紧急任务 B ，虽然任务 A 执行到一半，但是没有办法只能完全放弃，等到任务 B 全部搞定会后，任务 A 重新执行一遍， 注意这里是重新来一遍，不是从刚才中断的部分开始，也就是说 componentWillUpdate 函数会被再执行一次。
+
+#### React 16.3 之前的生命周期
+
+1. 初始化阶段 Initialization: 初始化 props 和 state
+2. 挂载阶段 Mounting: 先后执行 componentWillMount 函数，render 函数，以及 componentDidMount 函数
+3. 更新阶段 Updation: 
+  a: props 部分会先执行 componentWillReceiveProps 钩子函数，接着执行 shouldComponentUpdate 函数，根据这个函数返回的结果来判断是否继续执行下面的更新（因为 props 引起的），如果 shouldComponentUpdate 函数返回的结果是 false 就不继续往下执行了；如果 shouldComponentUpdate 函数返回的结果是 true， 则接下来会先后执行 componentWillUpdate 函数，render 函数，以及 componentDidUpdate 函数。
+  b: state 部分会直接执行 shouldComponentUpdate 函数，后面的逻辑与 props 相同， 会根据 shouldComponentUpdate 函数返回的结果来决定是否继续执行 Update 相关的钩子函数。
+4. 卸载阶段 Unmounting: 执行 componentWillUnmount 钩子函数
+
+
+如果需要开始 异步渲染（async rendering） ， 在 render 函数之前的所有函数都有可能会被执行多次。
+> 比如很多开发者会在 componentWillMount 里写 ajax 来获取数据的功能，他们会认为 componentWillMount 在 render 之前执行，早一点执行早点得到结果。但是在 componentWillMount 里发起 ajax 请求，不管多快得到结果也赶不上首次执行 render （事件循环机制决定的吧 ？）， 这样的 IO 操作通常放在 componenDidMount 里更合适。 在 Fiber 启用异步渲染之后，更加没有理由在 componentWillMount 钩子中做 ajax 请求，因为 componentWillMount 钩子可能会被执行多次。
+
+React 官方也意识到了这个问题，觉得有必要去劝告（阻止）开发者不要在 render phase 阶段里写有副作用的代码（副作用： 简单说就是做本函数之外的事情，比如 ajax 操作，修改全局变量之类的），为此 React 16 调整了声明周期。
+
+#### React 16.4 生命周期
+
+![](https://user-gold-cdn.xitu.io/2018/8/12/1652a030ed1506e0?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+
+图中的 render 阶段： 纯净但没有副作用， 可能会被 React 暂停、中止或者重新执行
+Pre-commit 阶段：可以读取 dom
+commit 阶段： 可以使用 dom ，运行副作用，安排更新
+
+生命周期一旦被打断，下次恢复时又会再跑一次之前的生命周期，也就是被重新执行。因此 componentWillMount componentWillReceiveProps 和 componentWillUpdate 都不能保证只在挂载、拿到 props 、状态发生改变的时候刷新一次了，所以这三个方法被标记位不安全。
+
+
+React16废弃的三个生命周期函数:
+1. ~~componentWillMount~~
+2. ~~componentWillReceiveProps~~
+3. ~~componentWillUpdate~~
+
+> 需要注意的是，目前在16版本中componentWillMount，componentWillReceiveProps，componentWillUpdate并未完全删除这三个生命周期函数，而且新增了UNSAFE_componentWillMount，UNSAFE_componentWillReceiveProps，UNSAFE_componentWillUpdate三个函数，官方计划在17版本完全删除这三个函数，只保留UNSAVE_前缀的三个函数，目的是为了向下兼容，但是对于开发者而言应该尽量避免使用他们，而是使用新增的生命周期函数替代它们
+
+新增的钩子函数：
+1. static getDerivedStateFromProps
+2. getSnapshotBeforeUpdate
+
+从上面可以看到，除了 shouldComponentUpdate 有助于提升渲染性能的之外，其他render phase阶段的生命周期都被去掉了。另外需要注意：Render函数本身属于render phase，也可能会被打断，会执行很多次；
+
+
+
+https://juejin.im/post/5b6f1800f265da282d45a79a
