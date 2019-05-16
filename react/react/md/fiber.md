@@ -18,19 +18,60 @@ react16 以前的组件渲染方式存在一个问题，如果这是一个很大
 ### Fiber 节点的数据结构
 ```js
 {
-    tag: TypeOfWork, // fiber的类型
+    tag: WorkTag, // fiber的类型
     // 替换物
     alternate: Fiber|null, // 在fiber更新时克隆出的镜像fiber，对fiber的修改会标记在这个fiber上
-    return: Fiber|null, // 指向fiber树中的父节点
+    return: Fiber|null, // 指向 fiber 树中的父节点
     child: Fiber|null, // 指向第一个子节点
     sibling: Fiber|null, // 指向兄弟节点
     effectTag: TypeOfSideEffect, // side effect类型
     nextEffect: Fiber | null, // 单链表结构，方便遍历fiber树上有副作用的节点
     pendingWorkPriority: PriorityLevel, // 标记子树上待更新任务的优先级
+    stateNode: any // 与此 fiber 相关联的本地状态
 }
 
 ```
 在实际的渲染过程中，Fiber 节点构成了一颗树。这棵树在数据结构上是通过**单链表**的形式构成的，Fiber 节点上的 chlid 和 sibling 属性分别指向了这个节点的第一个子节点和相邻的兄弟节点。这样就可以遍历整个 Fiber 树了。
+
+WorkTag 具体的值定义在 `ReactWorkTags.js` 中：
+
+```js
+export type WorkTag =
+  | 0
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12
+  | 13
+  | 14
+  | 15
+  | 16
+  | 17
+  | 18
+  | 19
+  | 20;
+```
+
+这个文件中具体再往下看，可以看到对于不同 Component 类型的定义，也都是给了具体的数字形式，而不是字符串的形式来判断，这样是不是能加快判断的速度？
+```js
+export const HostRoot = 3;
+```
+
+```js
+  ...
+  if (node === null && fiber.tag === HostRoot) {
+    root = fiber.stateNode;
+  } else {
+  ...
+```
 
 #### TypeOfWork
 代表React中不同类型的fiber节点

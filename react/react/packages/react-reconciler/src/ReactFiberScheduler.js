@@ -314,6 +314,7 @@ export function computeUniqueAsyncExpiration(): ExpirationTime {
   return result;
 }
 
+// Fiber 上的更新队列
 export function scheduleUpdateOnFiber(
   fiber: Fiber,
   expirationTime: ExpirationTime,
@@ -321,6 +322,7 @@ export function scheduleUpdateOnFiber(
   checkForNestedUpdates();
   warnAboutInvalidUpdatesOnClassComponentsInDEV(fiber);
 
+  // 这里的 root 任务非常重要
   const root = markUpdateTimeFromFiberToRoot(fiber, expirationTime);
   if (root === null) {
     warnAboutUpdateOnUnmountedFiberInDEV(fiber);
@@ -374,29 +376,44 @@ export function scheduleUpdateOnFiber(
     scheduleCallbackForRoot(root, priorityLevel, expirationTime);
   }
 }
+
+// 任务队列。 函数名也顾名思义：Fiber 上的更新队列
 export const scheduleWork = scheduleUpdateOnFiber;
 
+
+// Schedule Work To Root
 // This is split into a separate function so we can mark a fiber with pending
 // work without treating it as a typical update that originates from an event;
 // e.g. retrying a Suspense boundary isn't an update, but it does schedule work
 // on a fiber.
 function markUpdateTimeFromFiberToRoot(fiber, expirationTime) {
   // Update the source fiber's expiration time
+  // 更新源(当前传入的这个) Fiber 的过期时间
   if (fiber.expirationTime < expirationTime) {
     fiber.expirationTime = expirationTime;
   }
+  // 备用 Fiber: 在 fiber 更新时克隆出的镜像 fiber，对 fiber 的修改会标记在这个备用 fiber 上
   let alternate = fiber.alternate;
+  // 更新备用 Fiber 的过期时间
   if (alternate !== null && alternate.expirationTime < expirationTime) {
     alternate.expirationTime = expirationTime;
   }
   // Walk the parent path to the root and update the child expiration time.
+  // 将父路径遍历到根，并更新子过期时间。
+  // return 指向 fiber 树中的父节点
   let node = fiber.return;
   let root = null;
+  // 双重验证： 如果当前的 Fiber 树已经没有父节点了，并且该 fiber 的 tag 类型就是（宿主的）根节点 
   if (node === null && fiber.tag === HostRoot) {
+    // TODO:
+    // 赋值与此 fiber 相关联的本地状态，（状态节点 ？）
     root = fiber.stateNode;
   } else {
+    // 如有有父节点的话，
     while (node !== null) {
+      // 获取父节点的备份节点
       alternate = node.alternate;
+      // childExpirationTime 子节点过期时间
       if (node.childExpirationTime < expirationTime) {
         node.childExpirationTime = expirationTime;
         if (
