@@ -78,6 +78,7 @@ export function useState<S>(initialState: (() => S) | S) {
   return dispatcher.useState(initialState);
 }
 
+// useState 跟 useReducer 的形式类似
 export function useReducer<S, I, A>(
   reducer: (S, A) => S,
   initialArg: I,

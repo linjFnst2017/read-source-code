@@ -7,9 +7,9 @@
  * @flow
  */
 
-import type {Writable} from 'stream';
+import type { Writable } from 'stream';
 
-type MightBeFlushable = {flush?: () => void};
+type MightBeFlushable = { flush?: () => void };
 
 export type Destination = Writable & MightBeFlushable;
 

@@ -94,6 +94,7 @@ type UpdateQueue<S, A> = {
       lastRenderedState: S | null,
 };
 
+// 全部的 hooks 列表
 export type HookType =
   | 'useState'
   | 'useReducer'
@@ -330,7 +331,6 @@ function areHookInputsEqual(
   return true;
 }
 
-// 
 export function renderWithHooks(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -545,6 +545,7 @@ function mountWorkInProgressHook(): Hook {
   };
 
   // TODO: hook 为什么需要搞一个队列的概念出来啊？
+  // 这里分两种情况：第一次渲染和更新，如果workInProgressHook.queue存在则为更新，否则是第一次渲染
   if (workInProgressHook === null) {
     // This is the first hook in the list
     // 这是队列中的第一个 hook
@@ -563,8 +564,11 @@ function updateWorkInProgressHook(): Hook {
   // clone, or a work-in-progress hook from a previous render pass that we can
   // use as a base. When we reach the end of the base list, we must switch to
   // the dispatcher used for mounts.
+
+  // renderWithHooks 函数执行时，会为 nextWorkInProgressHook 全局变量赋值，指定了下一个需要执行的 hook
   if (nextWorkInProgressHook !== null) {
     // There's already a work-in-progress. Reuse it.
+    // 已经有一项工作在进行中。重用它
     workInProgressHook = nextWorkInProgressHook;
     nextWorkInProgressHook = workInProgressHook.next;
 
@@ -610,6 +614,7 @@ function basicStateReducer<S>(state: S, action: BasicStateAction<S>): S {
   return typeof action === 'function' ? action(state) : action;
 }
 
+// 实际 useReducer 调用
 function mountReducer<S, I, A>(
   reducer: (S, A) => S,
   initialArg: I,
@@ -643,6 +648,7 @@ function updateReducer<S, I, A>(
   initialArg: I,
   init?: I => S,
 ): [S, Dispatch<A>] {
+
   const hook = updateWorkInProgressHook();
   const queue = hook.queue;
   invariant(
@@ -772,6 +778,7 @@ function updateReducer<S, I, A>(
       markWorkInProgressReceivedUpdate();
     }
 
+    // 根据reducer和update.action来创建新的state，并赋值给 Hook.memoizedState 以及Hook.baseState
     hook.memoizedState = newState;
     hook.baseUpdate = newBaseUpdate;
     hook.baseState = newBaseState;
@@ -801,15 +808,20 @@ function mountState<S>(
     initialState = initialState();
   }
   // memoized 记忆性质的？ 哇。。。 英语渣渣直接查 youdao 翻译真的难受
+  // 第一次渲染主要是初始化操作， 初始化initialState，并且记录在workInProgressHook.memoizedState 和 workInProgressHook.baseState 上
   hook.memoizedState = hook.baseState = initialState;
+  // 创建queue对象， 之后就可以根据 queue 对象来判定是否是第一次渲染
   const queue = (hook.queue = {
+    // 指针
     last: null,
+    // dispatch 是用来记录更新state的方法的
     dispatch: null,
     lastRenderedReducer: basicStateReducer,
     lastRenderedState: (initialState: any),
   });
   // 这里的 flow 看的有点懵, 去除一下类型应该是：
   // const dispatch = queue.dispatch = dispatchAction.bind(null,currentlyRenderingFiber, queue)
+  // 这个dispatch就是dispatchAction绑定了对应的Fiber和queue。
   const dispatch: Dispatch<
     BasicStateAction<S>,
     > = (queue.dispatch = (dispatchAction.bind(
@@ -818,9 +830,12 @@ function mountState<S>(
       ((currentlyRenderingFiber: any): Fiber),
       queue,
     ): any));
+  // 对应 `const [state, updateState] = useState('default')` 的用法
   return [hook.memoizedState, dispatch];
 }
 
+// 所谓reRender就是说在当前更新周期中又产生了新的更新，就继续执行这些更新知道当前渲染周期中没有更新为止
+// 更新 state ，对于不是第一次渲染的 state ，区别在于 workInProgressHook.queue 是否存在
 function updateState<S>(
   initialState: (() => S) | S,
 ): [S, Dispatch<BasicStateAction<S>>] {
@@ -1219,6 +1234,7 @@ function dispatchAction<S, A>(
   }
 }
 
+// 第一种 Dispatcher
 export const ContextOnlyDispatcher: Dispatcher = {
   readContext,
 
@@ -1234,6 +1250,7 @@ export const ContextOnlyDispatcher: Dispatcher = {
   useDebugValue: throwInvalidHookError,
 };
 
+// 第二种 Dispatcher
 // 其中一种情况的 dispatcher. 看这个对象其中定义的 hooks 相关的函数
 const HooksDispatcherOnMount: Dispatcher = {
   readContext,
@@ -1250,6 +1267,7 @@ const HooksDispatcherOnMount: Dispatcher = {
   useDebugValue: mountDebugValue,
 };
 
+// 第三种 Dispatcher
 const HooksDispatcherOnUpdate: Dispatcher = {
   readContext,
 
