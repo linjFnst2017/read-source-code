@@ -68,7 +68,7 @@ describe('ReactHooksInspection', () => {
   });
 
   it('should inspect a tree of multiple hooks', () => {
-    function effect() {}
+    function effect() { }
     function useCustom(value) {
       let [state] = React.useState(value);
       React.useEffect(effect);
@@ -133,7 +133,7 @@ describe('ReactHooksInspection', () => {
   });
 
   it('should inspect a tree of multiple levels of hooks', () => {
-    function effect() {}
+    function effect() { }
     function useCustom(value) {
       let [state] = React.useReducer((s, a) => s, value);
       React.useEffect(effect);
@@ -280,11 +280,11 @@ describe('ReactHooksInspection', () => {
       ReactDebugTools.inspectHooks(Foo, {}, FakeDispatcherRef);
     }).toThrow(
       'Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for' +
-        ' one of the following reasons:\n' +
-        '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
-        '2. You might be breaking the Rules of Hooks\n' +
-        '3. You might have more than one copy of React in the same app\n' +
-        'See https://fb.me/react-invalid-hook-call for tips about how to debug and fix this problem.',
+      ' one of the following reasons:\n' +
+      '1. You might have mismatching versions of React and the renderer (such as React DOM)\n' +
+      '2. You might be breaking the Rules of Hooks\n' +
+      '3. You might have more than one copy of React in the same app\n' +
+      'See https://fb.me/react-invalid-hook-call for tips about how to debug and fix this problem.',
     );
 
     expect(getterCalls).toBe(1);
@@ -305,7 +305,7 @@ describe('ReactHooksInspection', () => {
 
     it('should support an optional formatter function param', () => {
       function useCustom() {
-        React.useDebugValue({bar: 123}, object => `bar:${object.bar}`);
+        React.useDebugValue({ bar: 123 }, object => `bar:${object.bar}`);
         React.useState(0);
       }
       function Foo(props) {
