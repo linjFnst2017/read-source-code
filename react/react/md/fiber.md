@@ -178,4 +178,63 @@ React16废弃的三个生命周期函数:
 
 
 
+getDerivedStateFromProps:
+1. 当 state 需要从 props 初始化时使用
+2. 每次 render 都会被调用
+3. 静态函数，无法访问 this
+4. 典型场景：表单控件获取默认值
+> 根据nextProps和prevState计算出预期的状态改变;静态函数，无法访问this，控制台打印为undefined; 这个静态函数返回的结果会被送给setState
+
+getSnapshotBeforeUpdate:
+1. 每次 ui 更新时被调用
+2. 典型场景：页面需要根据
+> 触发时间: update发生的时候，在组件dom渲染之前; 返回一个值，作为componentDidUpdate的第三个参数
+
+
+#### FIber 小结
+- Fiber 将渲染分成了两个阶段： render phase 和 commit phase。 render phase 可以被打断，不要在此阶段做一些有副作用的操作。
+- 生命周期调整， react 把你有可能在 render phase 里做有副作用的函数都改成了 static 函数，强迫开发者做一些纯函数的操作
+
+
+### 异步渲染 Async render
+计算能力和网络速度分别对应计算机设备的 CPU 和 IO 能力。在 React 中， CPU 主要影响 DOM 元素的创建和更新效率，而 IO 则影响获取数据和懒加载的代码。
+
+时间分片（Time Slicing）：DOM 操作的优先级低于浏览器原生行为，例如键盘和鼠标输入，从而保证操作的流畅。
+渲染挂起（Suspense）：虚拟 DOM 节点可以等待某个异步操作的完成，并制定  timeout， 之后才能完成真正的渲染。
+
+#### 时间分片（Time Slicing）
+同步模式下，每输入一个字符，React 就开始渲染，当 React 渲染一棵巨大的树的时候，是非常卡的。
+
+Debounced (去颤抖) 模式简单说就是延迟渲染， 比如当输入完成后，就开始渲染所有的变化。这么做至少不会阻塞用户的输入了，但是依然有非常严重的卡顿。
+
+异步渲染模式就是不阻塞当前线程，继续跑。
+
+特性：
+1. React 在渲染 render 时， 不会阻塞现在的线程
+2. 如果你的设备足够快，你会感觉渲染是同步的
+3. 如果你的设备非常慢，你会感觉还算是灵敏的
+4. 虽然是异步渲染，但是你将会看到完整的渲染，而不是一个组件一行一行渲染出来
+
+
+##### 实现原理:
+1. 虚拟 dom 的 diff 算法操作可以分片进行。从 reactDOM.render 函数变成了 ReactDOMFiber.render 函数。 使用了 ReactFiver 去渲染整个页面，ReactFiber 会将整个更新任务分成若干个小的更新任务，然后设置一些任务默认的优先级。 **每执行完一个小任务之后，会释放主线程。**
+2. React 的新 API unstable_deferredUpdates，指定低优先级更新，这个UI更新会等高优先级的更新完了再去更新
+3. Chrome 新API： 
+  - equestIdleCallback
+  - requestAnimationFrame
+  - requestIdleCallback： 浏览器提供一个API告诉浏览器不忙了，比如不再滚动页面，不再敲击键盘；可以react知道低优先级更新不应该在浏览器忙的时候去操作；
+  React新api支持依赖于浏览器的支持，目前Chrome支持比较好，ie11 ，safari浏览器不支持。
+
+Suspense 解决的问题:
+1. 代码分片
+2. 异步获取数据。 Suspense 在 16.6 的时候已经解决了代码分片的问题，异步获取数据还没有正式发布。
+
+
+
+
 https://juejin.im/post/5b6f1800f265da282d45a79a
+
+http://km.oa.com/group/11800/articles/show/371648?kmref=search&from_page=1&no=1
+
+http://km.oa.com/articles/show/380104?kmref=search&from_page=1&no=2
+http://km.oa.com/group/20807/articles/show/351438?kmref=search&from_page=1&no=3
