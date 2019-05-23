@@ -11,6 +11,8 @@
  * HTML nodeType values that represent the type of the node
  */
 
+// http://www.w3school.com.cn/jsref/prop_node_nodetype.asp
+// 一般 1 3 是比较常见的
 //  元素节点
 export const ELEMENT_NODE = 1;
 // 文本节点

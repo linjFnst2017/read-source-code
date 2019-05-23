@@ -118,9 +118,11 @@ function FiberRootNode(containerInfo, hydrate) {
 }
 
 export function createFiberRoot(
+  // 默认状态下 id = app 的 dom
   containerInfo: any,
-  isConcurrent: boolean,
-  hydrate: boolean,
+  // 并发 or 同步
+  isConcurrent: boolean, // 默认会是 false
+  hydrate: boolean, // 客户端渲染默认应该也是一个 false 
 ): FiberRoot {
   const root: FiberRoot = (new FiberRootNode(containerInfo, hydrate): any);
 
@@ -129,8 +131,9 @@ export function createFiberRoot(
   // 循环结构。这就欺骗了类型系统，因为stateNode是any。
   // 未初始化的 Fiber 结构。值是一个 createFiber 函数，该函数用于创建一个 FiberNode 节点
   const uninitializedFiber = createHostRootFiber(isConcurrent);
+  // current 值是一个 fiber， 即使当前是一个未初始化结构的 fiber。 这个属性是 React 的核心。
   root.current = uninitializedFiber;
-  // TODO:
+  // TODO: 循环指向，后面需要互相引用么？ 静态节点与根节点之间？
   uninitializedFiber.stateNode = root;
 
   return root;

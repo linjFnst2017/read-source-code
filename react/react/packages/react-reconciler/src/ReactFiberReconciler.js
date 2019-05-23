@@ -112,6 +112,7 @@ function getContextForSubtree(
   return parentContext;
 }
 
+// 安排根节点更新
 function scheduleRootUpdate(
   current: Fiber,
   element: ReactNodeList,
@@ -135,10 +136,19 @@ function scheduleRootUpdate(
       );
     }
   }
-
+  // {
+  //   expirationTime: expirationTime,
+  //   tag: UpdateState,
+  //   payload: null,
+  //   callback: null,
+  //   next: null,
+  //   nextEffect: null,
+  // }
+  // return 一个包含上面属性的 update 对象
   const update = createUpdate(expirationTime);
   // Caution: React DevTools currently depends on this property
   // being called "element".
+  // 虚拟dom树放入payload  DevTools 需要这个属性。
   update.payload = { element };
 
   callback = callback === undefined ? null : callback;
@@ -153,22 +163,26 @@ function scheduleRootUpdate(
   }
 
   flushPassiveEffects();
+  // 将这个 update 加入更新队列中
   enqueueUpdate(current, update);
+  // scheduleWork 是执行虚拟DOM（fiber树）的更新。 scheduleWork，requestWork, performWork 是三部曲
   scheduleWork(current, expirationTime);
 
   return expirationTime;
 }
 
+// 根据优先级更新容器 dom
 export function updateContainerAtExpirationTime(
   element: ReactNodeList,
   container: OpaqueRoot,
   parentComponent: ?React$Component<any, any>,
-  // 超时时间
+  // 超时时间， 前面计算出来的优先级
   expirationTime: ExpirationTime,
   callback: ?Function,
 ) {
   // TODO: If this is a nested container, this won't be the root.
-  const current = container.current;
+  // 如果这是一个嵌套容器，那么这个就不是根。
+  const current = container.current; // current 值是一个 Fiber
 
   if (__DEV__) {
     if (ReactFiberInstrumentation.debugTool) {
@@ -182,13 +196,15 @@ export function updateContainerAtExpirationTime(
     }
   }
 
+  // 获取到父容器组件
   const context = getContextForSubtree(parentComponent);
   if (container.context === null) {
+    // TODO:
     container.context = context;
   } else {
     container.pendingContext = context;
   }
-
+  //安排根组件更新
   return scheduleRootUpdate(current, element, expirationTime, callback);
 }
 
@@ -285,14 +301,21 @@ export function createContainer(
 }
 
 export function updateContainer(
+  // 虚拟 dom 对象
   element: ReactNodeList,
+  // fiber root
   container: OpaqueRoot,
+  // null parentComponent 之类的
   parentComponent: ?React$Component<any, any>,
+  // reactWork._onCommit
   callback: ?Function,
 ): ExpirationTime {
+  // createFiberRoot 中创建的fiber对象
   const current = container.current;
   const currentTime = requestCurrentTime();
+  // 计算优先级
   const expirationTime = computeExpirationForFiber(currentTime, current);
+  // 根据优先级更新容器 dom
   return updateContainerAtExpirationTime(
     element,
     container,

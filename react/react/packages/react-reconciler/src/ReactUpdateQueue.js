@@ -84,24 +84,24 @@
 // regardless of priority. Intermediate state may vary according to system
 // resources, but the final state is always the same.
 
-import type {Fiber} from './ReactFiber';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
+import type { Fiber } from './ReactFiber';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
 
-import {NoWork} from './ReactFiberExpirationTime';
+import { NoWork } from './ReactFiberExpirationTime';
 import {
   enterDisallowedContextReadInDEV,
   exitDisallowedContextReadInDEV,
 } from './ReactFiberNewContext';
-import {Callback, ShouldCapture, DidCapture} from 'shared/ReactSideEffectTags';
-import {ClassComponent} from 'shared/ReactWorkTags';
+import { Callback, ShouldCapture, DidCapture } from 'shared/ReactSideEffectTags';
+import { ClassComponent } from 'shared/ReactWorkTags';
 
 import {
   debugRenderPhaseSideEffects,
   debugRenderPhaseSideEffectsForStrictMode,
 } from 'shared/ReactFeatureFlags';
 
-import {StrictMode} from './ReactTypeOfMode';
-import {markRenderEventTime} from './ReactFiberScheduler';
+import { StrictMode } from './ReactTypeOfMode';
+import { markRenderEventTime } from './ReactFiberScheduler';
 
 import invariant from 'shared/invariant';
 import warningWithoutStack from 'shared/warningWithoutStack';
@@ -153,6 +153,7 @@ if (__DEV__) {
     currentlyProcessingQueue = null;
   };
 }
+
 
 export function createUpdateQueue<State>(baseState: State): UpdateQueue<State> {
   const queue: UpdateQueue<State> = {
@@ -218,24 +219,29 @@ function appendUpdateToQueue<State>(
   }
 }
 
+// 更新队列。 核心 update。列队是一个链表
 export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   // Update queues are created lazily.
-  const alternate = fiber.alternate;
+  const alternate = fiber.alternate; // 备份 fiber 
   let queue1;
   let queue2;
   if (alternate === null) {
+    // 如果没有备份 fiber 的话， 就说明当前只有一个 fiber 了
     // There's only one fiber.
-    queue1 = fiber.updateQueue;
+    queue1 = fiber.updateQueue; // fiber 的更新队列（当前 fiber 时间片的更新任务？）
     queue2 = null;
     if (queue1 === null) {
+      // 如果该 fiber 没有更新队列任务的话，就根据 fiber 的 memoizedState 属性创建一个更新队列任务
       queue1 = fiber.updateQueue = createUpdateQueue(fiber.memoizedState);
     }
   } else {
+    // TODO: fiber 和 alternate 之间的差别在哪里？ alternate 是否是 fiber 更新之前的 fiber， 是个旧值 ？
     // There are two owners.
     queue1 = fiber.updateQueue;
     queue2 = alternate.updateQueue;
     if (queue1 === null) {
       if (queue2 === null) {
+        // 两个 fiber 都没有更新任务，都创建
         // Neither fiber has an update queue. Create new ones.
         queue1 = fiber.updateQueue = createUpdateQueue(fiber.memoizedState);
         queue2 = alternate.updateQueue = createUpdateQueue(
@@ -251,6 +257,7 @@ export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
         queue2 = alternate.updateQueue = cloneUpdateQueue(queue1);
       } else {
         // Both owners have an update queue.
+        // ... 也需要一个 else 的么。。
       }
     }
   }
@@ -284,9 +291,9 @@ export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
       warningWithoutStack(
         false,
         'An update (setState, replaceState, or forceUpdate) was scheduled ' +
-          'from inside an update function. Update functions should be pure, ' +
-          'with zero side-effects. Consider using componentDidUpdate or a ' +
-          'callback.',
+        'from inside an update function. Update functions should be pure, ' +
+        'with zero side-effects. Consider using componentDidUpdate or a ' +
+        'callback.',
       );
       didWarnUpdateInsideUpdate = true;
     }
@@ -577,7 +584,7 @@ function callCallback(callback, context) {
   invariant(
     typeof callback === 'function',
     'Invalid argument passed as callback. Expected a function. Instead ' +
-      'received: %s',
+    'received: %s',
     callback,
   );
   callback.call(context);

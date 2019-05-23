@@ -47,11 +47,11 @@ export const POSITIVE_NUMERIC = 6;
 export type PropertyInfo = {|
   +acceptsBooleans: boolean,
   +attributeName: string,
-  +attributeNamespace: string | null,
-  +mustUseProperty: boolean,
-  +propertyName: string,
-  +type: PropertyType,
-  +sanitizeURL: boolean,
+    +attributeNamespace: string | null,
+      +mustUseProperty: boolean,
+        +propertyName: string,
+          +type: PropertyType,
+            +sanitizeURL: boolean,
 |};
 
 /* eslint-disable max-len */

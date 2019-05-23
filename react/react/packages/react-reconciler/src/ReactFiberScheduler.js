@@ -380,7 +380,6 @@ export function scheduleUpdateOnFiber(
 // 任务队列。 函数名也顾名思义：Fiber 上的更新队列
 export const scheduleWork = scheduleUpdateOnFiber;
 
-
 // Schedule Work To Root
 // This is split into a separate function so we can mark a fiber with pending
 // work without treating it as a typical update that originates from an event;
@@ -639,8 +638,10 @@ export function unbatchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
   const prevWorkPhase = workPhase;
   workPhase = LegacyUnbatchedPhase;
   try {
+    // 运行入参函数且返回执行结果
     return fn(a);
   } finally {
+    // 将工作状态设置为一开始的状态
     workPhase = prevWorkPhase;
   }
 }

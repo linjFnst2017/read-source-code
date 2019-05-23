@@ -327,8 +327,10 @@ function ReactWork() {
   this._didCommit = false;
   // TODO: Avoid need to bind by replacing callbacks in the update queue with
   // list of Work objects.
+  // 使用工作对象列表替换更新队列中的回调，以避免绑定
   this._onCommit = this._onCommit.bind(this);
 }
+
 ReactWork.prototype.then = function (onCommit: () => mixed): void {
   if (this._didCommit) {
     onCommit();
@@ -362,20 +364,25 @@ ReactWork.prototype._onCommit = function (): void {
   }
 };
 
+// ReactRoot 根节点的构造函数
 function ReactRoot(
+  // 前面可能需要被清空的根节点
   container: DOMContainer,
   isConcurrent: boolean,
   hydrate: boolean,
 ) {
-  // 创建一个容器，实际去调用 createFiberRoot 函数创建 FiberRoot
+  // 创建一个容器，实际去调用 createFiberRoot 函数创建 FiberRoot， 也就是说这里的 root 是跟 Fiber 有一定联系的
   const root = createContainer(container, isConcurrent, hydrate);
   // TODO: 内部的根
   this._internalRoot = root;
 }
+
+// root 的渲染函数
 ReactRoot.prototype.render = function (
   children: ReactNodeList,
   callback: ?() => mixed,
 ): Work {
+  // 内部的根实例
   const root = this._internalRoot;
   const work = new ReactWork();
   callback = callback === undefined ? null : callback;
@@ -388,6 +395,8 @@ ReactRoot.prototype.render = function (
   updateContainer(children, root, null, work._onCommit);
   return work;
 };
+
+// 销毁组件
 ReactRoot.prototype.unmount = function (callback: ?() => mixed): Work {
   const root = this._internalRoot;
   const work = new ReactWork();
@@ -401,6 +410,7 @@ ReactRoot.prototype.unmount = function (callback: ?() => mixed): Work {
   updateContainer(null, root, null, work._onCommit);
   return work;
 };
+
 ReactRoot.prototype.legacy_renderSubtreeIntoContainer = function (
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
@@ -415,6 +425,8 @@ ReactRoot.prototype.legacy_renderSubtreeIntoContainer = function (
   if (callback !== null) {
     work.then(callback);
   }
+  // children通常表示一个数组，但是现在它泛指各种虚拟DOM了，第二个对象就是刚才提到的普通对象，我们可以称它为根组件，parentComponent为之前的根组件，现在它为null
+  // render 函数和 legacy_renderSubtreeIntoContainer 函数都会执行 updateContainer 函数，唯一的差别在于第三个参数不一样
   updateContainer(children, root, parentComponent, work._onCommit);
   return work;
 };
@@ -483,7 +495,9 @@ function shouldHydrateDueToLegacyHeuristic(container) {
   const rootElement = getReactRootElementInContainer(container);
   return !!(
     rootElement &&
+    // 元素节点
     rootElement.nodeType === ELEMENT_NODE &&
+    // 拥有一个代表是 react root 的 data-* 自定义属性
     rootElement.hasAttribute(ROOT_ATTRIBUTE_NAME)
   );
 }
@@ -496,18 +510,18 @@ setBatchingImplementation(
 
 let warnedAboutHydrateAPI = false;
 
-// 在 dom 容器中创建 root 节点
+// 如果是第一次对这个元素进行渲染，那么它会清空元素的内部，返回一个 new ReactRoot(...)
 function legacyCreateRootFromDOMContainer(
+  // 容器节点
   container: DOMContainer,
-  // 是否复用子节点（强制 ？）
+  // 是否是服务端渲染
   forceHydrate: boolean,
 ): Root {
-  // 是否复用子节点 ？
+  // 通过开发者的传参，以及实际去校验当前的容器节点是否拥有浏览器中根节点的一些属性来判断，是否需要服务器端渲染
   const shouldHydrate =
-    // 启发式 ？
     forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
   // First clear any existing content.
-  // 首先清除所有现有内容
+  // 如果确认是客户端渲染的话，首先清除所有现有内容。
   if (!shouldHydrate) {
     let warned = false;
     let rootSibling;
@@ -527,6 +541,7 @@ function legacyCreateRootFromDOMContainer(
           );
         }
       }
+      // 将根节点清空
       container.removeChild(rootSibling);
     }
   }
@@ -553,7 +568,9 @@ function legacyCreateRootFromDOMContainer(
 function legacyRenderSubtreeIntoContainer(
   // 父组件，非必须。React 组件编译后的代码，调用 ReactDOM.render 函数后，渲染子树是没有父节点的，因为本身才刚开始渲染根组件
   parentComponent: ?React$Component<any, any>,
+  // 需要渲染的内容，称之为 children 子节点
   children: ReactNodeList,
+  // 容器节点，一般可以理解为挂载的节点
   container: DOMContainer,
   // 服务端渲染 forceHydrate = true ， 客户端渲染 forceHydrate = false
   forceHydrate: boolean,
@@ -565,13 +582,13 @@ function legacyRenderSubtreeIntoContainer(
 
   // TODO: Without `any` type, Flow says "Property cannot be accessed on any
   // member of intersection type." Whyyyyyy.
-  // _reactRootContainer 第一次渲染的时候， dom 节点上肯定不存在这个属性。
+  // _reactRootContainer 第一次渲染的时候， dom 节点上肯定不存在这个属性。 
   let root: Root = (container._reactRootContainer: any);
   // 首次渲染逻辑。 
   if (!root) {
     // Initial mount。 在第一次渲染根组件的时候调用的方法比较特殊：
-    // 给父容器的 dom 节点，挂载 _reactRootContainer 属性， 这个属性标志着当前这个 dom 节点是 react 根组件的容器节点
-    // 在 dom 容器中创建 root 节点
+    // 给父容器的 dom 节点，挂载 _reactRootContainer 属性，作为 root 节点 这个属性标志着当前这个 dom 节点是 react 根组件的容器节点
+    // 这个函数会制造一个对象挂载到真实的dom根节点上，有了这个对象，执行该对象上的一些方法可以将虚拟dom变成dom树挂载到根节点上
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       // 第一个调用 render 的时候 forceHydrate 传值为 false
@@ -587,8 +604,7 @@ function legacyRenderSubtreeIntoContainer(
       };
     }
     // Initial mount should not be batched.
-    // 除此挂载不应该被批处理。 因为除此使用，需要尽快完成
-    // 初次挂载不应该批处理，应该尽可能快处理完成
+    // 初次挂载不应该批处理，应该尽可能快处理完成。回调执行了挂载dom结构的方法
     unbatchedUpdates(() => {
       if (parentComponent != null) {
         // 遗留的 API 将来应该会删除
@@ -598,6 +614,7 @@ function legacyRenderSubtreeIntoContainer(
           callback,
         );
       } else {
+        // 根节点挂载 parentComponent === null 直接走这里的逻辑，在 root 上渲染子节点
         root.render(children, callback);
       }
     });
@@ -677,6 +694,7 @@ const ReactDOM: Object = {
     return findHostInstance(componentOrElement);
   },
 
+  // hydrate 描述的是 ReactDOM 复用 ReactDOMServer 服务端渲染的内容时尽可能保留结构，并补充事件绑定等 Client 特有内容的过程。
   hydrate(element: React$Node, container: DOMContainer, callback: ?Function) {
     invariant(
       isValidContainer(container),
@@ -700,6 +718,14 @@ const ReactDOM: Object = {
       true,
       callback,
     );
+    // 最后的结果，会给 container 扩展上一些属性
+    // container = {
+    //   _reactRootContainer: { // legacyCreateRootFromDOMContainer
+    //     _internalRoot: { // DOMRenderer.createContainer
+    //       current: {}  // new FiberNode
+    //     }
+    //   }
+    // }
   },
 
 
@@ -723,6 +749,7 @@ const ReactDOM: Object = {
     container: DOMContainer,
     callback: ?Function,
   ) {
+    // 对container进行校验
     invariant(
       isValidContainer(container),
       'Target container is not a DOM element.',
@@ -736,11 +763,12 @@ const ReactDOM: Object = {
         enableStableConcurrentModeAPIs ? 'createRoot' : 'unstable_createRoot',
       );
     }
-    // 直接翻译是： 将遗留的渲染子树呈现到容器中
+    // 直接翻译是： 将遗留的渲染子树呈现到容器中。 但是实际上的意思是 legacy 表示已将废弃
     return legacyRenderSubtreeIntoContainer(
       null,
       // 原生节点（字符串） 或者 ReactElement 节点
       element,
+      // 挂载的节点，一般会在 root 层通过 getElementById 这种简单的方式去获取 dom
       container,
       // true 时表明了是服务端渲染, false 是客户端渲染
       false,

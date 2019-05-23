@@ -321,7 +321,7 @@ function FiberNode(
 // 5) It should be easy to port this to a C struct and keep a C implementation
 //    compatible.
 const createFiber = function (
-  tag: WorkTag,
+  tag: WorkTag, // createHostRootFiber 中的 tag 值为 3
   pendingProps: mixed,
   key: null | string,
   mode: TypeOfMode,
@@ -435,8 +435,11 @@ export function createWorkInProgress(
   return workInProgress;
 }
 
+// 创建 current (fiber) 属性的函数
 export function createHostRootFiber(isConcurrent: boolean): Fiber {
-  let mode = isConcurrent ? ConcurrentMode | StrictMode : NoContext;
+  // 根据传入的 isConcurrent 值来确定 mode 的值
+  // | 两个位只要有一个为1，那么结果都为1。否则就为0
+  let mode = isConcurrent ? ConcurrentMode | StrictMode : NoContext; // StrictMode: 0b010   NoContext: 0b000
 
   if (enableProfilerTimer && isDevToolsPresent) {
     // Always collect profile timings when DevTools are present.
